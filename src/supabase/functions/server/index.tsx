@@ -26,6 +26,8 @@ app.post("/make-server-24c24932/contact", async (c) => {
     const body = await c.req.json();
     const { fullName, email, purpose, message, projectType, budget, companyName } = body;
 
+    console.log(`Received contact form submission from: ${email} (${fullName})`);
+
     // Validate env variables
     const host = Deno.env.get("SMTP_HOST") || "smtp.gmail.com";
     const port = parseInt(Deno.env.get("SMTP_PORT") || "465");
@@ -33,9 +35,12 @@ app.post("/make-server-24c24932/contact", async (c) => {
     const pass = Deno.env.get("SMTP_PASS");
     const receiver = Deno.env.get("CONTACT_RECEIVER_EMAIL") || "abuzxarrr87@gmail.com";
 
-    if (!user || !pass) {
-      console.error("Missing SMTP credentials");
-      return c.json({ success: false, message: "Server configuration error (SMTP credentials missing)." }, 500);
+    if (!pass) {
+      console.error("Critical Error: SMTP_PASS environment variable is not set.");
+      return c.json({ 
+        success: false, 
+        message: "Server configuration error: SMTP_PASS is missing. Please ensure you have added your Gmail App Password to the project secrets." 
+      }, 500);
     }
 
     const transporter = nodemailer.createTransport({
@@ -61,8 +66,13 @@ Purpose: ${purpose}${conditionalInfo}
 
 Message:
 ${message}
+
+---
+Sent via Abuzar Portfolio System
     `;
 
+    console.log("Attempting to send email via SMTP...");
+    
     await transporter.sendMail({
       from: `"${fullName}" <${user}>`,
       to: receiver,
@@ -71,10 +81,24 @@ ${message}
       replyTo: email,
     });
 
+    console.log("Email sent successfully.");
     return c.json({ success: true });
-  } catch (error) {
-    console.error("Contact Form Error:", error);
-    return c.json({ success: false, message: error.message }, 500);
+  } catch (error: any) {
+    console.error("Detailed Contact Form Error:", error);
+    
+    // Check for common SMTP errors
+    let userMessage = "Failed to send message. Please check server logs.";
+    if (error.code === 'EAUTH') {
+      userMessage = "Authentication failed. Please verify your SMTP_PASS (App Password).";
+    } else if (error.code === 'ESOCKET') {
+      userMessage = "Network error while connecting to the email server.";
+    }
+
+    return c.json({ 
+      success: false, 
+      message: userMessage,
+      errorDetails: error.message 
+    }, 500);
   }
 });
 

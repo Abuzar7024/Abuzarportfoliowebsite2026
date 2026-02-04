@@ -11,9 +11,11 @@ import {
   DollarSign, 
   Layers,
   CheckCircle2,
-  AlertCircle
+  Gamepad2
 } from "lucide-react";
 import { toast } from "sonner@2.0.3";
+import { FlappyGame } from "../components/FlappyGame";
+import { projectId, publicAnonKey } from "../utils/supabase/info";
 
 type InquiryType = "freelance" | "job" | "general";
 
@@ -21,21 +23,55 @@ export const Contact = () => {
   const [loading, setLoading] = useState(false);
   const [inquiryType, setInquiryType] = useState<InquiryType>("general");
   const [success, setSuccess] = useState(false);
+  const [showGame, setShowGame] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      fullName: formData.get("fullName"),
+      email: formData.get("email"),
+      purpose: inquiryType === "general" ? "General inquiry" : inquiryType === "freelance" ? "Freelance project" : "Job opportunity",
+      message: formData.get("message"),
+      projectType: formData.get("projectType") || "",
+      budget: formData.get("budget") || "",
+      companyName: formData.get("companyName") || "",
+    };
+
+    try {
+      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-24c24932/contact`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${publicAnonKey}`
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setSuccess(true);
+        toast.success("Message received by the system!");
+      } else {
+        throw new Error(result.message || "Failed to deliver message.");
+      }
+    } catch (error: any) {
+      console.error("Transmission Error:", error);
+      toast.error(`System Error: ${error.message}`);
+    } finally {
       setLoading(false);
-      setSuccess(true);
-      toast.success("Message received by the system!");
-    }, 2000);
+    }
   };
 
   return (
     <section id="contact" className="py-24 px-4 sm:px-6 max-w-5xl mx-auto overflow-hidden">
+      <AnimatePresence>
+        {showGame && <FlappyGame onClose={() => setShowGame(false)} />}
+      </AnimatePresence>
+
       <motion.div
         variants={staggerContainer}
         initial="initial"
@@ -108,6 +144,7 @@ export const Contact = () => {
                   </label>
                   <input
                     required
+                    name="fullName"
                     type="text"
                     placeholder="E.g. John Doe"
                     className="w-full bg-white/[0.03] border border-white/10 rounded-2xl md:rounded-3xl py-3.5 md:py-4 px-5 md:px-6 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-white/10"
@@ -121,6 +158,7 @@ export const Contact = () => {
                   </label>
                   <input
                     required
+                    name="email"
                     type="email"
                     placeholder="john@example.com"
                     className="w-full bg-white/[0.03] border border-white/10 rounded-2xl md:rounded-3xl py-3.5 md:py-4 px-5 md:px-6 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-white/10"
@@ -142,6 +180,7 @@ export const Contact = () => {
                     </label>
                     <input
                       required
+                      name="companyName"
                       type="text"
                       placeholder="Company Name"
                       className="w-full bg-white/[0.03] border border-white/10 rounded-2xl md:rounded-3xl py-3.5 md:py-4 px-5 md:px-6 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-white/10"
@@ -161,7 +200,7 @@ export const Contact = () => {
                       <label className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-4 flex items-center gap-2">
                         <Layers size={10} className="text-cyan-400" /> Project Scope
                       </label>
-                      <select className="w-full bg-[#050505] border border-white/10 rounded-2xl md:rounded-3xl py-3.5 md:py-4 px-5 md:px-6 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all appearance-none cursor-pointer">
+                      <select name="projectType" className="w-full bg-[#050505] border border-white/10 rounded-2xl md:rounded-3xl py-3.5 md:py-4 px-5 md:px-6 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all appearance-none cursor-pointer">
                         <option value="mobile">Mobile App (Flutter)</option>
                         <option value="web">Web Application</option>
                         <option value="ui">UI/UX Design</option>
@@ -173,6 +212,7 @@ export const Contact = () => {
                         <DollarSign size={10} className="text-cyan-400" /> Estimation
                       </label>
                       <input
+                        name="budget"
                         type="text"
                         placeholder="Budget (e.g. $2k - $5k)"
                         className="w-full bg-white/[0.03] border border-white/10 rounded-2xl md:rounded-3xl py-3.5 md:py-4 px-5 md:px-6 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-white/10"
@@ -189,6 +229,7 @@ export const Contact = () => {
                 </label>
                 <textarea
                   required
+                  name="message"
                   rows={4}
                   placeholder="Tell me more about your requirements..."
                   className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] md:rounded-[2rem] py-3.5 md:py-4 px-5 md:px-6 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all resize-none placeholder:text-white/10"
@@ -229,12 +270,21 @@ export const Contact = () => {
               <p className="text-white/40 max-w-xs mx-auto mb-8 md:mb-10 text-sm md:text-base leading-relaxed font-medium">
                 Your signal has been successfully broadcasted. I will respond to your frequency shortly.
               </p>
-              <button
-                onClick={() => setSuccess(false)}
-                className="px-8 md:px-10 py-3.5 md:py-4 bg-white/5 border border-white/10 text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-white/10 transition-all cursor-pointer active:scale-95"
-              >
-                Broadcast Again
-              </button>
+              
+              <div className="flex flex-col gap-3 w-full max-w-xs mx-auto">
+                <button
+                    onClick={() => setShowGame(true)}
+                    className="w-full py-4 bg-cyan-400 text-black text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-white transition-all cursor-pointer flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(34,211,238,0.3)]"
+                >
+                    <Gamepad2 size={16} /> Play Mini-Game
+                </button>
+                <button
+                    onClick={() => setSuccess(false)}
+                    className="w-full py-4 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-white/10 transition-all cursor-pointer active:scale-95"
+                >
+                    Broadcast Again
+                </button>
+              </div>
             </motion.div>
           )}
         </motion.div>
