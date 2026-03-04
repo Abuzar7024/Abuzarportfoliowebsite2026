@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Loader } from "./components/Loader";
 import { Navbar } from "./components/Navbar";
+import { SiteIcon } from "./components/SiteIcon";
 import { Hero } from "./sections/Hero";
 import { Skills } from "./sections/Skills";
 import { Experience } from "./sections/Experience";
@@ -40,6 +41,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#020202] text-white selection:bg-cyan-500/30 overflow-x-hidden">
+      <SiteIcon />
       <Toaster position="bottom-center" theme="dark" richColors />
       <AnimatePresence>
         {loading && <Loader onComplete={() => setLoading(false)} />}
