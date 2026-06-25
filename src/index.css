@@ -5308,14 +5308,147 @@ html {
 }
 
 .contact-section-header {
-  text-align: center;
   margin-bottom: 2.5rem;
+}
+
+.contact-section-header--split {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  text-align: left;
 }
 
 @media (min-width: 1024px) {
   .contact-section-header {
     margin-bottom: 3rem;
   }
+
+  .contact-section-header--split {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 3rem;
+  }
+}
+
+.contact-header-copy {
+  flex-shrink: 0;
+}
+
+.contact-hub {
+  position: relative;
+  border-radius: 1.25rem;
+  background: linear-gradient(160deg, rgba(6, 182, 212, 0.06) 0%, rgba(0, 0, 0, 0.55) 45%);
+  border: 1px solid rgba(34, 211, 238, 0.15);
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+@media (min-width: 768px) {
+  .contact-hub {
+    border-radius: 1.75rem;
+  }
+}
+
+.contact-hub-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(0, 0, 0, 0.45);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@media (min-width: 768px) {
+  .contact-hub-bar {
+    padding: 0.875rem 1.5rem;
+  }
+}
+
+.contact-hub-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.contact-hub-body {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1024px) {
+  .contact-hub-body {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  }
+}
+
+.contact-hub-form {
+  padding: 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@media (min-width: 1024px) {
+  .contact-hub-form {
+    padding: 1.75rem 2rem;
+    border-bottom: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+  }
+}
+
+.contact-hub-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+@media (min-width: 1024px) {
+  .contact-hub-aside {
+    padding: 1.75rem 1.5rem;
+  }
+}
+
+.contact-hub-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem;
+  padding: 1rem 1.25rem 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+@media (min-width: 640px) {
+  .contact-hub-stats {
+    grid-template-columns: repeat(4, 1fr);
+    padding: 1rem 1.5rem 1.5rem;
+  }
+}
+
+.contact-form-body--flush {
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.contact-status-row--inline {
+  margin: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.contact-terminal--compact {
+  margin-bottom: 0;
+}
+
+.contact-channels--stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .contact-info-shell,
@@ -5455,13 +5588,14 @@ html {
   font-style: italic;
   color: rgba(255, 255, 255, 0.4);
   line-height: 1.65;
-  max-width: 36rem;
-  margin: 0 auto;
+  max-width: 28rem;
+  margin: 0;
 }
 
 @media (min-width: 1024px) {
   .contact-subtitle {
-    margin: 0;
+    text-align: right;
+    padding-bottom: 0.25rem;
   }
 }
 
@@ -6709,4 +6843,428 @@ html {
 .portfolio-reveal-btn--ghost:hover {
   color: #fff;
   background: rgba(255, 255, 255, 0.1);
+}
+
+/* ── Footer signature card ── */
+.signature-section {
+  position: relative;
+  padding: 5rem 1.5rem 8rem;
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: #020202;
+}
+
+.signature-section-glow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(42rem, 90vw);
+  height: 20rem;
+  background: radial-gradient(ellipse at center, rgba(6, 182, 212, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.signature-section-line {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(56rem, 100%);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.45), transparent);
+  pointer-events: none;
+}
+
+.signature-wrap {
+  position: relative;
+  max-width: 56rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.signature-card-outer {
+  position: relative;
+  width: 100%;
+  margin-bottom: 3rem;
+  padding: 1px;
+  border-radius: 2.5rem;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .signature-card-outer {
+    border-radius: 3rem;
+  }
+}
+
+.signature-card-border {
+  position: absolute;
+  inset: -50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(34, 211, 238, 0.9) 60deg,
+    rgba(16, 185, 129, 0.7) 120deg,
+    transparent 180deg,
+    rgba(34, 211, 238, 0.5) 240deg,
+    transparent 360deg
+  );
+  animation: signature-border-spin 8s linear infinite;
+}
+
+@keyframes signature-border-spin {
+  to { transform: rotate(360deg); }
+}
+
+.signature-card {
+  position: relative;
+  border-radius: calc(2.5rem - 1px);
+  background: linear-gradient(145deg, rgba(6, 182, 212, 0.08) 0%, rgba(0, 0, 0, 0.92) 42%, rgba(0, 0, 0, 0.98) 100%);
+  border: 1px solid rgba(34, 211, 238, 0.12);
+  overflow: hidden;
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.55),
+    0 0 60px rgba(6, 182, 212, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+@media (min-width: 768px) {
+  .signature-card {
+    border-radius: calc(3rem - 1px);
+  }
+}
+
+.signature-card-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background-image:
+    linear-gradient(rgba(34, 211, 238, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse at 30% 50%, black 0%, transparent 75%);
+  pointer-events: none;
+}
+
+.signature-corner {
+  position: absolute;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-color: rgba(34, 211, 238, 0.5);
+  border-style: solid;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.signature-corner--tl { top: 1.25rem; left: 1.25rem; border-width: 2px 0 0 2px; }
+.signature-corner--tr { top: 1.25rem; right: 1.25rem; border-width: 2px 2px 0 0; }
+.signature-corner--bl { bottom: 1.25rem; left: 1.25rem; border-width: 0 0 2px 2px; }
+.signature-corner--br { bottom: 1.25rem; right: 1.25rem; border-width: 0 2px 2px 0; }
+
+.signature-card-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .signature-card-inner {
+    flex-direction: row;
+    align-items: center;
+    gap: 3rem;
+    padding: 2.5rem 3rem;
+  }
+}
+
+.signature-photo-block {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.signature-photo-ring {
+  position: absolute;
+  inset: -0.65rem;
+  border-radius: 2.25rem;
+  border: 1px solid rgba(34, 211, 238, 0.25);
+  transform: rotate(6deg);
+  box-shadow: 0 0 40px rgba(6, 182, 212, 0.15);
+  pointer-events: none;
+}
+
+.signature-photo-frame {
+  position: relative;
+  width: 10rem;
+  height: 10rem;
+  border-radius: 1.75rem;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+@media (min-width: 768px) {
+  .signature-photo-frame {
+    width: 14rem;
+    height: 14rem;
+    border-radius: 2rem;
+  }
+}
+
+.signature-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.signature-card-outer:hover .signature-photo {
+  transform: scale(1.06);
+}
+
+.signature-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.75) 100%);
+  pointer-events: none;
+}
+
+.signature-photo-scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(180deg, transparent, rgba(34, 211, 238, 0.12), transparent);
+  animation: signature-scan 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes signature-scan {
+  0%, 100% { top: -40%; opacity: 0; }
+  10% { opacity: 1; }
+  50% { top: 100%; opacity: 1; }
+  60% { opacity: 0; }
+}
+
+.signature-id-badge {
+  position: absolute;
+  bottom: -0.5rem;
+  left: -0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: #22d3ee;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.signature-id-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22d3ee;
+  box-shadow: 0 0 10px #22d3ee;
+  animation: contact-pulse 2s ease-in-out infinite;
+}
+
+.signature-copy {
+  flex: 1;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .signature-copy {
+    text-align: left;
+  }
+}
+
+.signature-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  color: #22d3ee;
+}
+
+.signature-headline {
+  margin: 0 0 1.25rem;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  color: #fff;
+}
+
+.signature-name {
+  display: inline-block;
+  background: linear-gradient(90deg, #22d3ee, #34d399, #22d3ee);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: signature-shimmer 4s linear infinite;
+  filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.35));
+}
+
+@keyframes signature-shimmer {
+  to { background-position: 200% center; }
+}
+
+.signature-tagline {
+  margin: 0;
+  max-width: 22rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  font-style: italic;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+@media (min-width: 768px) {
+  .signature-tagline {
+    margin: 0;
+  }
+}
+
+.signature-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.75rem;
+}
+
+@media (min-width: 768px) {
+  .signature-badges {
+    justify-content: flex-start;
+  }
+}
+
+.signature-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.75rem;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.signature-badge:hover {
+  transform: translateY(-2px);
+}
+
+.signature-badge--react {
+  border-color: rgba(34, 211, 238, 0.25);
+}
+
+.signature-badge--react svg {
+  color: #22d3ee;
+}
+
+.signature-badge--react:hover {
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.2);
+}
+
+.signature-badge--tailwind svg {
+  color: #facc15;
+}
+
+.signature-badge--tailwind:hover {
+  border-color: rgba(250, 204, 21, 0.3);
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.12);
+}
+
+.signature-badge--love svg {
+  color: #f87171;
+}
+
+.signature-badge--love:hover {
+  border-color: rgba(248, 113, 113, 0.3);
+  box-shadow: 0 0 20px rgba(248, 113, 113, 0.12);
+}
+
+.signature-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  width: 100%;
+}
+
+.signature-reboot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: color 0.25s ease;
+}
+
+.signature-reboot:hover {
+  color: #22d3ee;
+}
+
+.signature-reboot svg {
+  transition: transform 0.4s ease;
+}
+
+.signature-reboot:hover svg {
+  transform: translateY(-6px);
+}
+
+.signature-reboot span {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6em;
+}
+
+.signature-copyright {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  font-size: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  color: rgba(255, 255, 255, 0.1);
+}
+
+.signature-copyright-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(34, 211, 238, 0.25);
 }

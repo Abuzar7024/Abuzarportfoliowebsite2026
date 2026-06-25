@@ -162,15 +162,17 @@ export const Contact = () => {
         initial="initial"
         whileInView="animate"
         viewport={{ once: true }}
-        className="contact-section-header"
+        className="contact-section-header contact-section-header--split"
       >
-        <p className="contact-eyebrow">
-          <span className="contact-eyebrow-dot" />
-          Transmissions
-        </p>
-        <h2 className="contact-title">
-          Let's <span className="contact-title-accent">Connect</span>
-        </h2>
+        <div className="contact-header-copy">
+          <p className="contact-eyebrow">
+            <span className="contact-eyebrow-dot" />
+            Transmissions
+          </p>
+          <h2 className="contact-title">
+            Let's <span className="contact-title-accent">Connect</span>
+          </h2>
+        </div>
         <p className="contact-subtitle">
           Open a secure channel for high-performance builds, freelance missions, or
           full-time opportunities.
@@ -182,202 +184,27 @@ export const Contact = () => {
         initial="initial"
         whileInView="animate"
         viewport={{ once: true }}
-        className="contact-columns"
+        className="contact-hub"
       >
-        <motion.div variants={fadeIn} className="contact-info-shell">
-          <div className="contact-form-bar">
+        <div className="contact-hub-bar">
+          <div className="contact-hub-bar-left">
             <span className="contact-form-dot contact-form-dot--red" />
             <span className="contact-form-dot contact-form-dot--yellow" />
             <span className="contact-form-dot contact-form-dot--green" />
-            <span className="contact-form-bar-title">channels.tsx — open links</span>
+            <span className="contact-form-bar-title">transmission_hub.tsx — live</span>
           </div>
-
-          <div className="contact-info-body">
-            <div className="contact-status-row">
-              <span className="contact-status-chip contact-status-chip--live">
-                <Radio size={10} /> online
-              </span>
-              <span className="contact-status-chip">&lt;24h response</span>
-              <span className="contact-status-chip">TLS 1.3</span>
-              <span className="contact-status-chip">
-                {region.currencyCode} · {region.countryCode}
-              </span>
-            </div>
-
-            <div className="contact-terminal">
-              {TERMINAL_LINES.map((line, i) => (
-                <motion.div
-                  key={line.cmd}
-                  className="contact-terminal-line"
-                  initial={{ opacity: 0, x: -8 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.15 + i * 0.12 }}
-                >
-                  <span className="contact-terminal-prompt">$</span>
-                  {line.cmd}
-                  <span className="contact-terminal-out"> → {line.out}</span>
-                </motion.div>
-              ))}
-              <div className="contact-terminal-line">
-                <span className="contact-terminal-prompt">$</span>
-                locale detected: {region.countryName} ({region.currencyCode})
-              </div>
-              <div className="contact-terminal-line">
-                <span className="contact-terminal-prompt">$</span>
-                dial code: {draft.dialCode}
-              </div>
-              <div className="contact-terminal-line">
-                <span className="contact-terminal-prompt">$</span>
-                awaiting input
-                <span className="contact-terminal-cursor" />
-              </div>
-            </div>
-
-            <div className="contact-channels">
-            <a href="mailto:abuzxarrr87@gmail.com" className="contact-channel">
-              <div className="contact-channel-icon">
-                <Mail size={18} />
-              </div>
-              <div className="min-w-0">
-                <p className="contact-channel-label">email://</p>
-                <p className="contact-channel-value">abuzxarrr87@gmail.com</p>
-              </div>
-              <span className="contact-channel-arrow">↗</span>
-            </a>
-
-            <a
-              href={`https://wa.me/${WHATSAPP}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="contact-channel"
-            >
-              <div className="contact-channel-icon">
-                <Briefcase size={18} />
-              </div>
-              <div className="min-w-0">
-                <p className="contact-channel-label">whatsapp://</p>
-                <p className="contact-channel-value">+91 8770206120</p>
-              </div>
-              <span className="contact-channel-arrow">↗</span>
-            </a>
-
-            <button
-              type="button"
-              onClick={() => updateContact({ preferCall: !draft.preferCall })}
-              className={`contact-call-toggle ${draft.preferCall ? "contact-call-toggle--open" : ""}`}
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="contact-channel-icon">
-                  <Phone size={18} />
-                </div>
-                <div>
-                  <p className="contact-channel-label">voice://callback</p>
-                  <p className="contact-channel-value text-sm">Prefer a call — share your number</p>
-                </div>
-              </div>
-              <ChevronDown
-                size={16}
-                className="text-white/30 shrink-0"
-                style={{
-                  transform: draft.preferCall ? "rotate(180deg)" : "none",
-                  transition: "transform 0.3s",
-                }}
-              />
-            </button>
-
-            <AnimatePresence>
-              {draft.preferCall && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden"
-                >
-                  <div className="contact-call-panel">
-                    <p className="contact-call-label">// your_phone_number</p>
-                    <p className="contact-call-region-hint">
-                      Region: {region.countryName} ({region.countryCode}) · default{" "}
-                      {getDialCodeForCountry(region.countryCode)}
-                    </p>
-                    <div className="contact-phone-row">
-                      <select
-                        value={draft.dialCode}
-                        onChange={(e) =>
-                          updateContact({
-                            dialCode: e.target.value,
-                            dialCodeManual: true,
-                          })
-                        }
-                        className="contact-select"
-                      >
-                        {DIAL_CODE_OPTIONS.map((opt) => (
-                          <option key={opt.countryCode} value={opt.dialCode}>
-                            {opt.flag} {opt.dialCode}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        type="tel"
-                        value={draft.phoneNumber}
-                        onChange={(e) =>
-                          updateContact({ phoneNumber: e.target.value.replace(/\D/g, "") })
-                        }
-                        placeholder={getPhonePlaceholder(draft.dialCode)}
-                        maxLength={12}
-                        className="contact-input"
-                      />
-                    </div>
-                    {draft.phoneNumber.length >= 7 && (
-                      <motion.a
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hi Abuzar, my phone number is ${draft.dialCode} ${draft.phoneNumber}. Please call me when available.`)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="contact-wa-btn"
-                      >
-                        <Phone size={12} /> transmit via whatsapp
-                      </motion.a>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            </div>
-
-            <div className="contact-info-stats">
-              <div className="contact-info-stat">
-                <span className="contact-info-stat-label">response</span>
-                <span className="contact-info-stat-value">&lt; 24 hours</span>
-              </div>
-              <div className="contact-info-stat">
-                <span className="contact-info-stat-label">encryption</span>
-                <span className="contact-info-stat-value">TLS 1.3</span>
-              </div>
-              <div className="contact-info-stat">
-                <span className="contact-info-stat-label">region</span>
-                <span className="contact-info-stat-value">{region.countryName}</span>
-              </div>
-              <div className="contact-info-stat">
-                <span className="contact-info-stat-label">currency</span>
-                <span className="contact-info-stat-value">{region.currencyCode}</span>
-              </div>
-            </div>
+          <div className="contact-status-row contact-status-row--inline">
+            <span className="contact-status-chip contact-status-chip--live">
+              <Radio size={10} /> online
+            </span>
+            <span className="contact-status-chip">&lt;24h</span>
+            <span className="contact-status-chip">{region.currencyCode}</span>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div variants={fadeIn} className="contact-form-column">
-          <div className="contact-form-shell">
-            <div className="contact-form-bar">
-              <span className="contact-form-dot contact-form-dot--red" />
-              <span className="contact-form-dot contact-form-dot--yellow" />
-              <span className="contact-form-dot contact-form-dot--green" />
-              <span className="contact-form-bar-title">transmit_form.tsx — open channel</span>
-            </div>
-
-            <div className="contact-form-body">
+        <div className="contact-hub-body">
+          <motion.div variants={fadeIn} className="contact-hub-form">
+            <div className="contact-form-body contact-form-body--flush">
               {!success ? (
                 <form onSubmit={handleSubmit}>
                   <div className="contact-type-grid">
@@ -453,7 +280,7 @@ export const Contact = () => {
                     </label>
                     <textarea
                       required
-                      rows={4}
+                      rows={5}
                       placeholder="// describe your project, timeline, or opportunity..."
                       className="contact-textarea"
                       value={draft.message}
@@ -509,8 +336,172 @@ export const Contact = () => {
                 </motion.div>
               )}
             </div>
+          </motion.div>
+
+          <motion.div variants={fadeIn} className="contact-hub-aside">
+            <div className="contact-terminal contact-terminal--compact">
+              {TERMINAL_LINES.map((line, i) => (
+                <motion.div
+                  key={line.cmd}
+                  className="contact-terminal-line"
+                  initial={{ opacity: 0, x: -8 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.15 + i * 0.12 }}
+                >
+                  <span className="contact-terminal-prompt">$</span>
+                  {line.cmd}
+                  <span className="contact-terminal-out"> → {line.out}</span>
+                </motion.div>
+              ))}
+              <div className="contact-terminal-line">
+                <span className="contact-terminal-prompt">$</span>
+                locale: {region.countryName} ({region.currencyCode})
+              </div>
+              <div className="contact-terminal-line">
+                <span className="contact-terminal-prompt">$</span>
+                dial: {draft.dialCode}
+              </div>
+              <div className="contact-terminal-line">
+                <span className="contact-terminal-prompt">$</span>
+                awaiting input
+                <span className="contact-terminal-cursor" />
+              </div>
+            </div>
+
+            <div className="contact-channels contact-channels--stack">
+              <a href="mailto:abuzxarrr87@gmail.com" className="contact-channel">
+                <div className="contact-channel-icon">
+                  <Mail size={18} />
+                </div>
+                <div className="min-w-0">
+                  <p className="contact-channel-label">email://</p>
+                  <p className="contact-channel-value">abuzxarrr87@gmail.com</p>
+                </div>
+                <span className="contact-channel-arrow">↗</span>
+              </a>
+
+              <a
+                href={`https://wa.me/${WHATSAPP}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="contact-channel"
+              >
+                <div className="contact-channel-icon">
+                  <Briefcase size={18} />
+                </div>
+                <div className="min-w-0">
+                  <p className="contact-channel-label">whatsapp://</p>
+                  <p className="contact-channel-value">+91 8770206120</p>
+                </div>
+                <span className="contact-channel-arrow">↗</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => updateContact({ preferCall: !draft.preferCall })}
+                className={`contact-call-toggle ${draft.preferCall ? "contact-call-toggle--open" : ""}`}
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="contact-channel-icon">
+                    <Phone size={18} />
+                  </div>
+                  <div>
+                    <p className="contact-channel-label">voice://callback</p>
+                    <p className="contact-channel-value text-sm">Prefer a call — share your number</p>
+                  </div>
+                </div>
+                <ChevronDown
+                  size={16}
+                  className="text-white/30 shrink-0"
+                  style={{
+                    transform: draft.preferCall ? "rotate(180deg)" : "none",
+                    transition: "transform 0.3s",
+                  }}
+                />
+              </button>
+
+              <AnimatePresence>
+                {draft.preferCall && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="contact-call-panel">
+                      <p className="contact-call-label">// your_phone_number</p>
+                      <p className="contact-call-region-hint">
+                        Region: {region.countryName} ({region.countryCode}) · default{" "}
+                        {getDialCodeForCountry(region.countryCode)}
+                      </p>
+                      <div className="contact-phone-row">
+                        <select
+                          value={draft.dialCode}
+                          onChange={(e) =>
+                            updateContact({
+                              dialCode: e.target.value,
+                              dialCodeManual: true,
+                            })
+                          }
+                          className="contact-select"
+                        >
+                          {DIAL_CODE_OPTIONS.map((opt) => (
+                            <option key={opt.countryCode} value={opt.dialCode}>
+                              {opt.flag} {opt.dialCode}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          type="tel"
+                          value={draft.phoneNumber}
+                          onChange={(e) =>
+                            updateContact({ phoneNumber: e.target.value.replace(/\D/g, "") })
+                          }
+                          placeholder={getPhonePlaceholder(draft.dialCode)}
+                          maxLength={12}
+                          className="contact-input"
+                        />
+                      </div>
+                      {draft.phoneNumber.length >= 7 && (
+                        <motion.a
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hi Abuzar, my phone number is ${draft.dialCode} ${draft.phoneNumber}. Please call me when available.`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="contact-wa-btn"
+                        >
+                          <Phone size={12} /> transmit via whatsapp
+                        </motion.a>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        </div>
+
+        <div className="contact-hub-stats">
+          <div className="contact-info-stat">
+            <span className="contact-info-stat-label">response</span>
+            <span className="contact-info-stat-value">&lt; 24 hours</span>
           </div>
-        </motion.div>
+          <div className="contact-info-stat">
+            <span className="contact-info-stat-label">encryption</span>
+            <span className="contact-info-stat-value">TLS 1.3</span>
+          </div>
+          <div className="contact-info-stat">
+            <span className="contact-info-stat-label">region</span>
+            <span className="contact-info-stat-value">{region.countryName}</span>
+          </div>
+          <div className="contact-info-stat">
+            <span className="contact-info-stat-label">currency</span>
+            <span className="contact-info-stat-value">{region.currencyCode}</span>
+          </div>
+        </div>
       </motion.div>
     </section>
   );
