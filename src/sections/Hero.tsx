@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "motion/react";
 import { fadeIn, staggerContainer } from "../lib/motion-variants";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import { Github, Linkedin, Mail, Smartphone, ArrowDown } from "lucide-react";
+import { Github, Linkedin, Mail, ArrowDown } from "lucide-react";
 
 export const Hero = () => {
   return (
@@ -52,10 +52,7 @@ export const Hero = () => {
         animate="animate"
         className="relative z-10 text-center max-w-5xl"
       >
-        <motion.div variants={fadeIn} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-950/30 border border-cyan-500/30 mb-12 backdrop-blur-2xl shadow-[0_0_30px_rgba(6,182,212,0.1)]">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_#22d3ee]" />
-          <span className="text-[10px] md:text-[11px] uppercase tracking-[0.4em] font-black text-cyan-400 font-mono">System Protocol v4.0 Active</span>
-        </motion.div>
+
 
         {/* Impact Name Branding */}
         <motion.div variants={fadeIn} className="relative mb-10 group px-4">
@@ -69,34 +66,61 @@ export const Hero = () => {
 
         <motion.p 
           variants={fadeIn}
-          className="text-lg sm:text-2xl md:text-3xl text-white/90 mb-8 max-w-3xl mx-auto font-black px-4 uppercase tracking-[0.2em] italic flex items-center justify-center gap-2 flex-wrap"
+          className="text-sm sm:text-lg md:text-xl text-white/95 mb-8 max-w-4xl mx-auto font-black px-4 uppercase tracking-[0.15em] flex items-center justify-center gap-2 flex-wrap"
         >
-          Flutter <span className="text-cyan-400 opacity-50">/</span> Front-End <span className="text-emerald-400 opacity-50">/</span> UI Designer
+          Flutter Developer <span className="text-cyan-400 opacity-50">|</span> AI-Powered Mobile Apps <span className="text-emerald-400 opacity-50">|</span> Computer Vision <span className="text-cyan-400 opacity-50">|</span> Firebase <span className="text-emerald-400 opacity-50">|</span> REST APIs
         </motion.p>
         
         <motion.p 
           variants={fadeIn}
-          className="text-[12px] sm:text-base md:text-lg text-white/30 mb-16 max-w-2xl mx-auto italic px-6 leading-relaxed font-medium"
+          className="text-[13px] sm:text-base md:text-lg text-white/40 mb-16 max-w-3xl mx-auto px-6 leading-relaxed font-medium"
         >
-          “Transforming conceptual architecture into high-performance digital reality. Expert in building stable, scalable, and visually stunning applications.”
+          I build high-performance Flutter applications that integrate Artificial Intelligence, Computer Vision, Camera Processing, and Cloud APIs to solve real-world retail and fashion problems. I enjoy turning complex AI workflows into seamless mobile experiences.
         </motion.p>
 
-        <motion.div variants={fadeIn} className="flex flex-col sm:flex-row items-center justify-center gap-5 px-6">
-          <button 
+        <motion.div
+          variants={fadeIn}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-lg mx-auto px-6 sm:px-0"
+        >
+          {/* Primary — View Projects */}
+          <button
             onClick={() => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })}
-            className="w-full sm:w-auto px-16 py-6 bg-white text-black text-[10px] font-black uppercase tracking-[0.4em] rounded-full hover:bg-cyan-400 transition-all cursor-pointer shadow-[0_20px_50px_rgba(255,255,255,0.1)] active:scale-95 flex items-center justify-center gap-3 group"
+            className="
+              w-full sm:flex-1
+              inline-flex items-center justify-center gap-2
+              px-8 py-4
+              bg-white text-black
+              text-[11px] font-black uppercase tracking-[0.3em]
+              rounded-full
+              hover:bg-cyan-400 hover:text-black
+              transition-all duration-200
+              active:scale-95 cursor-pointer
+              group
+            "
           >
-            Explore Work
-            <ArrowDown size={14} className="group-hover:translate-y-1 transition-transform animate-bounce" />
+            View Projects
+            <ArrowDown size={13} className="group-hover:translate-y-0.5 transition-transform" />
           </button>
-          <button 
-            onClick={() => window.open('https://wa.me/918770206120')}
-            className="w-full sm:w-auto px-16 py-6 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.4em] rounded-full hover:bg-white/10 transition-all flex items-center justify-center gap-3 cursor-pointer backdrop-blur-md active:scale-95"
+
+          {/* Secondary — Contact Me */}
+          <button
+            onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+            className="
+              w-full sm:flex-1
+              inline-flex items-center justify-center gap-2
+              px-8 py-4
+              bg-white/[0.06] border border-white/20 text-white
+              text-[11px] font-black uppercase tracking-[0.3em]
+              rounded-full backdrop-blur-sm
+              hover:border-cyan-500/60 hover:text-cyan-400 hover:bg-white/10
+              transition-all duration-200
+              active:scale-95 cursor-pointer
+            "
           >
-            <Smartphone size={16} className="text-cyan-400" />
             Contact Me
           </button>
         </motion.div>
+
 
         <motion.div variants={fadeIn} className="mt-24 flex items-center justify-center gap-14">
           <a href="https://github.com/Abuzar7024" target="_blank" rel="noopener noreferrer" className="text-white/20 hover:text-white transition-all transform hover:scale-125 hover:-translate-y-1"><Github size={28} /></a>

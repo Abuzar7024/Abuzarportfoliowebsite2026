@@ -70,8 +70,8 @@
 
 @layer theme {
   :root, :host {
-    --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --font-sans: 'Inter', 'Space Grotesk', ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --font-mono: 'Space Grotesk', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     --color-red-400: oklch(.704 .191 22.216);
     --color-red-500: oklch(.637 .237 25.331);
     --color-yellow-400: oklch(.852 .199 91.936);
@@ -4230,4 +4230,509 @@ html {
     animation-timing-function: cubic-bezier(0, 0, .2, 1);
     transform: none;
   }
+}
+
+/* ─── Service Request Modal — Clean Futuristic ──────────────────────────── */
+.service-modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .service-modal-root {
+    align-items: center;
+    padding: 1.5rem;
+  }
+}
+
+.service-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.service-modal-panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 32rem;
+  max-height: 92dvh;
+  overflow: hidden;
+  background: #0a0a0c;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.5rem 1.5rem 0 0;
+}
+
+@media (min-width: 640px) {
+  .service-modal-panel {
+    border-radius: 1.5rem;
+    max-height: 90vh;
+  }
+}
+
+.service-modal-header {
+  flex-shrink: 0;
+  padding: 1.25rem 1.25rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (min-width: 640px) {
+  .service-modal-header {
+    padding: 1.5rem 1.5rem 1.25rem;
+  }
+}
+
+.service-modal-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.service-modal-header-info {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  min-width: 0;
+}
+
+.service-modal-icon {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.service-modal-icon--lg {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  margin: 0 auto;
+}
+
+.service-modal-eyebrow {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.2rem;
+}
+
+.service-modal-title {
+  font-size: 1rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.25;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+.service-modal-progress {
+  margin-top: 1rem;
+  height: 3px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.service-modal-progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
+
+.service-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1.25rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 640px) {
+  .service-modal-body {
+    padding: 1.5rem;
+  }
+}
+
+.service-modal-hint {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.55;
+  margin-bottom: 1.25rem;
+}
+
+.service-modal-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.service-modal-field-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.service-modal-field {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  font-size: 16px;
+  color: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+@media (min-width: 640px) {
+  .service-modal-field {
+    font-size: 0.875rem;
+  }
+}
+
+.service-modal-field:focus {
+  outline: none;
+  border-color: rgba(34, 211, 238, 0.5);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
+}
+
+.service-modal-field::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.service-modal-char-count {
+  text-align: right;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.3);
+  margin-top: 0.35rem;
+}
+
+.service-modal-close {
+  flex-shrink: 0;
+  padding: 0.5rem;
+  border-radius: 0.625rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.service-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.service-modal-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.service-modal-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.service-modal-chip:active {
+  transform: scale(0.97);
+}
+
+.service-modal-chip--active {
+  color: #fff !important;
+  border-color: transparent !important;
+}
+
+.service-modal-chip--budget {
+  padding: 0.75rem 0.5rem;
+  border-radius: 0.75rem;
+  text-align: center;
+}
+
+.service-modal-chip--timeline {
+  padding: 0.625rem 1rem;
+  border-radius: 9999px;
+}
+
+.service-modal-label {
+  font-size: 9px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.45rem;
+}
+
+.service-modal-optional {
+  color: rgba(255, 255, 255, 0.25);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.service-modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 1.25rem;
+  margin-top: 0.25rem;
+}
+
+.service-modal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.service-modal-btn--primary {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.service-modal-btn--primary:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+
+.service-modal-btn--primary:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.service-modal-btn--ghost {
+  color: rgba(255, 255, 255, 0.55);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.service-modal-btn--ghost:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.service-modal-spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.service-modal-success {
+  text-align: center;
+  padding: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.service-modal-success-title {
+  font-size: 1.125rem;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 0.35rem;
+}
+
+.service-modal-success-text {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.6;
+}
+
+/* ─── Service Cards ─────────────────────────────────────────────────────── */
+.service-card {
+  position: relative;
+  height: 100%;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  cursor: pointer;
+  background: #0a0a0c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.service-card-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+.service-card:hover .service-card-accent {
+  opacity: 1;
+}
+
+.service-card-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  transition: opacity 0.3s;
+}
+
+.service-card:hover .service-card-glow {
+  opacity: 0.75;
+}
+
+.service-card-inner {
+  position: relative;
+  z-index: 1;
+  padding: 1.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 640px) {
+  .service-card-inner {
+    padding: 1.75rem;
+  }
+}
+
+.service-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.service-card-icon {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.service-card:hover .service-card-icon {
+  transform: scale(1.06);
+}
+
+.service-card-num {
+  font-size: 10px;
+  font-weight: 900;
+  font-family: ui-monospace, monospace;
+  color: rgba(255, 255, 255, 0.25);
+  padding: 0.25rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.5rem;
+}
+
+.service-card-title {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 0.35rem;
+}
+
+.service-card-subtitle {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-bottom: 0.875rem;
+}
+
+.service-card-desc {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.48);
+  line-height: 1.65;
+  flex: 1;
+  margin-bottom: 1.25rem;
+  transition: color 0.3s;
+}
+
+.service-card:hover .service-card-desc {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.service-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-bottom: 1.25rem;
+}
+
+.service-card-tag {
+  padding: 0.3rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s;
+}
+
+.service-card:hover .service-card-tag {
+  color: rgba(255, 255, 255, 0.75);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.service-card-cta {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border-radius: 0.875rem;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: transform 0.2s, filter 0.2s;
+}
+
+.service-card-cta:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+}
+
+.service-card-cta:active {
+  transform: scale(0.98);
 }

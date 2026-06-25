@@ -23,7 +23,7 @@ const Logo = () => (
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const navItems = ["Home", "Skills", "Experience", "Projects", "Contact"];
+  const navItems = ["Home", "About", "Skills", "Experience", "Projects", "Contact"];
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id.toLowerCase());

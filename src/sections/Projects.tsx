@@ -10,13 +10,15 @@ import {
   Play,
   Apple,
   ExternalLink,
-  Info
+  Info,
+  Github
 } from "lucide-react";
 
 interface ProjectLinks {
   website?: string | null;
   playstore?: string | null;
   appstore?: string | null;
+  github?: string | null;
 }
 
 interface Project {
@@ -27,12 +29,101 @@ interface Project {
   image: string;
   description: string;
   details: string[];
+  tech: string[];
   links: ProjectLinks;
   color: string;
   accent: string;
 }
 
 const projects: Project[] = [
+  {
+    id: "ai-kiosk",
+    title: "AI Retail Try-On Kiosk",
+    category: "AI & Retail",
+    role: "Flutter Developer",
+    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.0.0&q=80&w=1080",
+    description: "An AI-powered retail kiosk application designed for shopping malls that allows customers to explore fashion collections, capture their photo, and virtually try on outfits available in the store's SKU inventory.",
+    details: [
+      "AI Virtual Try-On",
+      "Live Camera Capture",
+      "Fashion Recommendations",
+      "Product SKU Integration",
+      "Interactive Kiosk Experience",
+      "Session Management",
+      "Image Upload Pipeline",
+      "AI Image Processing",
+      "Responsive Tablet UI",
+      "Shopping Cart Integration"
+    ],
+    tech: ["Flutter", "Riverpod", "REST APIs", "Firebase", "Computer Vision", "Camera", "Image Processing"],
+    links: { 
+      website: null, 
+      playstore: null, 
+      appstore: null,
+      github: null
+    },
+    color: "bg-cyan-500/5",
+    accent: "text-cyan-400"
+  },
+  {
+    id: "essonify",
+    title: "Essonify",
+    category: "AI Fashion Platform",
+    role: "Flutter Developer",
+    image: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.0.0&q=80&w=1080",
+    description: "Worked on a production AI-powered fashion platform that helps users discover personalized outfits, create AI-generated style moments, interact with a fashion community, and purchase recommended products.",
+    details: [
+      "API Integration",
+      "AI Outfit Generation Flow",
+      "Shopping Bag & Checkout",
+      "Collections Management",
+      "Calendar Integration",
+      "Subscription System",
+      "Payment Integration (Stripe)",
+      "Pagination & Infinite Scroll",
+      "Profile Features & Settings",
+      "Bug Fixes & Refactoring",
+      "Performance Optimization",
+      "State Management (Provider)"
+    ],
+    tech: ["Flutter", "Provider", "REST APIs", "Firebase", "Stripe", "AI Recommendation"],
+    links: { 
+      website: "https://www.essonify.com/features", 
+      playstore: null, 
+      appstore: null,
+      github: null
+    },
+    color: "bg-rose-500/5",
+    accent: "text-rose-400"
+  },
+  {
+    id: "face-detection",
+    title: "AI Face Analysis",
+    category: "Computer Vision",
+    role: "Flutter Developer",
+    image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.0.0&q=80&w=1080",
+    description: "Developed a Flutter application capable of real-time facial analysis using AI models. The application captures facial vectors and attributes using the device camera and communicates with AI services for real-time inference.",
+    details: [
+      "Live Face Detection & Attribute Tracking",
+      "Age Prediction Model Integration",
+      "Gender Prediction Inference",
+      "Skin Tone Detection Algorithms",
+      "Face Embedding Generation & Verification",
+      "Face Vector Extraction & Storage",
+      "Camera Frame Processing Pipeline",
+      "AI API Integration & Latency Tuning",
+      "High-Speed Real-time Image Processing"
+    ],
+    tech: ["Flutter", "Camera", "Image Processing", "AI APIs", "REST APIs"],
+    links: { 
+      website: null, 
+      playstore: null, 
+      appstore: null,
+      github: null
+    },
+    color: "bg-emerald-500/5",
+    accent: "text-emerald-400"
+  },
   {
     id: "tajneed",
     title: "Tajneed",
@@ -47,10 +138,12 @@ const projects: Project[] = [
       "Implemented token refresh and session expiry handling for secure authentication.",
       "Optimized loading times by restructuring API calls and improving data flow."
     ],
+    tech: ["Flutter", "GetX", "REST APIs", "JSON", "Security Tokens"],
     links: { 
       website: "https://www.tajneed.gov.ae/", 
       playstore: "https://play.google.com/store/apps/details?id=ae.mod.tajneed&pcampaignid=web_share", 
-      appstore: "https://apps.apple.com/ae/app/tajneed/id6517355120" 
+      appstore: "https://apps.apple.com/ae/app/tajneed/id6517355120",
+      github: null
     },
     color: "bg-blue-500/5",
     accent: "text-blue-400"
@@ -69,10 +162,12 @@ const projects: Project[] = [
       "Implemented a personalized notification system for service updates.",
       "Streamlined the booking flow to ensure user-friendly access to household services."
     ],
+    tech: ["Flutter", "GetX", "Google Maps API", "REST APIs", "Firebase"],
     links: { 
       website: "https://sadeeq.beserved.net/#/", 
       playstore: "https://play.google.com/store/apps/details?id=com.user.sadeeq&pcampaignid=web_share", 
-      appstore: null 
+      appstore: null,
+      github: null
     },
     color: "bg-yellow-500/5",
     accent: "text-yellow-400"
@@ -90,10 +185,12 @@ const projects: Project[] = [
       "Developed a real-time chat system for provider-customer communication.",
       "Optimized background location services for provider tracking."
     ],
+    tech: ["Flutter", "GetX", "REST APIs", "Google Maps API", "Firebase"],
     links: { 
       website: "https://sadeeq.beserved.net/#/", 
       playstore: "https://play.google.com/store/apps/details?id=ae.sadeeq.provider&pcampaignid=web_share", 
-      appstore: null 
+      appstore: null,
+      github: null
     },
     color: "bg-purple-500/5",
     accent: "text-purple-400"
@@ -112,10 +209,12 @@ const projects: Project[] = [
       "Implemented intelligent caching for faster data fetching.",
       "Integrated FCM notification issues for background and killed-state behavior."
     ],
+    tech: ["Flutter", "Provider", "REST APIs", "Firebase", "FCM"],
     links: { 
       website: null, 
       playstore: "https://play.google.com/store/apps/details?id=com.app.riayah&pcampaignid=web_share", 
-      appstore: null 
+      appstore: null,
+      github: null
     },
     color: "bg-green-500/5",
     accent: "text-green-400"
@@ -165,7 +264,7 @@ export const Projects = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1 }}
             viewport={{ once: true }}
-            className={`group relative flex flex-col bg-[#050505] border border-white/10 rounded-[2rem] md:rounded-[4rem] overflow-hidden hover:border-cyan-500/30 transition-all duration-500`}
+            className={`group relative flex flex-col bg-[#050505]/80 backdrop-blur-md border border-white/10 rounded-[2rem] md:rounded-[4rem] overflow-hidden hover:border-cyan-500/30 hover:shadow-[0_0_40px_rgba(6,182,212,0.15)] transition-all duration-500`}
           >
             {/* Project Image Preview */}
             <div className="relative h-64 md:h-80 overflow-hidden">
@@ -193,23 +292,58 @@ export const Projects = () => {
             </div>
 
             {/* Project Description Brief */}
-            <div className="p-6 md:p-10 pt-4 flex-1">
-              <p className="text-white/40 text-[11px] md:text-sm italic leading-relaxed line-clamp-2 mb-8">
-                {project.description}
-              </p>
+            <div className="p-6 md:p-10 pt-4 flex-1 flex flex-col justify-between">
+              <div>
+                <p className="text-white/45 text-[11px] md:text-sm italic leading-relaxed line-clamp-3 mb-6">
+                  {project.description}
+                </p>
+                
+                {/* Tech Stack Tags */}
+                <div className="flex flex-wrap gap-1.5 mb-6">
+                  {project.tech.map((t, techIdx) => (
+                    <span 
+                      key={techIdx} 
+                      className="px-2.5 py-1 bg-white/[0.03] border border-white/5 rounded-md text-[8px] md:text-[9px] font-black uppercase text-cyan-400/90 font-mono tracking-wider"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
               
               <div className="flex items-center justify-between pt-6 border-t border-white/5">
                 <div className="flex flex-col">
                     <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Responsibility</span>
                     <span className="text-[10px] md:text-xs font-bold text-white/60 italic">{project.role}</span>
                 </div>
-                <button 
-                  onClick={() => setSelectedProject(project)}
-                  className="group/btn flex items-center gap-2 px-5 md:px-6 py-2.5 md:py-3 bg-white text-black text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-cyan-400 transition-all cursor-pointer shadow-xl active:scale-95"
-                >
-                  Analyze
-                  <ExternalLink size={12} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-                </button>
+                
+                <div className="flex items-center gap-2">
+                  {project.links.website && (
+                    <button
+                      onClick={() => handleLinkClick(project.links.website, "Website")}
+                      className="p-2.5 bg-white/5 border border-white/10 rounded-xl text-white/60 hover:text-cyan-400 hover:border-cyan-500/30 transition-all cursor-pointer"
+                      title="Live Website"
+                    >
+                      <Globe size={14} />
+                    </button>
+                  )}
+                  {project.links.github && (
+                    <button
+                      onClick={() => handleLinkClick(project.links.github, "GitHub")}
+                      className="p-2.5 bg-white/5 border border-white/10 rounded-xl text-white/60 hover:text-cyan-400 hover:border-cyan-500/30 transition-all cursor-pointer"
+                      title="GitHub Repository"
+                    >
+                      <Github size={14} />
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => setSelectedProject(project)}
+                    className="group/btn flex items-center gap-2 px-4 py-2.5 bg-white text-black text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-cyan-400 transition-all cursor-pointer shadow-xl active:scale-95 animate-none"
+                  >
+                    Analyze
+                    <ExternalLink size={12} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -310,7 +444,18 @@ export const Projects = () => {
                       >
                         <Globe size={16} /> Live Website
                       </button>
-                    ) || (
+                    )}
+                    
+                    {selectedProject.links.github && (
+                      <button 
+                        onClick={() => handleLinkClick(selectedProject.links.github, "GitHub")}
+                        className="flex items-center justify-center gap-3 w-full py-4 md:py-6 bg-white/5 border border-white/10 rounded-2xl md:rounded-[2.5rem] text-[9px] md:text-[11px] font-black uppercase tracking-widest text-white/60 hover:text-white hover:bg-white/10 transition-all active:scale-95 cursor-pointer"
+                      >
+                        <Github size={16} /> GitHub Repository
+                      </button>
+                    )}
+
+                    {!selectedProject.links.website && !selectedProject.links.github && (
                       <div className="w-full py-4 md:py-6 text-center text-[8px] font-black uppercase tracking-[0.4em] text-white/10 border border-white/[0.02] rounded-3xl">
                         Website_Endpoint_Offline
                       </div>

@@ -4,9 +4,12 @@ import { Loader } from "./components/Loader";
 import { Navbar } from "./components/Navbar";
 import { SiteIcon } from "./components/SiteIcon";
 import { Hero } from "./sections/Hero";
+import { About } from "./sections/About";
 import { Skills } from "./sections/Skills";
+import { WorkingOn } from "./sections/WorkingOn";
 import { Experience } from "./sections/Experience";
 import { Projects } from "./sections/Projects";
+import { Services } from "./sections/Services";
 import { Education } from "./sections/Education";
 import { Contact } from "./sections/Contact";
 import { FooterSignature } from "./components/FooterSignature";
@@ -66,9 +69,12 @@ export default function App() {
                  style={{ backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`, backgroundSize: '40px 40px' }} />
             
             <Hero />
+            <About />
             <Skills />
+            <WorkingOn />
             <Experience />
             <Projects />
+            <Services />
             <Education />
             <Contact />
             <FooterSignature />

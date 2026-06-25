@@ -11,56 +11,93 @@ import {
   DollarSign, 
   Layers,
   CheckCircle2,
-  Gamepad2
+  Gamepad2,
+  Phone,
+  ChevronDown
 } from "lucide-react";
 import { toast } from "sonner@2.0.3";
 import { FlappyGame } from "../components/FlappyGame";
-import { projectId, publicAnonKey } from "../utils/supabase/info";
+import emailjs from "@emailjs/browser";
 
 type InquiryType = "freelance" | "job" | "general";
+
+const WHATSAPP = "918770206120";
 
 export const Contact = () => {
   const [loading, setLoading] = useState(false);
   const [inquiryType, setInquiryType] = useState<InquiryType>("general");
   const [success, setSuccess] = useState(false);
   const [showGame, setShowGame] = useState(false);
+  const [preferCall, setPreferCall] = useState(false);
+  const [countryCode, setCountryCode] = useState("+91");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     
     const formData = new FormData(e.currentTarget);
-    const data = {
-      fullName: formData.get("fullName"),
-      email: formData.get("email"),
+    const rawData = {
+      fullName: formData.get("fullName") as string,
+      email: formData.get("email") as string,
       purpose: inquiryType === "general" ? "General inquiry" : inquiryType === "freelance" ? "Freelance project" : "Job opportunity",
-      message: formData.get("message"),
-      projectType: formData.get("projectType") || "",
-      budget: formData.get("budget") || "",
-      companyName: formData.get("companyName") || "",
+      message: formData.get("message") as string,
+      projectType: (formData.get("projectType") || "N/A") as string,
+      budget: (formData.get("budget") || "N/A") as string,
+      companyName: (formData.get("companyName") || "N/A") as string,
     };
 
-    try {
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-24c24932/contact`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${publicAnonKey}`
-        },
-        body: JSON.stringify(data),
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+    if (!serviceId || !templateId || !publicKey) {
+      const errorMsg = "EmailJS configuration is missing in environment variables. Please check your .env.local file.";
+      console.error(errorMsg, { serviceId, templateId, publicKey });
+      toast.error(errorMsg, {
+        duration: 5000,
+        className: "bg-[#0a0a0a] border border-white/10 text-white rounded-2xl",
       });
+      setLoading(false);
+      return;
+    }
 
-      const result = await response.json();
+    try {
+      // Maps fields to match typical EmailJS template parameters:
+      // {{from_name}}, {{from_email}}, {{subject}}, {{message}}, {{project_type}}, {{budget}}, {{company_name}}
+      const templateParams = {
+        from_name: rawData.fullName,
+        from_email: rawData.email,
+        subject: `[Portfolio Connection] ${rawData.purpose} - ${rawData.fullName}`,
+        purpose: rawData.purpose,
+        message: rawData.message,
+        project_type: rawData.projectType,
+        budget: rawData.budget,
+        company_name: rawData.companyName,
+      };
 
-      if (response.ok && result.success) {
+      console.log("Sending email via EmailJS...", templateParams);
+
+      const result = await emailjs.send(
+        serviceId,
+        templateId,
+        templateParams,
+        publicKey
+      );
+
+      if (result.status === 200) {
         setSuccess(true);
-        toast.success("Message received by the system!");
+        toast.success("Transmission successfully received!", {
+          className: "bg-[#0a0a0a] border border-white/10 text-white rounded-2xl",
+        });
       } else {
-        throw new Error(result.message || "Failed to deliver message.");
+        throw new Error(`EmailJS responded with status: ${result.status}`);
       }
     } catch (error: any) {
-      console.error("Transmission Error:", error);
-      toast.error(`System Error: ${error.message}`);
+      console.error("EmailJS Transmission Error:", error);
+      toast.error(`Transmission Error: ${error.message || "Failed to broadcast signal"}`, {
+        className: "bg-[#0a0a0a] border border-white/10 text-white rounded-2xl",
+      });
     } finally {
       setLoading(false);
     }
@@ -92,16 +129,18 @@ export const Contact = () => {
           </motion.div>
 
           <motion.div variants={fadeIn} className="space-y-3 md:space-y-4 max-w-sm mx-auto lg:mx-0">
+            {/* Email */}
             <div className="flex items-center gap-4 p-4 md:p-5 bg-white/[0.02] border border-white/5 rounded-2xl md:rounded-3xl group hover:border-cyan-500/30 transition-all text-left">
               <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-xl md:rounded-2xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
                 <Mail size={18} />
               </div>
               <div className="min-w-0">
-                <p className="text-[8px] md:text-[10px] font-black text-white/20 uppercase tracking-widest">Email Endpoint</p>
+                <p className="text-[8px] md:text-[10px] font-black text-white/20 uppercase tracking-widest">Email</p>
                 <p className="text-white/80 font-bold text-xs md:text-base truncate">abuzxarrr87@gmail.com</p>
               </div>
             </div>
-            
+
+            {/* WhatsApp */}
             <div className="flex items-center gap-4 p-4 md:p-5 bg-white/[0.02] border border-white/5 rounded-2xl md:rounded-3xl group hover:border-emerald-500/30 transition-all text-left">
               <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-xl md:rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
                 <Briefcase size={18} />
@@ -111,7 +150,86 @@ export const Contact = () => {
                 <p className="text-white/80 font-bold text-xs md:text-base truncate">+91 8770206120</p>
               </div>
             </div>
+
+            {/* Prefer a Call toggle */}
+            <button
+              type="button"
+              onClick={() => setPreferCall(!preferCall)}
+              className="w-full flex items-center justify-between gap-4 p-4 md:p-5 bg-white/[0.02] border border-white/5 rounded-2xl md:rounded-3xl hover:border-violet-500/30 transition-all text-left group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-xl md:rounded-2xl bg-violet-500/10 flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform">
+                  <Phone size={18} />
+                </div>
+                <div>
+                  <p className="text-[8px] md:text-[10px] font-black text-white/20 uppercase tracking-widest">Prefer a Call?</p>
+                  <p className="text-white/70 font-bold text-xs md:text-sm">I prefer a call — share your number</p>
+                </div>
+              </div>
+              <ChevronDown
+                size={16}
+                className={`text-white/30 transition-transform duration-300 ${preferCall ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            {/* Expandable phone input */}
+            <AnimatePresence>
+              {preferCall && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-4 bg-violet-500/5 border border-violet-500/20 rounded-2xl space-y-2">
+                    <p className="text-[9px] font-black text-violet-400 uppercase tracking-widest mb-3">Your Phone Number</p>
+                    <div className="flex gap-2">
+                      <select
+                        value={countryCode}
+                        onChange={(e) => setCountryCode(e.target.value)}
+                        className="bg-white/[0.05] border border-white/10 rounded-xl py-3 px-3 text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all appearance-none cursor-pointer w-28 shrink-0"
+                      >
+                        <option value="+91">🇮🇳 +91</option>
+                        <option value="+1">🇺🇸 +1</option>
+                        <option value="+44">🇬🇧 +44</option>
+                        <option value="+971">🇦🇪 +971</option>
+                        <option value="+966">🇸🇦 +966</option>
+                        <option value="+61">🇦🇺 +61</option>
+                        <option value="+49">🇩🇪 +49</option>
+                        <option value="+33">🇫🇷 +33</option>
+                        <option value="+81">🇯🇵 +81</option>
+                        <option value="+86">🇨🇳 +86</option>
+                        <option value="+65">🇸🇬 +65</option>
+                        <option value="+60">🇲🇾 +60</option>
+                      </select>
+                      <input
+                        type="tel"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ""))}
+                        placeholder="e.g. 9876543210"
+                        maxLength={12}
+                        className="flex-1 bg-white/[0.03] border border-white/10 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all placeholder:text-white/20"
+                      />
+                    </div>
+                    {phoneNumber.length >= 7 && (
+                      <motion.a
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hi Abuzar, my phone number is ${countryCode} ${phoneNumber}. Please call me when available.`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 w-full py-3 bg-violet-500/20 border border-violet-500/40 text-violet-300 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-violet-500/30 transition-all"
+                      >
+                        <Phone size={12} /> Send on WhatsApp
+                      </motion.a>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
+
         </div>
 
         {/* Dynamic Form */}
