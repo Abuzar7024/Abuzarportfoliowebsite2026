@@ -11,7 +11,9 @@ import {
   Apple,
   ExternalLink,
   Info,
-  Github
+  Github,
+  Fingerprint,
+  Sparkles
 } from "lucide-react";
 
 interface ProjectLinks {
@@ -33,7 +35,36 @@ interface Project {
   links: ProjectLinks;
   color: string;
   accent: string;
+  isRevealCard?: boolean;
 }
+
+const portfolioProject: Project = {
+  id: "portfolio-2026",
+  title: "Personal Portfolio",
+  category: "Web Experience",
+  role: "Designer & Developer",
+  image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.0.0&q=80&w=1080",
+  description:
+    "Not your average portfolio drop. Built on React with brains, aesthetics, and a little chaos — it reads your region, remembers your session, and hides something worth finding if you actually explore.",
+  details: [
+    "Your location, your setup — currency flips to ₹, $, or whatever your region runs on. Dial codes follow automatically (+91, +1, and beyond). No manual toggling needed.",
+    "Refresh-proof memory — contact drafts, inquiry type, and preferences stick in your browser. Close the tab, come back, pick up exactly where you left off.",
+    "Service requests that actually make sense — multi-step flow with budget ranges tuned to your market, delivered straight through EmailJS.",
+    "Contact section with terminal energy — live status chips, direct channel links, and a transmission UI that feels like you're plugging into something real.",
+    "Clean on every screen — mobile, tablet, desktop. Animated hero, experience timeline, one cohesive cyan glass aesthetic from top to bottom.",
+    "There's a secret mini-game buried somewhere on this site. Send a transmission, then keep exploring. Discovery rewards the curious.",
+  ],
+  tech: ["React", "TypeScript", "Vite", "EmailJS", "Motion", "Tailwind"],
+  links: {
+    website: "https://github.com/Abuzar7024/Abuzarportfoliowebsite2026",
+    playstore: null,
+    appstore: null,
+    github: "https://github.com/Abuzar7024/Abuzarportfoliowebsite2026",
+  },
+  color: "bg-cyan-500/5",
+  accent: "text-cyan-400",
+  isRevealCard: true,
+};
 
 const projects: Project[] = [
   {
@@ -130,11 +161,80 @@ const projects: Project[] = [
     },
     color: "bg-green-500/5",
     accent: "text-green-400"
-  }
+  },
+  portfolioProject,
 ];
+
+function PortfolioRevealCard({
+  project,
+  revealed,
+  onReveal,
+}: {
+  project: Project;
+  revealed: boolean;
+  onReveal: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="portfolio-reveal-card"
+    >
+      {!revealed ? (
+        <button
+          type="button"
+          onClick={onReveal}
+          className="portfolio-reveal-cover"
+          aria-label="Tap to reveal personal portfolio project"
+        >
+          <div className="portfolio-reveal-cover-grid" aria-hidden="true" />
+          <div className="portfolio-reveal-cover-inner">
+            <div className="portfolio-reveal-icon-wrap">
+              <Fingerprint size={28} className="text-cyan-400" />
+            </div>
+            <p className="portfolio-reveal-eyebrow">classified_project</p>
+            <h4 className="portfolio-reveal-title">Tap to Reveal</h4>
+            <p className="portfolio-reveal-hint">
+              A static vault containing this portfolio&apos;s hidden feature log.
+            </p>
+            <span className="portfolio-reveal-cta">
+              <Sparkles size={12} /> unlock
+            </span>
+          </div>
+        </button>
+      ) : (
+        <div className="portfolio-reveal-content">
+          <div className="portfolio-reveal-content-header">
+            <p className={`text-[9px] font-black uppercase tracking-[0.3em] ${project.accent}`}>
+              {project.category}
+            </p>
+            <h4 className="portfolio-reveal-content-title">{project.title}</h4>
+            <p className="portfolio-reveal-content-desc">{project.description}</p>
+          </div>
+
+          <ul className="portfolio-reveal-features">
+            {project.details.map((detail) => (
+              <li key={detail}>{detail}</li>
+            ))}
+          </ul>
+
+          <div className="portfolio-reveal-tags">
+            {project.tech.map((t) => (
+              <span key={t} className="portfolio-reveal-tag">
+                {t}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+}
 
 export const Projects = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [portfolioRevealed, setPortfolioRevealed] = useState(false);
 
   useEffect(() => {
     if (selectedProject) {
@@ -168,8 +268,16 @@ export const Projects = () => {
         <h3 className="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tighter italic uppercase">Featured Works</h3>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
-        {projects.map((project, idx) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        {projects.map((project, idx) =>
+          project.isRevealCard ? (
+            <PortfolioRevealCard
+              key={project.id}
+              project={project}
+              revealed={portfolioRevealed}
+              onReveal={() => setPortfolioRevealed(true)}
+            />
+          ) : (
           <motion.div
             key={project.id}
             initial={{ opacity: 0, y: 20 }}
@@ -259,7 +367,8 @@ export const Projects = () => {
               </div>
             </div>
           </motion.div>
-        ))}
+          )
+        )}
       </div>
 
       <AnimatePresence>

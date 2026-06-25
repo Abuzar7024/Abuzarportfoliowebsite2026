@@ -2,12 +2,22 @@ import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence, useInView } from "motion/react";
 import {
-  Smartphone, Brain, Globe, ShoppingBag, Cloud, Paintbrush, Rocket,
-  ArrowRight, MessageCircle, Mail, CheckCircle, X,
+  Smartphone, Brain, Globe, ShoppingBag, Cloud, Paintbrush,
+  ArrowRight, MessageCircle, CheckCircle, X,
   ChevronRight, Send
 } from "lucide-react";
 import emailjs from "@emailjs/browser";
 import { toast } from "sonner@2.0.3";
+import { BudgetSelector } from "../components/BudgetSelector";
+import { useUserSession } from "../context/UserSessionContext";
+import {
+  CUSTOM_BUDGET_KEY,
+  formatBudgetValue,
+  isBudgetValid,
+  type ServiceFormDraft,
+} from "../lib/user-session";
+import { buildLocationParams } from "../lib/emailjs-params";
+import { requestUserGeolocation } from "../lib/geolocation";
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const WHATSAPP = "918770206120";
@@ -101,33 +111,12 @@ const services = [
     glow: "rgba(236,72,153,0.2)",
     whatsappMsg: "Hi Abuzar, I'm interested in UI/UX design services for my product. Can we connect?",
   },
-  {
-    id: "maintenance",
-    emoji: "🚀",
-    Icon: Rocket,
-    title: "App Maintenance & Optimization",
-    subtitle: "Long-Term Performance Support",
-    description: "Bug fixes, performance optimization, refactoring, feature development and store updates.",
-    features: ["Bug Fixes", "Performance Optimization", "Code Refactoring", "Feature Development", "Store Updates"],
-    cta: "Optimize My App",
-    accent: "from-amber-500 to-yellow-500",
-    glow: "rgba(245,158,11,0.2)",
-    whatsappMsg: "Hi Abuzar, I need help optimizing and maintaining my existing app. Let's discuss!",
-  },
 ];
 
 // ─── Service Order Form Modal ─────────────────────────────────────────────────
-const BUDGETS = ["< $500", "$500 – $1,000", "$1,000 – $3,000", "$3,000 – $5,000", "$5,000 – $10,000", "$10,000+"];
 const TIMELINES = ["ASAP", "1 – 2 weeks", "1 month", "2 – 3 months", "Flexible"];
 
-interface FormData {
-  name: string;
-  email: string;
-  company: string;
-  description: string;
-  budget: string;
-  timeline: string;
-}
+type FormData = ServiceFormDraft;
 
 const ServiceModal = ({
   service,
@@ -136,18 +125,25 @@ const ServiceModal = ({
   service: typeof services[0];
   onClose: () => void;
 }) => {
+  const { session, updateServiceForm, updateLocation, budgetRanges, region } = useUserSession();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState<FormData>({
-    name: "", email: "", company: "", description: "", budget: "", timeline: ""
-  });
+  const [geoCapturing, setGeoCapturing] = useState(false);
+  const [form, setForm] = useState<FormData>(() => ({ ...session.serviceForm }));
 
-  const update = (k: keyof FormData, v: string) => setForm(f => ({ ...f, [k]: v }));
+  const update = (k: keyof FormData, v: string) => {
+    setForm((f) => {
+      const next = { ...f, [k]: v };
+      updateServiceForm(next);
+      return next;
+    });
+  };
 
   const isStep1Valid = form.name.trim() && form.email.includes("@");
   const isStep2Valid = form.description.trim().length >= 10;
-  const isStep3Valid = form.budget && form.timeline;
+  const isStep3Valid = isBudgetValid(form.budget, form.customBudget) && !!form.timeline;
+  const resolvedBudget = formatBudgetValue(form.budget, form.customBudget, region.currencySymbol);
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -160,28 +156,74 @@ const ServiceModal = ({
     };
   }, [onClose]);
 
+  const handleContinue = async () => {
+    const canAdvance = step === 1 ? isStep1Valid : isStep2Valid;
+    if (!canAdvance || geoCapturing) return;
+
+    setGeoCapturing(true);
+    try {
+      const geo = await requestUserGeolocation();
+      updateLocation(geo);
+    } finally {
+      setGeoCapturing(false);
+    }
+
+    setStep((s) => (s + 1) as 2 | 3);
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
     const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
     const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
+    let location = session.location;
+    if (location.latitude == null || location.longitude == null) {
+      location = await requestUserGeolocation();
+      updateLocation(location);
+    }
+
+    const loc = buildLocationParams(location, region);
+
     const params = {
+      form_type: "service_request",
       from_name: form.name,
       from_email: form.email,
+      dial_code: "N/A",
+      phone_number: "N/A",
+      visitor_phone: "N/A",
       company_name: form.company || "N/A",
       service_requested: service.title,
       project_description: form.description,
-      budget: form.budget,
+      budget: resolvedBudget,
       timeline: form.timeline,
+      purpose: `Service: ${service.title}`,
+      project_type: service.title,
       subject: `[Service Request] ${service.title} — ${form.name}`,
-      message: `Service: ${service.title}\nFrom: ${form.name} (${form.email})\nCompany: ${form.company || "N/A"}\nBudget: ${form.budget}\nTimeline: ${form.timeline}\n\nProject Description:\n${form.description}`,
+      message:
+        `Service: ${service.title}\n` +
+        `From: ${form.name} (${form.email})\n` +
+        `Company: ${form.company || "N/A"}\n` +
+        `Budget: ${resolvedBudget} (${region.currencyCode})\n` +
+        `Timeline: ${form.timeline}\n` +
+        `Country: ${loc.country} (${loc.country_code})\n` +
+        `Latitude: ${loc.latitude}\n` +
+        `Longitude: ${loc.longitude}\n` +
+        `Maps: ${loc.location_maps_url}\n\n` +
+        `Project Description:\n${form.description}`,
+      ...loc,
     };
 
     try {
       if (serviceId && templateId && publicKey) {
         await emailjs.send(serviceId, templateId, params, publicKey);
       }
+      updateServiceForm({
+        description: "",
+        budget: "",
+        customBudget: "",
+        timeline: "",
+      });
       setSubmitted(true);
     } catch (err: any) {
       console.error("Service form EmailJS error:", err);
@@ -195,7 +237,7 @@ const ServiceModal = ({
   const whatsappMsg = encodeURIComponent(
     `Hi Abuzar! I just filled out a service request on your portfolio.\n\n` +
     `Service: ${service.title}\nName: ${form.name}\nEmail: ${form.email}\n` +
-    `Budget: ${form.budget}\nTimeline: ${form.timeline}\n\n` +
+    `Budget: ${resolvedBudget}\nTimeline: ${form.timeline}\n\n` +
     `Project Details:\n${form.description}`
   );
 
@@ -293,20 +335,22 @@ const ServiceModal = ({
                 {step === 3 && (
                   <div className="space-y-5">
                       <div>
-                        <label className="service-modal-label">Budget Range *</label>
-                        <div className="grid grid-cols-2 gap-2">
-                          {BUDGETS.map(b => (
-                            <button
-                              key={b}
-                              type="button"
-                              onClick={() => update("budget", b)}
-                              className={`service-modal-chip service-modal-chip--budget ${form.budget === b ? "service-modal-chip--active" : ""}`}
-                              style={form.budget === b ? { background: THEME_GRADIENT, boxShadow: `0 0 20px ${THEME_GLOW}` } : undefined}
-                            >
-                              {b}
-                            </button>
-                          ))}
-                        </div>
+                        <label className="service-modal-label">
+                          Budget Range * <span className="service-modal-optional">({region.currencyCode})</span>
+                        </label>
+                        <BudgetSelector
+                          budgets={budgetRanges}
+                          value={form.budget}
+                          customValue={form.customBudget}
+                          currencySymbol={region.currencySymbol}
+                          currencyCode={region.currencyCode}
+                          onSelect={(b) => {
+                            update("budget", b);
+                            if (b !== CUSTOM_BUDGET_KEY) update("customBudget", "");
+                          }}
+                          onCustomChange={(v) => update("customBudget", v)}
+                          activeStyle={{ background: THEME_GRADIENT, boxShadow: `0 0 20px ${THEME_GLOW}` }}
+                        />
                       </div>
                       <div>
                         <label className="service-modal-label">Timeline *</label>
@@ -335,12 +379,18 @@ const ServiceModal = ({
                   )}
                   {step < 3 ? (
                     <button
-                      onClick={() => setStep((s) => (s + 1) as 2 | 3)}
-                      disabled={step === 1 ? !isStep1Valid : !isStep2Valid}
+                      onClick={handleContinue}
+                      disabled={step === 1 ? !isStep1Valid || geoCapturing : !isStep2Valid || geoCapturing}
                       className="service-modal-btn service-modal-btn--primary flex-1"
-                      style={(step === 1 ? isStep1Valid : isStep2Valid) ? { background: THEME_GRADIENT, boxShadow: `0 0 24px ${THEME_GLOW}` } : undefined}
+                      style={(step === 1 ? isStep1Valid : isStep2Valid) && !geoCapturing ? { background: THEME_GRADIENT, boxShadow: `0 0 24px ${THEME_GLOW}` } : undefined}
                     >
-                      Continue <ChevronRight size={13} />
+                      {geoCapturing ? (
+                        <div className="service-modal-spinner" />
+                      ) : (
+                        <>
+                          Continue <ChevronRight size={13} />
+                        </>
+                      )}
                     </button>
                   ) : (
                     <button
@@ -442,65 +492,6 @@ const ServiceCard = ({ service, index, onSelect }: { service: typeof services[0]
   );
 };
 
-// ─── CTA Banner ───────────────────────────────────────────────────────────────
-const CTABanner = () => {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.3 });
-  const openWA = () => window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent("Hi Abuzar, I'd like to discuss my project. Can we connect?")}`, "_blank");
-  const openEmail = () => { window.location.href = "mailto:abuzxarrr87@gmail.com?subject=Project Inquiry"; };
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 50 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6 }}
-      className="relative mt-16 rounded-[2.5rem] overflow-hidden"
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-950/50 via-black/80 to-violet-950/30 backdrop-blur-2xl" />
-      <div className="absolute inset-0 border border-white/10 rounded-[2.5rem]" />
-      <div className="absolute inset-0 rounded-[2.5rem]" style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(6,182,212,0.1) 0%, transparent 70%)" }} />
-
-      <motion.div animate={{ y: [-12, 12, -12] }} transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }} className="absolute -top-8 -left-8 w-32 h-32 bg-cyan-500/8 blur-3xl rounded-full pointer-events-none" />
-      <motion.div animate={{ y: [12, -12, 12] }} transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }} className="absolute -bottom-8 -right-8 w-48 h-48 bg-violet-500/8 blur-3xl rounded-full pointer-events-none" />
-
-      <div className="relative z-10 px-8 sm:px-14 py-12 sm:py-16 text-center">
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.2 }} className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-950/40 border border-cyan-500/25 rounded-full mb-6">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_#22d3ee]" />
-          <span className="text-[9px] font-black text-cyan-400 uppercase tracking-[0.3em]">Available for Projects</span>
-        </motion.div>
-
-        <motion.h3 initial={{ opacity: 0, y: 20 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.3 }} className="text-3xl sm:text-4xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-none mb-5">
-          Ready to Build
-          <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-white to-violet-400">Something Amazing?</span>
-        </motion.h3>
-
-        <motion.p initial={{ opacity: 0, y: 15 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.4 }} className="text-sm sm:text-base text-white/40 max-w-xl mx-auto mb-10 leading-relaxed">
-          I help startups and businesses turn ideas into high-quality digital products with Flutter, AI, and modern technologies.
-        </motion.p>
-
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.5 }} className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <button onClick={openWA} className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-[10px] font-black uppercase tracking-[0.35em] rounded-full hover:from-cyan-400 hover:to-blue-400 transition-all shadow-[0_0_30px_rgba(6,182,212,0.25)] hover:shadow-[0_0_50px_rgba(6,182,212,0.4)] active:scale-95 group">
-            <MessageCircle size={13} className="group-hover:scale-110 transition-transform" /> Discuss Your Project
-          </button>
-          <button onClick={openEmail} className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-8 py-4 bg-white/5 border border-white/15 text-white text-[10px] font-black uppercase tracking-[0.35em] rounded-full hover:bg-white/10 hover:border-white/25 transition-all backdrop-blur active:scale-95">
-            <Mail size={13} /> Email Me
-          </button>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0 }} animate={isInView ? { opacity: 1 } : {}} transition={{ delay: 0.7 }} className="mt-10 flex flex-wrap items-center justify-center gap-5 sm:gap-8">
-          {["Quick Response", "Free Consultation", "Production-Ready Code", "On-Time Delivery"].map(item => (
-            <div key={item} className="flex items-center gap-1.5 text-white/25">
-              <CheckCircle size={11} className="text-cyan-500/50" />
-              <span className="text-[9px] font-bold uppercase tracking-widest">{item}</span>
-            </div>
-          ))}
-        </motion.div>
-      </div>
-    </motion.div>
-  );
-};
-
 // ─── Main Services Section ────────────────────────────────────────────────────
 export const Services = () => {
   const titleRef = useRef<HTMLDivElement>(null);
@@ -548,9 +539,6 @@ export const Services = () => {
           <ServiceCard key={s.id} service={s} index={i} onSelect={() => setActiveService(s)} />
         ))}
       </div>
-
-      {/* CTA */}
-      <CTABanner />
     </section>
   );
 };

@@ -5,6 +5,24 @@ export const fadeIn: Variants = {
   animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } }
 };
 
+export const fadeInUp: Variants = {
+  initial: { opacity: 0, y: 32 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] }
+  }
+};
+
+export const fadeInScale: Variants = {
+  initial: { opacity: 0, scale: 0.92 },
+  animate: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
+  }
+};
+
 export const staggerContainer: Variants = {
   initial: {},
   animate: {
@@ -12,6 +30,61 @@ export const staggerContainer: Variants = {
       staggerChildren: 0.05,
       delayChildren: 0.1
     }
+  }
+};
+
+export const heroStagger: Variants = {
+  initial: {},
+  animate: {
+    transition: {
+      staggerChildren: 0.12,
+      delayChildren: 0.35
+    }
+  }
+};
+
+export const heroItem: Variants = {
+  initial: { opacity: 0, y: 28 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] }
+  }
+};
+
+export const heroNameLine: Variants = {
+  initial: { opacity: 0, y: 48, rotateX: 12 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    rotateX: 0,
+    transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] }
+  }
+};
+
+export const sectionReveal: Variants = {
+  initial: { opacity: 0, y: 40 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] }
+  }
+};
+
+export const tagStagger: Variants = {
+  initial: {},
+  animate: {
+    transition: { staggerChildren: 0.08, delayChildren: 0.05 }
+  }
+};
+
+export const tagItem: Variants = {
+  initial: { opacity: 0, scale: 0.85, y: 10 },
+  animate: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 260, damping: 22 }
   }
 };
 

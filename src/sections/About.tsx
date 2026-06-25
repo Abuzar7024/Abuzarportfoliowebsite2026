@@ -1,12 +1,14 @@
 import React from "react";
 import { motion } from "motion/react";
-import { fadeIn } from "../lib/motion-variants";
+import { sectionReveal, tagStagger, tagItem } from "../lib/motion-variants";
 
 const highlights = [
   "Flutter & Dart",
   "AI Integration",
   "Clean Architecture",
   "Production Apps",
+  "Computer Vision",
+  "REST APIs",
 ];
 
 export const About = () => {
@@ -15,20 +17,41 @@ export const About = () => {
       <motion.div
         initial="initial"
         whileInView="animate"
-        viewport={{ once: true }}
-        variants={fadeIn}
+        viewport={{ once: true, amount: 0.4 }}
+        variants={sectionReveal}
         className="about-section-inner"
       >
-        <p className="about-eyebrow">About Me</p>
+        <motion.p
+          initial={{ opacity: 0, letterSpacing: "0.4em" }}
+          whileInView={{ opacity: 1, letterSpacing: "0.2em" }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="about-eyebrow"
+        >
+          About Me
+        </motion.p>
         <h3 className="about-title">Building mobile products that scale</h3>
         <p className="about-text">
           I'm a Flutter developer focused on production-ready apps — from AI-powered features and REST API integrations to Firebase backends and polished cross-platform UI.
         </p>
-        <div className="about-highlights">
+        <motion.div
+          className="about-highlights"
+          variants={tagStagger}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, amount: 0.5 }}
+        >
           {highlights.map((item) => (
-            <span key={item} className="about-highlight">{item}</span>
+            <motion.span
+              key={item}
+              variants={tagItem}
+              whileHover={{ scale: 1.06, borderColor: "rgba(34,211,238,0.45)" }}
+              className="about-highlight"
+            >
+              {item}
+            </motion.span>
           ))}
-        </div>
+        </motion.div>
       </motion.div>
     </section>
   );

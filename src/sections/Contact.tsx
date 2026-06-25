@@ -1,50 +1,79 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { fadeIn, staggerContainer } from "../lib/motion-variants";
-import { 
-  Send, 
-  User, 
-  Mail, 
-  MessageSquare, 
-  Briefcase, 
-  Building2, 
-  DollarSign, 
-  Layers,
+import { fadeIn, staggerContainer, sectionReveal } from "../lib/motion-variants";
+import {
+  Send,
+  User,
+  Mail,
+  MessageSquare,
+  Briefcase,
+  Building2,
   CheckCircle2,
   Gamepad2,
   Phone,
-  ChevronDown
+  ChevronDown,
+  Radio,
 } from "lucide-react";
 import { toast } from "sonner@2.0.3";
 import { FlappyGame } from "../components/FlappyGame";
+import { useUserSession } from "../context/UserSessionContext";
+import type { InquiryType } from "../lib/user-session";
+import { buildLocationParams } from "../lib/emailjs-params";
+import { requestUserGeolocation } from "../lib/geolocation";
+import {
+  DIAL_CODE_OPTIONS,
+  formatVisitorPhone,
+  getDialCodeForCountry,
+  getPhonePlaceholder,
+} from "../lib/dial-codes";
 import emailjs from "@emailjs/browser";
-
-type InquiryType = "freelance" | "job" | "general";
 
 const WHATSAPP = "918770206120";
 
+const TERMINAL_LINES = [
+  { cmd: "ping email", out: "abuzxarrr87@gmail.com → 200 OK" },
+  { cmd: "status", out: "channel open · accepting inquiries" },
+  { cmd: "encrypt", out: "TLS 1.3 · transmission ready" },
+];
+
+const INQUIRY_TYPES = ["general", "job"] as const;
+
+const INQUIRY_LABELS: Record<(typeof INQUIRY_TYPES)[number], string> = {
+  general: "general",
+  job: "hiring",
+};
+
+function normalizeInquiryType(type: InquiryType): (typeof INQUIRY_TYPES)[number] {
+  return type === "job" ? "job" : "general";
+}
+
 export const Contact = () => {
+  const {
+    session,
+    region,
+    updateContact,
+    updateLocation,
+    clearContactDraft,
+  } = useUserSession();
+  const draft = session.contact;
+  const inquiryType = normalizeInquiryType(draft.inquiryType);
+
   const [loading, setLoading] = useState(false);
-  const [inquiryType, setInquiryType] = useState<InquiryType>("general");
   const [success, setSuccess] = useState(false);
   const [showGame, setShowGame] = useState(false);
-  const [preferCall, setPreferCall] = useState(false);
-  const [countryCode, setCountryCode] = useState("+91");
-  const [phoneNumber, setPhoneNumber] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    
-    const formData = new FormData(e.currentTarget);
+
     const rawData = {
-      fullName: formData.get("fullName") as string,
-      email: formData.get("email") as string,
-      purpose: inquiryType === "general" ? "General inquiry" : inquiryType === "freelance" ? "Freelance project" : "Job opportunity",
-      message: formData.get("message") as string,
-      projectType: (formData.get("projectType") || "N/A") as string,
-      budget: (formData.get("budget") || "N/A") as string,
-      companyName: (formData.get("companyName") || "N/A") as string,
+      fullName: draft.fullName,
+      email: draft.email,
+      purpose: inquiryType === "general" ? "General inquiry" : "Job opportunity",
+      message: draft.message,
+      projectType: "N/A",
+      budget: "N/A",
+      companyName: draft.companyName || "N/A",
     };
 
     const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
@@ -52,7 +81,8 @@ export const Contact = () => {
     const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
     if (!serviceId || !templateId || !publicKey) {
-      const errorMsg = "EmailJS configuration is missing in environment variables. Please check your .env.local file.";
+      const errorMsg =
+        "EmailJS configuration is missing in environment variables. Please check your .env.local file.";
       console.error(errorMsg, { serviceId, templateId, publicKey });
       toast.error(errorMsg, {
         duration: 5000,
@@ -63,39 +93,57 @@ export const Contact = () => {
     }
 
     try {
-      // Maps fields to match typical EmailJS template parameters:
-      // {{from_name}}, {{from_email}}, {{subject}}, {{message}}, {{project_type}}, {{budget}}, {{company_name}}
+      let location = session.location;
+      if (location.latitude == null || location.longitude == null) {
+        location = await requestUserGeolocation();
+        updateLocation(location);
+      }
+
+      const loc = buildLocationParams(location, region);
+      const visitorPhone = formatVisitorPhone(draft.dialCode, draft.phoneNumber);
+
       const templateParams = {
+        form_type: "contact",
         from_name: rawData.fullName,
         from_email: rawData.email,
         subject: `[Portfolio Connection] ${rawData.purpose} - ${rawData.fullName}`,
         purpose: rawData.purpose,
-        message: rawData.message,
+        dial_code: draft.dialCode,
+        phone_number: draft.phoneNumber || "Not provided",
+        visitor_phone: visitorPhone,
+        message:
+          `${rawData.message}\n\n` +
+          `--- Contact ---\n` +
+          `Phone: ${visitorPhone}\n\n` +
+          `--- Location ---\n` +
+          `Country: ${loc.country} (${loc.country_code})\n` +
+          `Latitude: ${loc.latitude}\n` +
+          `Longitude: ${loc.longitude}\n` +
+          `Maps: ${loc.location_maps_url}`,
         project_type: rawData.projectType,
-        budget: rawData.budget,
+        budget: `${rawData.budget} (${region.currencyCode})`,
         company_name: rawData.companyName,
+        service_requested: "N/A",
+        project_description: rawData.message,
+        timeline: "N/A",
+        ...loc,
       };
 
-      console.log("Sending email via EmailJS...", templateParams);
-
-      const result = await emailjs.send(
-        serviceId,
-        templateId,
-        templateParams,
-        publicKey
-      );
+      const result = await emailjs.send(serviceId, templateId, templateParams, publicKey);
 
       if (result.status === 200) {
         setSuccess(true);
+        clearContactDraft();
         toast.success("Transmission successfully received!", {
           className: "bg-[#0a0a0a] border border-white/10 text-white rounded-2xl",
         });
       } else {
         throw new Error(`EmailJS responded with status: ${result.status}`);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to broadcast signal";
       console.error("EmailJS Transmission Error:", error);
-      toast.error(`Transmission Error: ${error.message || "Failed to broadcast signal"}`, {
+      toast.error(`Transmission Error: ${message}`, {
         className: "bg-[#0a0a0a] border border-white/10 text-white rounded-2xl",
       });
     } finally {
@@ -104,77 +152,142 @@ export const Contact = () => {
   };
 
   return (
-    <section id="contact" className="py-24 px-4 sm:px-6 max-w-5xl mx-auto overflow-hidden">
+    <section id="contact" className="contact-section">
       <AnimatePresence>
         {showGame && <FlappyGame onClose={() => setShowGame(false)} />}
       </AnimatePresence>
+
+      <motion.div
+        variants={sectionReveal}
+        initial="initial"
+        whileInView="animate"
+        viewport={{ once: true }}
+        className="contact-section-header"
+      >
+        <p className="contact-eyebrow">
+          <span className="contact-eyebrow-dot" />
+          Transmissions
+        </p>
+        <h2 className="contact-title">
+          Let's <span className="contact-title-accent">Connect</span>
+        </h2>
+        <p className="contact-subtitle">
+          Open a secure channel for high-performance builds, freelance missions, or
+          full-time opportunities.
+        </p>
+      </motion.div>
 
       <motion.div
         variants={staggerContainer}
         initial="initial"
         whileInView="animate"
         viewport={{ once: true }}
-        className="grid grid-cols-1 lg:grid-cols-[1.2fr_1.8fr] gap-12 lg:gap-20"
+        className="contact-columns"
       >
-        {/* Contact Info */}
-        <div className="text-center lg:text-left">
-          <motion.div variants={fadeIn} className="mb-10 md:mb-12">
-            <h2 className="text-[10px] md:text-sm uppercase tracking-[0.4em] text-cyan-400 font-black mb-4 md:mb-6">Transmissions</h2>
-            <h3 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white italic uppercase tracking-tighter leading-none mb-6 md:mb-8">
-              Let's <br className="hidden lg:block" /> Connect
-            </h3>
-            <p className="text-white/40 leading-relaxed font-medium italic text-base md:text-lg max-w-md mx-auto lg:mx-0">
-              "Ready to collaborate on high-performance projects or discuss industry-shaping opportunities."
-            </p>
-          </motion.div>
+        <motion.div variants={fadeIn} className="contact-info-shell">
+          <div className="contact-form-bar">
+            <span className="contact-form-dot contact-form-dot--red" />
+            <span className="contact-form-dot contact-form-dot--yellow" />
+            <span className="contact-form-dot contact-form-dot--green" />
+            <span className="contact-form-bar-title">channels.tsx — open links</span>
+          </div>
 
-          <motion.div variants={fadeIn} className="space-y-3 md:space-y-4 max-w-sm mx-auto lg:mx-0">
-            {/* Email */}
-            <div className="flex items-center gap-4 p-4 md:p-5 bg-white/[0.02] border border-white/5 rounded-2xl md:rounded-3xl group hover:border-cyan-500/30 transition-all text-left">
-              <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-xl md:rounded-2xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
+          <div className="contact-info-body">
+            <div className="contact-status-row">
+              <span className="contact-status-chip contact-status-chip--live">
+                <Radio size={10} /> online
+              </span>
+              <span className="contact-status-chip">&lt;24h response</span>
+              <span className="contact-status-chip">TLS 1.3</span>
+              <span className="contact-status-chip">
+                {region.currencyCode} · {region.countryCode}
+              </span>
+            </div>
+
+            <div className="contact-terminal">
+              {TERMINAL_LINES.map((line, i) => (
+                <motion.div
+                  key={line.cmd}
+                  className="contact-terminal-line"
+                  initial={{ opacity: 0, x: -8 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.15 + i * 0.12 }}
+                >
+                  <span className="contact-terminal-prompt">$</span>
+                  {line.cmd}
+                  <span className="contact-terminal-out"> → {line.out}</span>
+                </motion.div>
+              ))}
+              <div className="contact-terminal-line">
+                <span className="contact-terminal-prompt">$</span>
+                locale detected: {region.countryName} ({region.currencyCode})
+              </div>
+              <div className="contact-terminal-line">
+                <span className="contact-terminal-prompt">$</span>
+                dial code: {draft.dialCode}
+              </div>
+              <div className="contact-terminal-line">
+                <span className="contact-terminal-prompt">$</span>
+                awaiting input
+                <span className="contact-terminal-cursor" />
+              </div>
+            </div>
+
+            <div className="contact-channels">
+            <a href="mailto:abuzxarrr87@gmail.com" className="contact-channel">
+              <div className="contact-channel-icon">
                 <Mail size={18} />
               </div>
               <div className="min-w-0">
-                <p className="text-[8px] md:text-[10px] font-black text-white/20 uppercase tracking-widest">Email</p>
-                <p className="text-white/80 font-bold text-xs md:text-base truncate">abuzxarrr87@gmail.com</p>
+                <p className="contact-channel-label">email://</p>
+                <p className="contact-channel-value">abuzxarrr87@gmail.com</p>
               </div>
-            </div>
+              <span className="contact-channel-arrow">↗</span>
+            </a>
 
-            {/* WhatsApp */}
-            <div className="flex items-center gap-4 p-4 md:p-5 bg-white/[0.02] border border-white/5 rounded-2xl md:rounded-3xl group hover:border-emerald-500/30 transition-all text-left">
-              <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-xl md:rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+            <a
+              href={`https://wa.me/${WHATSAPP}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="contact-channel"
+            >
+              <div className="contact-channel-icon">
                 <Briefcase size={18} />
               </div>
               <div className="min-w-0">
-                <p className="text-[8px] md:text-[10px] font-black text-white/20 uppercase tracking-widest">WhatsApp Direct</p>
-                <p className="text-white/80 font-bold text-xs md:text-base truncate">+91 8770206120</p>
+                <p className="contact-channel-label">whatsapp://</p>
+                <p className="contact-channel-value">+91 8770206120</p>
               </div>
-            </div>
+              <span className="contact-channel-arrow">↗</span>
+            </a>
 
-            {/* Prefer a Call toggle */}
             <button
               type="button"
-              onClick={() => setPreferCall(!preferCall)}
-              className="w-full flex items-center justify-between gap-4 p-4 md:p-5 bg-white/[0.02] border border-white/5 rounded-2xl md:rounded-3xl hover:border-violet-500/30 transition-all text-left group"
+              onClick={() => updateContact({ preferCall: !draft.preferCall })}
+              className={`contact-call-toggle ${draft.preferCall ? "contact-call-toggle--open" : ""}`}
             >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-xl md:rounded-2xl bg-violet-500/10 flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform">
+              <div className="flex items-center gap-3.5">
+                <div className="contact-channel-icon">
                   <Phone size={18} />
                 </div>
                 <div>
-                  <p className="text-[8px] md:text-[10px] font-black text-white/20 uppercase tracking-widest">Prefer a Call?</p>
-                  <p className="text-white/70 font-bold text-xs md:text-sm">I prefer a call — share your number</p>
+                  <p className="contact-channel-label">voice://callback</p>
+                  <p className="contact-channel-value text-sm">Prefer a call — share your number</p>
                 </div>
               </div>
               <ChevronDown
                 size={16}
-                className={`text-white/30 transition-transform duration-300 ${preferCall ? "rotate-180" : ""}`}
+                className="text-white/30 shrink-0"
+                style={{
+                  transform: draft.preferCall ? "rotate(180deg)" : "none",
+                  transition: "transform 0.3s",
+                }}
               />
             </button>
 
-            {/* Expandable phone input */}
             <AnimatePresence>
-              {preferCall && (
+              {draft.preferCall && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
@@ -182,229 +295,221 @@ export const Contact = () => {
                   transition={{ duration: 0.3 }}
                   className="overflow-hidden"
                 >
-                  <div className="p-4 bg-violet-500/5 border border-violet-500/20 rounded-2xl space-y-2">
-                    <p className="text-[9px] font-black text-violet-400 uppercase tracking-widest mb-3">Your Phone Number</p>
-                    <div className="flex gap-2">
+                  <div className="contact-call-panel">
+                    <p className="contact-call-label">// your_phone_number</p>
+                    <p className="contact-call-region-hint">
+                      Region: {region.countryName} ({region.countryCode}) · default{" "}
+                      {getDialCodeForCountry(region.countryCode)}
+                    </p>
+                    <div className="contact-phone-row">
                       <select
-                        value={countryCode}
-                        onChange={(e) => setCountryCode(e.target.value)}
-                        className="bg-white/[0.05] border border-white/10 rounded-xl py-3 px-3 text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all appearance-none cursor-pointer w-28 shrink-0"
+                        value={draft.dialCode}
+                        onChange={(e) =>
+                          updateContact({
+                            dialCode: e.target.value,
+                            dialCodeManual: true,
+                          })
+                        }
+                        className="contact-select"
                       >
-                        <option value="+91">🇮🇳 +91</option>
-                        <option value="+1">🇺🇸 +1</option>
-                        <option value="+44">🇬🇧 +44</option>
-                        <option value="+971">🇦🇪 +971</option>
-                        <option value="+966">🇸🇦 +966</option>
-                        <option value="+61">🇦🇺 +61</option>
-                        <option value="+49">🇩🇪 +49</option>
-                        <option value="+33">🇫🇷 +33</option>
-                        <option value="+81">🇯🇵 +81</option>
-                        <option value="+86">🇨🇳 +86</option>
-                        <option value="+65">🇸🇬 +65</option>
-                        <option value="+60">🇲🇾 +60</option>
+                        {DIAL_CODE_OPTIONS.map((opt) => (
+                          <option key={opt.countryCode} value={opt.dialCode}>
+                            {opt.flag} {opt.dialCode}
+                          </option>
+                        ))}
                       </select>
                       <input
                         type="tel"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ""))}
-                        placeholder="e.g. 9876543210"
+                        value={draft.phoneNumber}
+                        onChange={(e) =>
+                          updateContact({ phoneNumber: e.target.value.replace(/\D/g, "") })
+                        }
+                        placeholder={getPhonePlaceholder(draft.dialCode)}
                         maxLength={12}
-                        className="flex-1 bg-white/[0.03] border border-white/10 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all placeholder:text-white/20"
+                        className="contact-input"
                       />
                     </div>
-                    {phoneNumber.length >= 7 && (
+                    {draft.phoneNumber.length >= 7 && (
                       <motion.a
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hi Abuzar, my phone number is ${countryCode} ${phoneNumber}. Please call me when available.`)}`}
+                        href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hi Abuzar, my phone number is ${draft.dialCode} ${draft.phoneNumber}. Please call me when available.`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 w-full py-3 bg-violet-500/20 border border-violet-500/40 text-violet-300 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-violet-500/30 transition-all"
+                        className="contact-wa-btn"
                       >
-                        <Phone size={12} /> Send on WhatsApp
+                        <Phone size={12} /> transmit via whatsapp
                       </motion.a>
                     )}
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
-          </motion.div>
+            </div>
 
-        </div>
-
-        {/* Dynamic Form */}
-        <motion.div variants={fadeIn}>
-          {!success ? (
-            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-              {/* Inquiry Type Toggle */}
-              <div className="grid grid-cols-3 gap-2 p-1.5 bg-white/[0.03] border border-white/10 rounded-2xl md:rounded-[2rem]">
-                {(["general", "freelance", "job"] as InquiryType[]).map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => setInquiryType(type)}
-                    className={`py-2.5 md:py-3 px-2 rounded-xl md:rounded-[1.5rem] text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all truncate ${
-                      inquiryType === type 
-                        ? "bg-white text-black shadow-xl" 
-                        : "text-white/30 hover:text-white/60 hover:bg-white/5"
-                    }`}
-                  >
-                    {type}
-                  </button>
-                ))}
+            <div className="contact-info-stats">
+              <div className="contact-info-stat">
+                <span className="contact-info-stat-label">response</span>
+                <span className="contact-info-stat-value">&lt; 24 hours</span>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                {/* Name */}
-                <div className="space-y-1.5 md:space-y-2">
-                  <label className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-4 flex items-center gap-2">
-                    <User size={10} className="text-cyan-400" /> Identity
-                  </label>
-                  <input
-                    required
-                    name="fullName"
-                    type="text"
-                    placeholder="E.g. John Doe"
-                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl md:rounded-3xl py-3.5 md:py-4 px-5 md:px-6 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-white/10"
-                  />
-                </div>
-
-                {/* Email */}
-                <div className="space-y-1.5 md:space-y-2">
-                  <label className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-4 flex items-center gap-2">
-                    <Mail size={10} className="text-cyan-400" /> Signal Address
-                  </label>
-                  <input
-                    required
-                    name="email"
-                    type="email"
-                    placeholder="john@example.com"
-                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl md:rounded-3xl py-3.5 md:py-4 px-5 md:px-6 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-white/10"
-                  />
-                </div>
+              <div className="contact-info-stat">
+                <span className="contact-info-stat-label">encryption</span>
+                <span className="contact-info-stat-value">TLS 1.3</span>
               </div>
+              <div className="contact-info-stat">
+                <span className="contact-info-stat-label">region</span>
+                <span className="contact-info-stat-value">{region.countryName}</span>
+              </div>
+              <div className="contact-info-stat">
+                <span className="contact-info-stat-label">currency</span>
+                <span className="contact-info-stat-value">{region.currencyCode}</span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
-              <AnimatePresence mode="wait">
-                {inquiryType === "job" && (
-                  <motion.div
-                    key="job-fields"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="space-y-1.5 md:space-y-2"
-                  >
-                    <label className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-4 flex items-center gap-2">
-                      <Building2 size={10} className="text-cyan-400" /> Organization
-                    </label>
-                    <input
-                      required
-                      name="companyName"
-                      type="text"
-                      placeholder="Company Name"
-                      className="w-full bg-white/[0.03] border border-white/10 rounded-2xl md:rounded-3xl py-3.5 md:py-4 px-5 md:px-6 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-white/10"
-                    />
-                  </motion.div>
-                )}
+        <motion.div variants={fadeIn} className="contact-form-column">
+          <div className="contact-form-shell">
+            <div className="contact-form-bar">
+              <span className="contact-form-dot contact-form-dot--red" />
+              <span className="contact-form-dot contact-form-dot--yellow" />
+              <span className="contact-form-dot contact-form-dot--green" />
+              <span className="contact-form-bar-title">transmit_form.tsx — open channel</span>
+            </div>
 
-                {inquiryType === "freelance" && (
-                  <motion.div
-                    key="freelance-fields"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"
-                  >
-                    <div className="space-y-1.5 md:space-y-2">
-                      <label className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-4 flex items-center gap-2">
-                        <Layers size={10} className="text-cyan-400" /> Project Scope
-                      </label>
-                      <select name="projectType" className="w-full bg-[#050505] border border-white/10 rounded-2xl md:rounded-3xl py-3.5 md:py-4 px-5 md:px-6 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all appearance-none cursor-pointer">
-                        <option value="mobile">Mobile App (Flutter)</option>
-                        <option value="web">Web Application</option>
-                        <option value="ui">UI/UX Design</option>
-                        <option value="other">Consultation</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1.5 md:space-y-2">
-                      <label className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-4 flex items-center gap-2">
-                        <DollarSign size={10} className="text-cyan-400" /> Estimation
+            <div className="contact-form-body">
+              {!success ? (
+                <form onSubmit={handleSubmit}>
+                  <div className="contact-type-grid">
+                    {INQUIRY_TYPES.map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => updateContact({ inquiryType: type })}
+                        className={`contact-type-btn ${inquiryType === type ? "contact-type-btn--active" : ""}`}
+                      >
+                        {INQUIRY_LABELS[type]}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="contact-field-grid">
+                    <div className="contact-field">
+                      <label className="contact-field-label">
+                        <User size={10} /> identity
                       </label>
                       <input
-                        name="budget"
+                        required
                         type="text"
-                        placeholder="Budget (e.g. $2k - $5k)"
-                        className="w-full bg-white/[0.03] border border-white/10 rounded-2xl md:rounded-3xl py-3.5 md:py-4 px-5 md:px-6 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-white/10"
+                        placeholder="John Doe"
+                        className="contact-input"
+                        value={draft.fullName}
+                        onChange={(e) => updateContact({ fullName: e.target.value })}
                       />
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <div className="contact-field">
+                      <label className="contact-field-label">
+                        <Mail size={10} /> signal_address
+                      </label>
+                      <input
+                        required
+                        type="email"
+                        placeholder="john@example.com"
+                        className="contact-input"
+                        value={draft.email}
+                        onChange={(e) => updateContact({ email: e.target.value })}
+                      />
+                    </div>
+                  </div>
 
-              {/* Message */}
-              <div className="space-y-1.5 md:space-y-2">
-                <label className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-4 flex items-center gap-2">
-                  <MessageSquare size={10} className="text-cyan-400" /> Transmission Details
-                </label>
-                <textarea
-                  required
-                  name="message"
-                  rows={4}
-                  placeholder="Tell me more about your requirements..."
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] md:rounded-[2rem] py-3.5 md:py-4 px-5 md:px-6 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all resize-none placeholder:text-white/10"
-                />
-              </div>
+                  <AnimatePresence mode="wait">
+                    {inquiryType === "job" && (
+                      <motion.div
+                        key="job-fields"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="contact-field"
+                        style={{ marginBottom: "1rem" }}
+                      >
+                        <label className="contact-field-label">
+                          <Building2 size={10} /> organization
+                        </label>
+                        <input
+                          required
+                          type="text"
+                          placeholder="Company Name"
+                          className="contact-input"
+                          value={draft.companyName}
+                          onChange={(e) => updateContact({ companyName: e.target.value })}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-4 md:py-5 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed text-black text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl md:rounded-[2rem] transition-all flex items-center justify-center gap-3 group shadow-[0_10px_40px_rgba(6,182,212,0.3)] active:scale-95 cursor-pointer"
-              >
-                {loading ? (
-                  <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                ) : (
-                  <>
-                    Initialize Connection
-                    <Send size={14} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                  </>
-                )}
-              </button>
-              
-              <div className="flex items-center justify-center gap-2 opacity-20">
-                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                <span className="text-[8px] font-black uppercase tracking-widest">Secure TLS 1.3 Protocol</span>
-              </div>
-            </form>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="h-full flex flex-col items-center justify-center text-center p-8 md:p-12 bg-white/[0.03] border border-white/10 rounded-[2rem] md:rounded-[3rem] backdrop-blur-xl"
-            >
-              <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 mb-6 md:mb-8 border border-cyan-500/50">
-                <CheckCircle2 size={40} className="md:w-12 md:h-12" />
-              </div>
-              <h4 className="text-2xl md:text-3xl font-black text-white italic uppercase tracking-tighter mb-4">Transmission Sent</h4>
-              <p className="text-white/40 max-w-xs mx-auto mb-8 md:mb-10 text-sm md:text-base leading-relaxed font-medium">
-                Your signal has been successfully broadcasted. I will respond to your frequency shortly.
-              </p>
-              
-              <div className="flex flex-col gap-3 w-full max-w-xs mx-auto">
-                <button
-                    onClick={() => setShowGame(true)}
-                    className="w-full py-4 bg-cyan-400 text-black text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-white transition-all cursor-pointer flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(34,211,238,0.3)]"
+                  <div className="contact-field" style={{ marginBottom: "1rem" }}>
+                    <label className="contact-field-label">
+                      <MessageSquare size={10} /> payload
+                    </label>
+                    <textarea
+                      required
+                      rows={4}
+                      placeholder="// describe your project, timeline, or opportunity..."
+                      className="contact-textarea"
+                      value={draft.message}
+                      onChange={(e) => updateContact({ message: e.target.value })}
+                    />
+                  </div>
+
+                  <button type="submit" disabled={loading} className="contact-submit">
+                    {loading ? (
+                      <span className="contact-submit-spinner" />
+                    ) : (
+                      <>
+                        initialize_connection
+                        <Send size={14} />
+                      </>
+                    )}
+                  </button>
+
+                  <div className="contact-footer-note">
+                    <span className="contact-footer-dot" />
+                    <span>session cached locally · {region.currencyCode} pricing</span>
+                  </div>
+                </form>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="contact-success"
                 >
-                    <Gamepad2 size={16} /> Play Mini-Game
-                </button>
-                <button
-                    onClick={() => setSuccess(false)}
-                    className="w-full py-4 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-white/10 transition-all cursor-pointer active:scale-95"
-                >
-                    Broadcast Again
-                </button>
-              </div>
-            </motion.div>
-          )}
+                  <div className="contact-success-icon">
+                    <CheckCircle2 size={40} />
+                  </div>
+                  <h4 className="contact-success-title">Transmission Sent</h4>
+                  <p className="contact-success-text">
+                    Your signal has been broadcast. I'll respond on your frequency shortly.
+                  </p>
+                  <div className="contact-success-actions">
+                    <button
+                      type="button"
+                      onClick={() => setShowGame(true)}
+                      className="contact-btn-primary"
+                    >
+                      <Gamepad2 size={16} /> play mini-game
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSuccess(false)}
+                      className="contact-btn-ghost"
+                    >
+                      broadcast again
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </div>
         </motion.div>
       </motion.div>
     </section>

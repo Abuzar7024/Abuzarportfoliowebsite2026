@@ -34,7 +34,7 @@ const experiences = [
     role: "Flutter Developer",
     icon: Briefcase,
     period: "11/2025 — 05/2026",
-    location: "On-site",
+    location: "Mumbai, India",
     tech: ["Flutter", "GetX", "Riverpod", "Dart"],
     summary: "Managed complete app lifecycle from development to store deployment with a focus on clean architecture and high-performance cross-platform delivery.",
     learnt: [
@@ -51,7 +51,7 @@ const experiences = [
     role: "Junior Developer",
     icon: Terminal,
     period: "06/2024 — 05/2025",
-    location: "Hybrid",
+    location: "Bhopal, India",
     tech: ["React", "Firebase", "Tailwind"],
     summary: "Built responsive web and mobile applications in Agile teams, focusing on seamless user experiences, rapid prototyping, and scalable frontend code.",
     learnt: [

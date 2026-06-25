@@ -55,14 +55,19 @@ export const Navbar = () => {
               transition={{ delay: 1.8, duration: 0.5 }}
               className="flex items-center gap-1 p-1 bg-[#050505]/60 backdrop-blur-xl border border-white/10 rounded-full pointer-events-auto"
             >
-              {navItems.map((item) => (
-                <button
+              {navItems.map((item, i) => (
+                <motion.button
                   key={item}
                   onClick={() => scrollTo(item)}
-                  className="px-4 py-2 text-xs font-medium text-white/60 hover:text-cyan-400 transition-colors cursor-pointer uppercase tracking-widest"
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.9 + i * 0.05 }}
+                  whileHover={{ y: -2, color: "#22d3ee" }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-4 py-2 text-xs font-medium text-white/60 transition-colors cursor-pointer uppercase tracking-widest"
                 >
                   {item}
-                </button>
+                </motion.button>
               ))}
             </motion.div>
           </div>

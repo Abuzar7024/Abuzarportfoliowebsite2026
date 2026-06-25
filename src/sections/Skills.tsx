@@ -1,19 +1,20 @@
 import React from "react";
 import { motion } from "motion/react";
 import { fadeIn, staggerContainer, glassHover } from "../lib/motion-variants";
-import { Smartphone, Database, Layers, Brain, Settings } from "lucide-react";
+import { Smartphone, Database, Layers, Brain, Settings, Box } from "lucide-react";
 
 const skillGroups = [
   { id: 1, title: "Mobile", icon: Smartphone, skills: ["Flutter", "Dart", "Android", "iOS"] },
   { id: 2, title: "AI & Computer Vision", icon: Brain, skills: ["Virtual Try-On", "Computer Vision", "Face Detection", "Image Processing", "Camera Integration", "AI API Integration", "Machine Learning APIs"] },
   { id: 3, title: "Backend", icon: Database, skills: ["REST APIs", "Firebase", "Authentication", "Cloud Firestore"] },
-  { id: 4, title: "State Management", icon: Layers, skills: ["Provider", "Riverpod"] },
-  { id: 5, title: "Tools", icon: Settings, skills: ["Git", "GitHub", "Postman", "Android Studio", "VS Code", "Figma"] }
+  { id: 4, title: "State Management", icon: Layers, skills: ["Provider", "Riverpod", "GetX"] },
+  { id: 5, title: "Tools", icon: Settings, skills: ["Git", "GitHub", "Postman", "Android Studio", "VS Code", "Figma"] },
+  { id: 6, title: "Architecture", icon: Box, skills: ["Clean Architecture", "MVVM", "Repository Pattern", "Modular Design", "SOLID", "Unit Testing"] },
 ];
 
 export const Skills = () => {
   return (
-    <section id="skills" className="py-24 px-4 sm:px-6 max-w-7xl mx-auto overflow-hidden">
+    <section id="skills" className="skills-section">
       <motion.div
         initial="initial"
         whileInView="animate"

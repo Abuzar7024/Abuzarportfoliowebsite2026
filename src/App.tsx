@@ -19,6 +19,7 @@ import { OfflineScreen } from "./components/OfflineScreen";
 import NotFound from "./NotFound";
 
 import { Toaster } from "sonner@2.0.3";
+import { UserSessionProvider } from "./context/UserSessionContext";
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -43,6 +44,7 @@ export default function App() {
   if (isOffline) return <OfflineScreen />;
 
   return (
+    <UserSessionProvider>
     <div className="min-h-screen bg-[#020202] text-white selection:bg-cyan-500/30 overflow-x-hidden">
       <SiteIcon />
       <Toaster position="bottom-center" theme="dark" richColors />
@@ -82,5 +84,6 @@ export default function App() {
         </motion.div>
       )}
     </div>
+    </UserSessionProvider>
   );
 }
