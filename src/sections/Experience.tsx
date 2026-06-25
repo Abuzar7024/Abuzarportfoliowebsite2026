@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { fadeIn } from "../lib/motion-variants";
 import {
-  Cpu, Terminal, CheckCircle2, Calendar, MapPin,
-  ExternalLink, Briefcase, ChevronDown, ChevronRight
+  Cpu, Terminal,   CheckCircle2, Calendar, MapPin,
+  ExternalLink, Briefcase, ChevronDown
 } from "lucide-react";
 
 const experiences = [
@@ -183,118 +183,67 @@ const DesktopExperience = () => {
   );
 };
 
-// ─── Mobile Accordion Layout ─────────────────────────────────────────────────
-const MobileAccordion = () => {
-  const [openId, setOpenId] = useState<string>("ebani"); // first open by default
-
-  const toggle = (id: string) => setOpenId(prev => prev === id ? "" : id);
+// ─── Mobile Timeline Layout ───────────────────────────────────────────────────
+const MobileExperience = () => {
+  const [openId, setOpenId] = useState<string>("ebani");
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="exp-mobile">
       {experiences.map((exp, idx) => {
         const isOpen = openId === exp.id;
+        const isLast = idx === experiences.length - 1;
+
         return (
-          <motion.div
-            key={exp.id}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: idx * 0.1 }}
-            className={`rounded-2xl border overflow-hidden transition-all duration-300 ${isOpen ? "border-cyan-500/40 bg-cyan-500/[0.04]" : "border-white/10 bg-white/[0.02]"}`}
-          >
-            {/* Accordion Header */}
-            <button
-              onClick={() => toggle(exp.id)}
-              className="w-full flex items-center gap-4 p-5 text-left touch-manipulation"
-              aria-expanded={isOpen}
-            >
-              {/* Icon */}
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${isOpen ? "bg-cyan-400 text-black" : "bg-white/10 text-cyan-400"}`}>
-                {React.createElement(exp.icon, { size: 22 })}
-              </div>
+          <div key={exp.id} className={`exp-mobile-item ${isLast ? "exp-mobile-item--last" : ""}`}>
+            <span className="exp-mobile-dot" aria-hidden="true" />
 
-              {/* Company Info */}
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.2em] mb-0.5">{exp.role}</p>
-                <h3 className="text-base font-black text-white uppercase tracking-tight truncate">{exp.company}</h3>
-                <p className="text-[10px] text-white/35 font-bold mt-0.5">{exp.period}</p>
-              </div>
-
-              {/* Chevron */}
-              <motion.div
-                animate={{ rotate: isOpen ? 180 : 0 }}
-                transition={{ duration: 0.25 }}
-                className="shrink-0 text-white/30"
+            <div className={`exp-mobile-card ${isOpen ? "exp-mobile-card--open" : ""}`}>
+              <button
+                type="button"
+                onClick={() => setOpenId(isOpen ? "" : exp.id)}
+                className="exp-mobile-trigger"
+                aria-expanded={isOpen}
               >
-                <ChevronDown size={18} />
-              </motion.div>
-            </button>
+                <div className="exp-mobile-icon">
+                  {React.createElement(exp.icon, { size: 18 })}
+                </div>
+                <div className="exp-mobile-meta">
+                  <p className="exp-mobile-role">{exp.role}</p>
+                  <h3 className="exp-mobile-company">{exp.company}</h3>
+                  <p className="exp-mobile-period">{exp.period} · {exp.location}</p>
+                </div>
+                <ChevronDown size={16} className={`exp-mobile-chevron ${isOpen ? "exp-mobile-chevron--open" : ""}`} />
+              </button>
 
-            {/* Accordion Body */}
-            <AnimatePresence initial={false}>
-              {isOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  className="overflow-hidden"
-                >
-                  <div className="px-5 pb-5 space-y-4 border-t border-white/5 pt-5">
-                    {/* Location & Period */}
-                    <div className="flex flex-wrap gap-2">
-                      <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
-                        <MapPin size={12} className="text-cyan-400" />
-                        <span className="text-[10px] font-bold text-white/60">{exp.location}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
-                        <Calendar size={12} className="text-cyan-400" />
-                        <span className="text-[10px] font-bold text-white/60">{exp.period}</span>
-                      </div>
-                    </div>
+              <AnimatePresence initial={false}>
+                {isOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    className="exp-mobile-body-wrap"
+                  >
+                    <div className="exp-mobile-body">
+                      <p className="exp-mobile-summary">{exp.summary}</p>
 
-                    {/* Summary */}
-                    <p className="text-sm text-white/60 leading-relaxed italic border-l-2 border-cyan-500/30 pl-4">
-                      "{exp.summary}"
-                    </p>
-
-                    {/* Responsibilities */}
-                    <div>
-                      <p className="text-[9px] font-black text-white/25 uppercase tracking-[0.25em] mb-3 flex items-center gap-1.5">
-                        <Terminal size={10} /> Responsibilities
-                      </p>
-                      <div className="space-y-2">
-                        {exp.learnt.map((item, i) => (
-                          <motion.div
-                            key={i}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: i * 0.04 }}
-                            className="flex items-start gap-3"
-                          >
-                            <ChevronRight size={13} className="text-cyan-400 mt-0.5 shrink-0" />
-                            <span className="text-xs text-white/60 leading-relaxed font-medium">{item}</span>
-                          </motion.div>
+                      <ul className="exp-mobile-list">
+                        {exp.learnt.slice(0, 5).map((item, i) => (
+                          <li key={i}>{item}</li>
                         ))}
-                      </div>
-                    </div>
+                      </ul>
 
-                    {/* Tech stack */}
-                    <div>
-                      <p className="text-[9px] font-black text-white/25 uppercase tracking-[0.25em] mb-2">Tech Stack</p>
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="exp-mobile-tags">
                         {exp.tech.map((t) => (
-                          <span key={t} className="px-2.5 py-1 rounded-lg bg-white/[0.06] border border-white/10 text-[9px] font-black text-white/60 uppercase tracking-widest">
-                            {t}
-                          </span>
+                          <span key={t} className="exp-mobile-tag">{t}</span>
                         ))}
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
         );
       })}
     </div>
@@ -311,25 +260,25 @@ export const Experience = () => {
         initial="initial"
         whileInView="animate"
         viewport={{ once: true }}
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10 border-b-2 border-white/10 pb-6"
+        className="experience-header"
       >
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-cyan-500/10 rounded-2xl border border-cyan-500/20">
-            <Briefcase size={22} className="text-cyan-400" />
+        <div className="experience-header-title">
+          <div className="experience-header-icon">
+            <Briefcase size={20} className="text-cyan-400" />
           </div>
-          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white uppercase italic tracking-tighter">
+          <h2 className="experience-heading">
             Work <span className="text-cyan-400">Experience</span>
           </h2>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/10 self-start sm:self-auto">
+        <div className="experience-header-badge">
           <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_#22d3ee]" />
-          <span className="text-xs font-mono text-white/70 uppercase tracking-widest font-black">Active</span>
+          <span>Active</span>
         </div>
       </motion.div>
 
-      {/* Mobile: Accordion | Desktop: Tab layout */}
+      {/* Mobile: Timeline | Desktop: Tab layout */}
       <div className="block lg:hidden">
-        <MobileAccordion />
+        <MobileExperience />
       </div>
       <div className="hidden lg:block">
         <DesktopExperience />
