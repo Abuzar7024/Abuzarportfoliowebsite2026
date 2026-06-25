@@ -548,18 +548,18 @@ export const Services = () => {
       )}
 
       {/* Header */}
-      <div ref={titleRef} className="text-center mb-14 sm:mb-18">
+      <div ref={titleRef} className="services-header text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.4 }} className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-950/30 border border-cyan-500/25 rounded-full mb-7">
           <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_#22d3ee]" />
           <span className="text-[9px] font-black text-cyan-400 uppercase tracking-[0.35em]">Production-Ready Solutions</span>
         </motion.div>
 
         <motion.h2 initial={{ opacity: 0, y: 25 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: 0.1 }} className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white uppercase italic tracking-tighter leading-none mb-5">
-          Services
-          <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-white/80 to-cyan-500">I Offer</span>
+          Professional
+          <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-white/80 to-cyan-500">Development Services</span>
         </motion.h2>
 
-        <motion.p initial={{ opacity: 0, y: 15 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: 0.2 }} className="text-sm sm:text-base text-white/35 max-w-2xl mx-auto leading-relaxed px-4">
+        <motion.p initial={{ opacity: 0, y: 15 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: 0.2 }} className="text-sm sm:text-base text-white/35 max-w-2xl mx-auto leading-relaxed px-4 services-header-desc">
           From AI-powered mobile applications to enterprise software — I help businesses transform ideas into scalable digital products.
           <br className="hidden sm:block" />
           <span className="text-white/50 font-semibold"> Click any service to get a quote.</span>

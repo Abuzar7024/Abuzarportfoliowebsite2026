@@ -4736,3 +4736,17 @@ html {
 .service-card-cta:active {
   transform: scale(0.98);
 }
+
+.services-header {
+  margin-bottom: 4.5rem;
+}
+
+.services-header-desc {
+  margin-bottom: 0;
+}
+
+@media (min-width: 640px) {
+  .services-header {
+    margin-bottom: 6rem;
+  }
+}
