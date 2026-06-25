@@ -12,25 +12,8 @@ import { toast } from "sonner@2.0.3";
 // ─── Config ──────────────────────────────────────────────────────────────────
 const WHATSAPP = "918770206120";
 
-const SERVICE_GRADIENT: Record<string, string> = {
-  flutter: "linear-gradient(135deg, #06b6d4, #3b82f6)",
-  ai: "linear-gradient(135deg, #8b5cf6, #9333ea)",
-  web: "linear-gradient(135deg, #10b981, #14b8a6)",
-  ecommerce: "linear-gradient(135deg, #f97316, #f43f5e)",
-  api: "linear-gradient(135deg, #0ea5e9, #6366f1)",
-  uiux: "linear-gradient(135deg, #ec4899, #f43f5e)",
-  maintenance: "linear-gradient(135deg, #f59e0b, #eab308)",
-};
-
-const SERVICE_ACCENT: Record<string, string> = {
-  flutter: "#22d3ee",
-  ai: "#a78bfa",
-  web: "#34d399",
-  ecommerce: "#fb923c",
-  api: "#38bdf8",
-  uiux: "#f472b6",
-  maintenance: "#fbbf24",
-};
+const THEME_GRADIENT = "linear-gradient(135deg, #06b6d4, #3b82f6)";
+const THEME_GLOW = "rgba(6,182,212,0.2)";
 
 const FORM_STEPS = [
   { n: 1, label: "Your details", hint: "Tell me who you are so I can get back to you." },
@@ -243,17 +226,17 @@ const ServiceModal = ({
         transition={{ type: "spring", damping: 28, stiffness: 320 }}
         onClick={(e) => e.stopPropagation()}
         className="service-modal-panel"
-        style={{ boxShadow: `0 25px 60px rgba(0,0,0,0.9), 0 0 40px ${service.glow}` }}
+        style={{ boxShadow: `0 25px 60px rgba(0,0,0,0.9), 0 0 40px ${THEME_GLOW}` }}
       >
         <div className="service-modal-header">
           <div className="service-modal-header-row">
             <div className="service-modal-header-info">
-              <div className="service-modal-icon" style={{ background: SERVICE_GRADIENT[service.id] }}>
-                <service.Icon size={20} className="text-white" />
+              <div className="service-modal-icon">
+                <service.Icon size={20} className="text-cyan-400" />
               </div>
               <div className="min-w-0">
                 {!submitted && (
-                  <p className="service-modal-eyebrow" style={{ color: SERVICE_ACCENT[service.id] }}>
+                  <p className="service-modal-eyebrow">
                     Step {step} of 3 · {FORM_STEPS[step - 1].label}
                   </p>
                 )}
@@ -269,7 +252,7 @@ const ServiceModal = ({
             <div className="service-modal-progress">
               <div
                 className="service-modal-progress-fill"
-                style={{ width: `${(step / 3) * 100}%`, background: SERVICE_GRADIENT[service.id] }}
+                style={{ width: `${(step / 3) * 100}%`, background: THEME_GRADIENT }}
               />
             </div>
           )}
@@ -318,7 +301,7 @@ const ServiceModal = ({
                               type="button"
                               onClick={() => update("budget", b)}
                               className={`service-modal-chip service-modal-chip--budget ${form.budget === b ? "service-modal-chip--active" : ""}`}
-                              style={form.budget === b ? { background: SERVICE_GRADIENT[service.id], boxShadow: `0 0 20px ${service.glow}` } : undefined}
+                              style={form.budget === b ? { background: THEME_GRADIENT, boxShadow: `0 0 20px ${THEME_GLOW}` } : undefined}
                             >
                               {b}
                             </button>
@@ -334,7 +317,7 @@ const ServiceModal = ({
                               type="button"
                               onClick={() => update("timeline", t)}
                               className={`service-modal-chip service-modal-chip--timeline ${form.timeline === t ? "service-modal-chip--active" : ""}`}
-                              style={form.timeline === t ? { background: SERVICE_GRADIENT[service.id], boxShadow: `0 0 20px ${service.glow}` } : undefined}
+                              style={form.timeline === t ? { background: THEME_GRADIENT, boxShadow: `0 0 20px ${THEME_GLOW}` } : undefined}
                             >
                               {t}
                             </button>
@@ -355,7 +338,7 @@ const ServiceModal = ({
                       onClick={() => setStep((s) => (s + 1) as 2 | 3)}
                       disabled={step === 1 ? !isStep1Valid : !isStep2Valid}
                       className="service-modal-btn service-modal-btn--primary flex-1"
-                      style={(step === 1 ? isStep1Valid : isStep2Valid) ? { background: SERVICE_GRADIENT[service.id], boxShadow: `0 0 24px ${service.glow}` } : undefined}
+                      style={(step === 1 ? isStep1Valid : isStep2Valid) ? { background: THEME_GRADIENT, boxShadow: `0 0 24px ${THEME_GLOW}` } : undefined}
                     >
                       Continue <ChevronRight size={13} />
                     </button>
@@ -364,7 +347,7 @@ const ServiceModal = ({
                       onClick={handleSubmit}
                       disabled={!isStep3Valid || loading}
                       className="service-modal-btn service-modal-btn--primary flex-1"
-                      style={isStep3Valid && !loading ? { background: SERVICE_GRADIENT[service.id], boxShadow: `0 0 24px ${service.glow}` } : undefined}
+                      style={isStep3Valid && !loading ? { background: THEME_GRADIENT, boxShadow: `0 0 24px ${THEME_GLOW}` } : undefined}
                     >
                       {loading ? <div className="service-modal-spinner" /> : <><Send size={13} /> Submit Request</>}
                     </button>
@@ -373,8 +356,8 @@ const ServiceModal = ({
               </motion.div>
             ) : (
               <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="service-modal-success">
-                <div className="service-modal-icon service-modal-icon--lg" style={{ background: SERVICE_GRADIENT[service.id] }}>
-                  <CheckCircle size={28} className="text-white" />
+                <div className="service-modal-icon service-modal-icon--lg">
+                  <CheckCircle size={28} className="text-cyan-400" />
                 </div>
                 <div>
                   <h4 className="service-modal-success-title">Request Sent!</h4>
@@ -388,7 +371,7 @@ const ServiceModal = ({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="service-modal-btn service-modal-btn--primary w-full"
-                  style={{ background: SERVICE_GRADIENT[service.id], boxShadow: `0 0 30px ${service.glow}` }}
+                  style={{ background: THEME_GRADIENT, boxShadow: `0 0 30px ${THEME_GLOW}` }}
                 >
                   <MessageCircle size={16} />
                   Open WhatsApp
@@ -411,8 +394,6 @@ const ServiceModal = ({
 const ServiceCard = ({ service, index, onSelect }: { service: typeof services[0]; index: number; onSelect: () => void }) => {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.15 });
-  const accent = SERVICE_ACCENT[service.id];
-  const gradient = SERVICE_GRADIENT[service.id];
 
   return (
     <motion.div
@@ -423,22 +404,18 @@ const ServiceCard = ({ service, index, onSelect }: { service: typeof services[0]
       className="h-full"
     >
       <div className="service-card" onClick={onSelect}>
-        <div className="service-card-accent" style={{ background: gradient }} />
-        <div
-          className="service-card-glow"
-          style={{ background: `radial-gradient(ellipse at 30% 0%, ${service.glow} 0%, transparent 70%)` }}
-        />
+        <div className="service-card-blob" aria-hidden="true" />
 
         <div className="service-card-inner">
           <div className="service-card-top">
-            <div className="service-card-icon" style={{ background: gradient, boxShadow: `0 0 24px ${service.glow}` }}>
-              <service.Icon size={22} className="text-white" />
+            <div className="service-card-icon">
+              <service.Icon size={22} />
             </div>
             <span className="service-card-num">{String(index + 1).padStart(2, "0")}</span>
           </div>
 
           <h3 className="service-card-title">{service.title}</h3>
-          <p className="service-card-subtitle" style={{ color: accent }}>{service.subtitle}</p>
+          <p className="service-card-subtitle">{service.subtitle}</p>
           <p className="service-card-desc">{service.description}</p>
 
           <div className="service-card-tags">
@@ -454,7 +431,6 @@ const ServiceCard = ({ service, index, onSelect }: { service: typeof services[0]
             type="button"
             onClick={(e) => { e.stopPropagation(); onSelect(); }}
             className="service-card-cta"
-            style={{ background: gradient, boxShadow: `0 8px 24px ${service.glow}` }}
           >
             <MessageCircle size={12} />
             {service.cta}
