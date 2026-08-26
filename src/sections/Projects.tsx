@@ -1,500 +1,294 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { fadeIn, modalVariants } from "../lib/motion-variants";
-import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import { toast } from "sonner@2.0.3";
-import { 
-  X, 
-  Globe, 
-  ShieldCheck,
-  Play,
-  Apple,
-  ExternalLink,
-  Info,
-  Github,
-  Fingerprint,
-  Sparkles
-} from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { ArrowUpRight, ExternalLink } from "lucide-react";
+import { compactProjects, flagshipProjects, largeProjects, projectById, projects } from "../data/projects";
+import type { Project } from "../data/types";
+import { useRenderProfile } from "../hooks/useDeviceTier";
+import { DeviceFigure } from "../components/DeviceFigure";
+import { DeviceFallback } from "../components/Fallbacks";
+import { FadeIn, SectionHead } from "../components/Reveal";
+import { TiltCard } from "../components/TiltCard";
+import { StoreBadges } from "../components/StoreBadges";
+import { ProjectDetail } from "./ProjectDetail";
 
-interface ProjectLinks {
-  website?: string | null;
-  playstore?: string | null;
-  appstore?: string | null;
-  github?: string | null;
+const HASH_PREFIX = "#project=";
+
+function readHash(): string | null {
+  if (typeof window === "undefined") return null;
+  const h = window.location.hash;
+  return h.startsWith(HASH_PREFIX) ? decodeURIComponent(h.slice(HASH_PREFIX.length)) : null;
 }
 
-interface Project {
-  id: string;
-  title: string;
-  category: string;
-  role: string;
-  image: string;
-  description: string;
-  details: string[];
-  tech: string[];
-  links: ProjectLinks;
-  color: string;
-  accent: string;
-  isRevealCard?: boolean;
-}
-
-const portfolioProject: Project = {
-  id: "portfolio-2026",
-  title: "Personal Portfolio",
-  category: "Web Experience",
-  role: "Designer & Developer",
-  image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.0.0&q=80&w=1080",
-  description:
-    "Not your average portfolio drop. Built on React with brains, aesthetics, and a little chaos — it reads your region, remembers your session, and hides something worth finding if you actually explore.",
-  details: [
-    "Your location, your setup — currency flips to ₹, $, or whatever your region runs on. Dial codes follow automatically (+91, +1, and beyond). No manual toggling needed.",
-    "Refresh-proof memory — contact drafts, inquiry type, and preferences stick in your browser. Close the tab, come back, pick up exactly where you left off.",
-    "Service requests that actually make sense — multi-step flow with budget ranges tuned to your market, delivered straight through EmailJS.",
-    "Contact section with terminal energy — live status chips, direct channel links, and a transmission UI that feels like you're plugging into something real.",
-    "Clean on every screen — mobile, tablet, desktop. Animated hero, experience timeline, one cohesive cyan glass aesthetic from top to bottom.",
-    "There's a secret mini-game buried somewhere on this site. Send a transmission, then keep exploring. Discovery rewards the curious.",
-  ],
-  tech: ["React", "TypeScript", "Vite", "EmailJS", "Motion", "Tailwind"],
-  links: {
-    website: "https://github.com/Abuzar7024/Abuzarportfoliowebsite2026",
-    playstore: null,
-    appstore: null,
-    github: "https://github.com/Abuzar7024/Abuzarportfoliowebsite2026",
-  },
-  color: "bg-cyan-500/5",
-  accent: "text-cyan-400",
-  isRevealCard: true,
-};
-
-const projects: Project[] = [
-  {
-    id: "tajneed",
-    title: "Tajneed",
-    category: "Government / Recruitment",
-    role: "Flutter Developer",
-    image: "https://images.unsplash.com/photo-1588511986632-592db3d6c81f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnb3Zlcm5tZW50JTIwcmVjcnVpdG1lbnQlMjBwb3J0YWwlMjBpbnRlcmZhY2V8ZW58MXx8fHwxNzcwMjA2MjU1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-    description: "Recruitment system for the Ministry of Defence U.A.E. featuring multi-step dynamic forms for military registration.",
-    details: [
-      "Developed complex multi-step dynamic forms with validation and draft saving.",
-      "Improved API handling to reduce form submission failures and data mismatch.",
-      "Fixed UI alignment and responsiveness issues across various screen sizes.",
-      "Implemented token refresh and session expiry handling for secure authentication.",
-      "Optimized loading times by restructuring API calls and improving data flow."
-    ],
-    tech: ["Flutter", "GetX", "REST APIs", "JSON", "Security Tokens"],
-    links: { 
-      website: "https://www.tajneed.gov.ae/", 
-      playstore: "https://play.google.com/store/apps/details?id=ae.mod.tajneed&pcampaignid=web_share", 
-      appstore: "https://apps.apple.com/ae/app/tajneed/id6517355120",
-      github: null
-    },
-    color: "bg-blue-500/5",
-    accent: "text-blue-400"
-  },
-  {
-    id: "sadeeq-user",
-    title: "Sadeeq User App",
-    category: "Home Services",
-    role: "Lead Flutter Developer",
-    image: "https://images.unsplash.com/photo-1768987439382-894ea4e2a736?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzZXJ2aWNlJTIwbWFya2V0cGxhY2UlMjBtb2JpbGUlMjBhcHAlMjBhcHAlMjBzdG9yZXxlbnwxfHx8fDE3NzAyMDYyNTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    description: "Introducing Sadeeq: Your Trusted Home Service Partner. Sadeeq is your one-stop solution for all household needs, offering 50+ services delivered by background-verified professionals with pre-approved pricing.",
-    details: [
-      "Architected a scalable mobile solution using GetX and Clean Architecture.",
-      "Integrated real-time service tracking and Google Maps API.",
-      "Developed a secure payment gateway integration for seamless transactions.",
-      "Implemented a personalized notification system for service updates.",
-      "Streamlined the booking flow to ensure user-friendly access to household services."
-    ],
-    tech: ["Flutter", "GetX", "Google Maps API", "REST APIs", "Firebase"],
-    links: { 
-      website: "https://sadeeq.beserved.net/#/", 
-      playstore: "https://play.google.com/store/apps/details?id=com.user.sadeeq&pcampaignid=web_share", 
-      appstore: null,
-      github: null
-    },
-    color: "bg-yellow-500/5",
-    accent: "text-yellow-400"
-  },
-  {
-    id: "sadeeq-provider",
-    title: "Sadeeq Provider",
-    category: "Business Tool",
-    role: "Lead Flutter Developer",
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMG1hbmFnZW1lbnQlMjBhcHAlMjBkYXNoYm9hcmQlMjBhbmFseXRpY3N8ZW58MXx8fHwxNzcwMjA2MjU1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-    description: "Empowering professionals within the Sadeeq ecosystem. This provider app enables experts to manage service requests, track earnings, and communicate with customers in real-time.",
-    details: [
-      "Built a robust job management dashboard with real-time status updates.",
-      "Implemented performance analytics and earnings reporting modules.",
-      "Developed a real-time chat system for provider-customer communication.",
-      "Optimized background location services for provider tracking."
-    ],
-    tech: ["Flutter", "GetX", "REST APIs", "Google Maps API", "Firebase"],
-    links: { 
-      website: "https://sadeeq.beserved.net/#/", 
-      playstore: "https://play.google.com/store/apps/details?id=ae.sadeeq.provider&pcampaignid=web_share", 
-      appstore: null,
-      github: null
-    },
-    color: "bg-purple-500/5",
-    accent: "text-purple-400"
-  },
-  {
-    id: "riayah",
-    title: "Riayah",
-    category: "Healthcare",
-    role: "Flutter Developer",
-    image: "https://images.unsplash.com/photo-1767449441925-737379bc2c4d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFsdGhjYXJlJTIwZGFzaGJvYXJkJTIwYXBwJTIwaW50ZXJmYWNlfGVufDF8fHx8MTc3MDIwNjI1NXww&ixlib=rb-4.1.0&q=80&w=1080",
-    description: "A high-performance healthcare management application designed for seamless patient tracking, appointment scheduling, and clinical data management with robust state handling.",
-    details: [
-      "Optimized dashboard and heavy screens, reducing UI freezes.",
-      "Cleaned up API response mapping and fixed state management issues.",
-      "Resolved data-related bugs across appointments and user profiles.",
-      "Implemented intelligent caching for faster data fetching.",
-      "Integrated FCM notification issues for background and killed-state behavior."
-    ],
-    tech: ["Flutter", "Provider", "REST APIs", "Firebase", "FCM"],
-    links: { 
-      website: null, 
-      playstore: "https://play.google.com/store/apps/details?id=com.app.riayah&pcampaignid=web_share", 
-      appstore: null,
-      github: null
-    },
-    color: "bg-green-500/5",
-    accent: "text-green-400"
-  },
-  portfolioProject,
-];
-
-function PortfolioRevealCard({
-  project,
-  revealed,
-  onReveal,
-}: {
-  project: Project;
-  revealed: boolean;
-  onReveal: () => void;
-}) {
+function CaseButton({ project, onOpen, className = "btn-primary", iconOnly = false }: { project: Project; onOpen: (p: Project) => void; className?: string; iconOnly?: boolean }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      className="portfolio-reveal-card"
+    <button
+      type="button"
+      className={className}
+      onClick={(e) => {
+        e.stopPropagation();
+        onOpen(project);
+      }}
+      aria-label={`Read the ${project.title} case study`}
+      data-cursor="Open"
     >
-      {!revealed ? (
-        <button
-          type="button"
-          onClick={onReveal}
-          className="portfolio-reveal-cover"
-          aria-label="Tap to reveal personal portfolio project"
-        >
-          <div className="portfolio-reveal-cover-grid" aria-hidden="true" />
-          <div className="portfolio-reveal-cover-inner">
-            <div className="portfolio-reveal-icon-wrap">
-              <Fingerprint size={28} className="text-cyan-400" />
-            </div>
-            <p className="portfolio-reveal-eyebrow">classified_project</p>
-            <h4 className="portfolio-reveal-title">Tap to Reveal</h4>
-            <p className="portfolio-reveal-hint">
-              A static vault containing this portfolio&apos;s hidden feature log.
-            </p>
-            <span className="portfolio-reveal-cta">
-              <Sparkles size={12} /> unlock
-            </span>
-          </div>
-        </button>
-      ) : (
-        <div className="portfolio-reveal-content">
-          <div className="portfolio-reveal-content-header">
-            <p className={`text-[9px] font-black uppercase tracking-[0.3em] ${project.accent}`}>
-              {project.category}
-            </p>
-            <h4 className="portfolio-reveal-content-title">{project.title}</h4>
-            <p className="portfolio-reveal-content-desc">{project.description}</p>
-          </div>
+      {!iconOnly && "Case study "}
+      <ArrowUpRight size={iconOnly ? 18 : 15} />
+    </button>
+  );
+}
 
-          <ul className="portfolio-reveal-features">
-            {project.details.map((detail) => (
-              <li key={detail}>{detail}</li>
-            ))}
-          </ul>
 
-          <div className="portfolio-reveal-tags">
-            {project.tech.map((t) => (
-              <span key={t} className="portfolio-reveal-tag">
-                {t}
+/** Vector blueprint grid + accent glow behind a device. */
+function Blueprint({ accent }: { accent: string }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div className="absolute inset-0" style={{ background: `radial-gradient(70% 60% at 50% 60%, ${accent}22, transparent 70%)` }} />
+      <svg className="absolute inset-0 h-full w-full opacity-[0.16]" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id={`bp-${accent.replace("#", "")}`} width="32" height="32" patternUnits="userSpaceOnUse">
+            <path d="M32 0H0V32" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="0.6" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill={`url(#bp-${accent.replace("#", "")})`} />
+        <circle cx="50%" cy="58%" r="38%" fill="none" stroke={accent} strokeOpacity="0.5" strokeDasharray="4 8" />
+        <circle cx="50%" cy="58%" r="26%" fill="none" stroke="rgba(255,255,255,0.35)" strokeDasharray="2 6" />
+      </svg>
+      <span className="absolute left-4 top-4 font-mono text-[10px] uppercase tracking-[0.14em] text-white/40">preview · interactive</span>
+    </div>
+  );
+}
+
+function TechBar({ tech, accent }: { tech: string[]; accent: string }) {
+  const palette = [accent, "#ffb38a", "#8fd3ff", "#c792ea", "#82e0aa", "#f5b942"];
+  const shown = tech.slice(0, 6);
+  return (
+    <div aria-hidden="true">
+      <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+        {shown.map((t, i) => (
+          <span key={t} className="h-full" style={{ width: `${100 / shown.length}%`, background: palette[i % palette.length], opacity: 0.9 - i * 0.08 }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RepoBar({ project, index }: { project: Project; index: number }) {
+  const slug = project.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  return (
+    <div className="flex items-center gap-3 border-b border-line bg-white/[0.02] px-4 py-2.5 font-mono text-[12px]">
+      <span className="flex gap-1.5" aria-hidden="true">
+        <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+      </span>
+      <span className="min-w-0 flex-1 truncate text-ink-2">
+        abuzar7024 <span className="text-muted">/</span> {slug}
+      </span>
+      <span className="hidden text-muted sm:inline">{String(index + 1).padStart(2, "0")}</span>
+      <span className="chip !py-0 !text-[11px]">
+        <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" /> live
+      </span>
+    </div>
+  );
+}
+
+/** Featured project: a wide card with the 3D device on one side and the story on the other. */
+function Featured({ project, index, onOpen }: { project: Project; index: number; onOpen: (p: Project) => void }) {
+  const profile = useRenderProfile();
+  const flip = index % 2 === 1;
+  const live = project.links.find((l) => l.primary) ?? project.links[0];
+  return (
+    <FadeIn amount={0.2}>
+      <motion.article layoutId={`card-${project.id}`} className="card card-hover cursor-pointer overflow-hidden" onClick={() => onOpen(project)} data-cursor="Open">
+        <RepoBar project={project} index={index} />
+        <div className="grid lg:grid-cols-12">
+        <div className={`relative min-h-[300px] sm:min-h-[380px] lg:col-span-7 lg:min-h-[460px] ${flip ? "lg:order-2" : ""}`}>
+          <Blueprint accent={project.accent} />
+          <DeviceFigure project={project} profile={profile} className="absolute inset-0" interactive scale={project.device === "phone" ? 1.05 : 0.98} />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-bg-2/90 to-transparent" aria-hidden="true" />
+        </div>
+        <div className={`flex flex-col justify-between p-6 sm:p-8 lg:col-span-5 ${flip ? "lg:order-1" : ""}`}>
+          <div>
+            <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="font-mono text-[11px] text-muted">{String(index + 1).padStart(2, "0")}</span>
+              <span className="font-mono text-[11px] uppercase tracking-[0.12em]" style={{ color: project.accent }}>
+                {project.category}
               </span>
-            ))}
+            </p>
+            <motion.h3 layoutId={`title-${project.id}`} className="mt-4 font-display text-[clamp(1.75rem,2.6vw,2.4rem)] font-bold leading-tight tracking-tight">
+              {project.title}
+            </motion.h3>
+            <p className="mt-3 text-[16px] leading-relaxed text-ink-2">{project.tagline}</p>
+            <p className="mt-2 text-sm text-muted">Role: {project.role}</p>
+            <ul className="mt-5 divide-y divide-line border-y border-line">
+              {project.features.slice(0, 3).map((f) => (
+                <li key={f} className="flex items-center gap-3 py-2.5 text-sm text-ink-2">
+                  <span className="h-px w-4 shrink-0 bg-accent" aria-hidden="true" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Technologies">
+              {project.tech.slice(0, 6).map((t) => (
+                <li key={t} className="chip !px-2.5 !text-[11px]">
+                  {t}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4">
+              <TechBar tech={project.tech} accent={project.accent} />
+            </div>
+            <StoreBadges links={project.links} className="mt-4" compact />
+          </div>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <CaseButton project={project} onOpen={onOpen} />
+            {live && (
+              <a href={live.href} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="btn-ghost" data-cursor="Live">
+                {live.label} <ExternalLink size={14} />
+              </a>
+            )}
           </div>
         </div>
-      )}
-    </motion.div>
+        </div>
+      </motion.article>
+    </FadeIn>
   );
 }
 
-export const Projects = () => {
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [portfolioRevealed, setPortfolioRevealed] = useState(false);
+function Card({ project, onOpen, delay }: { project: Project; onOpen: (p: Project) => void; delay: number }) {
+  const profile = useRenderProfile();
+  return (
+    <FadeIn delay={delay} className="h-full">
+      <TiltCard max={5} className="h-full">
+        <motion.article layoutId={`card-${project.id}`} className="card card-hover group flex h-full cursor-pointer flex-col overflow-hidden" onClick={() => onOpen(project)} data-cursor="Open">
+          <div className="relative h-72 overflow-hidden sm:h-80">
+            <Blueprint accent={project.accent} />
+            {profile.tier === "high" ? (
+              <DeviceFigure project={project} profile={profile} className="absolute inset-0" interactive scale={0.9} />
+            ) : (
+              <div className="absolute inset-x-0 top-6 bottom-[-35%] transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-3">
+                <DeviceFallback kind={project.device} screen={project.screen} accent={project.accent} className="h-full w-full" />
+              </div>
+            )}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-bg-2 to-transparent" />
+          </div>
+          <div className="flex flex-1 flex-col p-6">
+            <p className="flex items-center justify-between gap-3 font-mono text-[11px]">
+              <span className="uppercase tracking-[0.12em]" style={{ color: project.accent }}>
+                {project.category}
+              </span>
+              <span className="text-muted">{project.kind}</span>
+            </p>
+            <motion.h3 layoutId={`title-${project.id}`} className="mt-2 font-display text-xl font-bold tracking-tight">
+              {project.title}
+            </motion.h3>
+            <p className="mt-2 text-sm leading-relaxed text-ink-2">{project.tagline}</p>
+            <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Technologies">
+              {project.tech.slice(0, 4).map((t) => (
+                <li key={t} className="chip !px-2.5 !text-[11px]">
+                  {t}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-5">
+              <TechBar tech={project.tech} accent={project.accent} />
+            </div>
+            <StoreBadges links={project.links.slice(0, 2)} className="mt-4" compact />
+            <div className="mt-auto flex items-center justify-between pt-5">
+              <span className="text-xs text-muted">Role: {project.role}</span>
+              <CaseButton project={project} onOpen={onOpen} className="btn-link" />
+            </div>
+          </div>
+        </motion.article>
+      </TiltCard>
+    </FadeIn>
+  );
+}
+
+function Compact({ project, onOpen }: { project: Project; onOpen: (p: Project) => void }) {
+  return (
+    <FadeIn>
+      <motion.article layoutId={`card-${project.id}`} className="card card-hover grid cursor-pointer gap-4 p-6 lg:grid-cols-12 lg:items-center sm:p-7" onClick={() => onOpen(project)} data-cursor="Open">
+        <div className="lg:col-span-8">
+          <p className="font-mono text-[11px] uppercase tracking-[0.12em]" style={{ color: project.accent }}>
+            {project.category}
+          </p>
+          <motion.h3 layoutId={`title-${project.id}`} className="mt-2 font-display text-xl font-bold tracking-tight">
+            {project.title}
+          </motion.h3>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-2">{project.tagline}</p>
+          <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Technologies">
+            {project.tech.slice(0, 6).map((t) => (
+              <li key={t} className="chip !px-2.5 !text-[11px]">
+                {t}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="lg:col-span-4 lg:justify-self-end">
+          <CaseButton project={project} onOpen={onOpen} className="btn-ghost" />
+        </div>
+      </motion.article>
+    </FadeIn>
+  );
+}
+
+export function Projects() {
+  const [activeId, setActiveId] = useState<string | null>(() => readHash());
+  const active = activeId ? projectById(activeId) ?? null : null;
+
+  const open = useCallback((p: Project) => {
+    setActiveId(p.id);
+    history.pushState({ project: p.id }, "", `${HASH_PREFIX}${p.id}`);
+  }, []);
+  const close = useCallback(() => {
+    setActiveId(null);
+    if (window.location.hash.startsWith(HASH_PREFIX)) history.replaceState(null, "", window.location.pathname + window.location.search);
+  }, []);
+  const navigate = useCallback((dir: 1 | -1) => {
+    setActiveId((current) => {
+      const idx = projects.findIndex((p) => p.id === current);
+      const next = projects[(idx + dir + projects.length) % projects.length];
+      history.replaceState({ project: next.id }, "", `${HASH_PREFIX}${next.id}`);
+      return next.id;
+    });
+  }, []);
 
   useEffect(() => {
-    if (selectedProject) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+    const onPop = () => setActiveId(readHash());
+    window.addEventListener("popstate", onPop);
+    window.addEventListener("hashchange", onPop);
     return () => {
-      document.body.style.overflow = 'unset';
+      window.removeEventListener("popstate", onPop);
+      window.removeEventListener("hashchange", onPop);
     };
-  }, [selectedProject]);
-
-  const handleLinkClick = (url: string | null | undefined, platform: string) => {
-    if (!url) {
-      toast("Coming Soon", {
-        description: `The ${platform} version of this application is currently under deployment. Stay tuned!`,
-        icon: <Info className="text-cyan-400" size={16} />,
-        position: "bottom-center",
-        duration: 4000,
-        className: "bg-[#0a0a0a] border border-white/10 text-white rounded-2xl",
-      });
-      return;
-    }
-    window.open(url, "_blank");
-  };
+  }, []);
 
   return (
-    <section id="projects" className="py-24 px-4 sm:px-6 max-w-7xl mx-auto overflow-hidden">
-      <div className="mb-16 text-center">
-        <h2 className="text-[10px] md:text-sm uppercase tracking-[0.3em] text-cyan-400 font-bold mb-4">Laboratory</h2>
-        <h3 className="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tighter italic uppercase">Featured Works</h3>
+    <section id="work" className="section" aria-labelledby="work-title">
+      <div className="container-x">
+        <SectionHead id="work-title" label="Selected work" title="Products that shipped." text="Fashion tech, government, healthcare, home services and AI signage — real apps on real stores. Every preview is a live 3D device you can tilt; open any project for the full case study." />
+
+        <div className="mt-10 space-y-6 lg:mt-14">
+          {flagshipProjects.map((p, i) => (
+            <Featured key={p.id} project={p} index={i} onOpen={open} />
+          ))}
+        </div>
+
+        <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {largeProjects.map((p, i) => (
+            <Card key={p.id} project={p} onOpen={open} delay={i * 0.06} />
+          ))}
+        </div>
+
+        <div className="mt-6 space-y-6">
+          {compactProjects.map((p) => (
+            <Compact key={p.id} project={p} onOpen={open} />
+          ))}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-        {projects.map((project, idx) =>
-          project.isRevealCard ? (
-            <PortfolioRevealCard
-              key={project.id}
-              project={project}
-              revealed={portfolioRevealed}
-              onReveal={() => setPortfolioRevealed(true)}
-            />
-          ) : (
-          <motion.div
-            key={project.id}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1 }}
-            viewport={{ once: true }}
-            className={`group relative flex flex-col bg-[#050505]/80 backdrop-blur-md border border-white/10 rounded-[2rem] md:rounded-[4rem] overflow-hidden hover:border-cyan-500/30 hover:shadow-[0_0_40px_rgba(6,182,212,0.15)] transition-all duration-500`}
-          >
-            {/* Project Image Preview */}
-            <div className="relative h-64 md:h-80 overflow-hidden">
-                <ImageWithFallback 
-                    src={project.image} 
-                    alt={project.title}
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/20 to-transparent" />
-                
-                {/* Floating Tags */}
-                <div className="absolute top-6 left-6 flex items-center gap-2">
-                    <div className="px-3 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-full flex items-center gap-2">
-                        <ShieldCheck size={10} className="text-cyan-400" />
-                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/80">Active</span>
-                    </div>
-                </div>
-
-                <div className="absolute bottom-6 left-6 right-6">
-                     <p className={`text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] ${project.accent} mb-1`}>{project.category}</p>
-                     <h4 className="text-2xl md:text-4xl font-black text-white leading-tight tracking-tighter uppercase italic drop-shadow-lg truncate">
-                        {project.title}
-                    </h4>
-                </div>
-            </div>
-
-            {/* Project Description Brief */}
-            <div className="p-6 md:p-10 pt-4 flex-1 flex flex-col justify-between">
-              <div>
-                <p className="text-white/45 text-[11px] md:text-sm italic leading-relaxed line-clamp-3 mb-6">
-                  {project.description}
-                </p>
-                
-                {/* Tech Stack Tags */}
-                <div className="flex flex-wrap gap-1.5 mb-6">
-                  {project.tech.map((t, techIdx) => (
-                    <span 
-                      key={techIdx} 
-                      className="px-2.5 py-1 bg-white/[0.03] border border-white/5 rounded-md text-[8px] md:text-[9px] font-black uppercase text-cyan-400/90 font-mono tracking-wider"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between pt-6 border-t border-white/5">
-                <div className="flex flex-col">
-                    <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Responsibility</span>
-                    <span className="text-[10px] md:text-xs font-bold text-white/60 italic">{project.role}</span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  {project.links.website && (
-                    <button
-                      onClick={() => handleLinkClick(project.links.website, "Website")}
-                      className="p-2.5 bg-white/5 border border-white/10 rounded-xl text-white/60 hover:text-cyan-400 hover:border-cyan-500/30 transition-all cursor-pointer"
-                      title="Live Website"
-                    >
-                      <Globe size={14} />
-                    </button>
-                  )}
-                  {project.links.github && (
-                    <button
-                      onClick={() => handleLinkClick(project.links.github, "GitHub")}
-                      className="p-2.5 bg-white/5 border border-white/10 rounded-xl text-white/60 hover:text-cyan-400 hover:border-cyan-500/30 transition-all cursor-pointer"
-                      title="GitHub Repository"
-                    >
-                      <Github size={14} />
-                    </button>
-                  )}
-                  <button 
-                    onClick={() => setSelectedProject(project)}
-                    className="group/btn flex items-center gap-2 px-4 py-2.5 bg-white text-black text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-cyan-400 transition-all cursor-pointer shadow-xl active:scale-95 animate-none"
-                  >
-                    Analyze
-                    <ExternalLink size={12} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-          )
-        )}
-      </div>
-
-      <AnimatePresence>
-        {selectedProject && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 overflow-hidden">
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
-              onClick={() => setSelectedProject(null)} 
-              className="absolute inset-0 bg-black/98 backdrop-blur-3xl" 
-            />
-            
-            <motion.div 
-              variants={modalVariants} 
-              initial="initial" 
-              animate="animate" 
-              exit="exit" 
-              className="relative w-full max-w-3xl max-h-[90vh] bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] md:rounded-[4rem] flex flex-col shadow-2xl overflow-hidden"
-            >
-              {/* Close Button */}
-              <div className="absolute top-6 right-6 z-30">
-                <button 
-                  onClick={() => setSelectedProject(null)} 
-                  className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 rounded-full text-white/40 hover:text-white transition-colors cursor-pointer active:scale-90"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto p-6 md:p-14 custom-scrollbar">
-                <div className="pt-4 md:pt-0">
-                  <div className="relative h-40 md:h-72 w-full rounded-[1.5rem] md:rounded-[3rem] overflow-hidden mb-8 md:mb-10 border border-white/10">
-                      <ImageWithFallback 
-                        src={selectedProject.image} 
-                        alt={selectedProject.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-                  </div>
-
-                  <div className="mb-8 md:mb-10 text-center md:text-left">
-                    <h2 className="text-3xl md:text-6xl font-black text-white mb-4 md:mb-6 uppercase italic tracking-tighter leading-none">{selectedProject.title}</h2>
-                    <p className="text-white/60 text-sm md:text-xl leading-relaxed italic font-medium max-w-2xl">
-                      "{selectedProject.description}"
-                    </p>
-                  </div>
-
-                  <div className="space-y-3 md:space-y-4 mb-10 md:mb-12">
-                    <div className="flex items-center gap-4 mb-6 md:mb-8">
-                        <h5 className="text-[9px] md:text-[10px] font-black text-cyan-400 uppercase tracking-[0.4em] whitespace-nowrap">Development Log</h5>
-                        <div className="h-px flex-1 bg-cyan-400/20" />
-                    </div>
-                    {selectedProject.details.map((d, i) => (
-                      <motion.div 
-                        key={i} 
-                        initial={{ x: -20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ delay: i * 0.1 }}
-                        className="p-4 md:p-5 bg-white/[0.02] rounded-2xl md:rounded-[2rem] border border-white/[0.05] text-[11px] md:text-[14px] text-white/50 flex items-center gap-4 md:gap-5 hover:bg-white/[0.04] transition-colors group"
-                      >
-                        <div className="shrink-0 w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-cyan-400 group-hover:scale-150 transition-transform shadow-[0_0_10px_rgba(34,211,238,0.5)]" /> 
-                        <span className="leading-tight group-hover:text-white/80 transition-colors">{d}</span>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  {/* Actions Section */}
-                  <div className="space-y-3 md:space-y-4 pt-6 border-t border-white/5">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                      <button 
-                        onClick={() => handleLinkClick(selectedProject.links.playstore, "Play Store")}
-                        className="flex items-center justify-center gap-3 py-4 md:py-6 bg-cyan-500 text-black rounded-2xl md:rounded-[2.5rem] text-[9px] md:text-[11px] font-black uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-[0_10px_40px_rgba(6,182,212,0.3)] active:scale-95 cursor-pointer"
-                      >
-                        <Play size={16} fill="currentColor" /> Play Store
-                      </button>
-                      <button 
-                        onClick={() => handleLinkClick(selectedProject.links.appstore, "App Store")}
-                        className="flex items-center justify-center gap-3 py-4 md:py-6 bg-white/5 border border-white/10 rounded-2xl md:rounded-[2.5rem] text-[9px] md:text-[11px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all active:scale-95 cursor-pointer relative overflow-hidden group/store"
-                      >
-                        <Apple size={16} /> 
-                        <span>App Store</span>
-                        {!selectedProject.links.appstore && (
-                          <span className="absolute -top-1 -right-1 px-2 py-0.5 bg-cyan-400 text-black text-[7px] font-black rounded-bl-lg opacity-0 group-hover/store:opacity-100 transition-opacity">SOON</span>
-                        )}
-                      </button>
-                    </div>
-                    
-                    {selectedProject.links.website && (
-                      <button 
-                        onClick={() => handleLinkClick(selectedProject.links.website, "Website")}
-                        className="flex items-center justify-center gap-3 w-full py-4 md:py-6 bg-white/5 border border-white/10 rounded-2xl md:rounded-[2.5rem] text-[9px] md:text-[11px] font-black uppercase tracking-widest text-white/60 hover:text-white hover:bg-white/10 transition-all active:scale-95 cursor-pointer"
-                      >
-                        <Globe size={16} /> Live Website
-                      </button>
-                    )}
-                    
-                    {selectedProject.links.github && (
-                      <button 
-                        onClick={() => handleLinkClick(selectedProject.links.github, "GitHub")}
-                        className="flex items-center justify-center gap-3 w-full py-4 md:py-6 bg-white/5 border border-white/10 rounded-2xl md:rounded-[2.5rem] text-[9px] md:text-[11px] font-black uppercase tracking-widest text-white/60 hover:text-white hover:bg-white/10 transition-all active:scale-95 cursor-pointer"
-                      >
-                        <Github size={16} /> GitHub Repository
-                      </button>
-                    )}
-
-                    {!selectedProject.links.website && !selectedProject.links.github && (
-                      <div className="w-full py-4 md:py-6 text-center text-[8px] font-black uppercase tracking-[0.4em] text-white/10 border border-white/[0.02] rounded-3xl">
-                        Website_Endpoint_Offline
-                      </div>
-                    )}
-                    
-                    <button 
-                      onClick={() => setSelectedProject(null)} 
-                      className="w-full pt-8 md:pt-12 pb-4 text-[9px] md:text-[10px] font-black uppercase tracking-[0.6em] text-white/10 hover:text-cyan-400 transition-colors cursor-pointer"
-                    >
-                      [ Close_System_Protocol ]
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <AnimatePresence>{active && <ProjectDetail key="project-detail" project={active} onClose={close} onNavigate={navigate} />}</AnimatePresence>
     </section>
   );
-};
+}

@@ -140,9 +140,9 @@ export const FlappyGame: React.FC<GameProps> = ({ onClose }) => {
     // Pipes
     pipes.current.forEach(pipe => {
       // Top pipe
-      ctx.fillStyle = '#22d3ee';
+      ctx.fillStyle = '#ff2d3f';
       ctx.shadowBlur = 10;
-      ctx.shadowColor = '#22d3ee';
+      ctx.shadowColor = '#ff2d3f';
       ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.top);
       
       // Bottom pipe
@@ -153,7 +153,7 @@ export const FlappyGame: React.FC<GameProps> = ({ onClose }) => {
     // Bird
     ctx.fillStyle = '#ffffff';
     ctx.shadowBlur = 15;
-    ctx.shadowColor = '#22d3ee';
+    ctx.shadowColor = '#ff2d3f';
     ctx.beginPath();
     ctx.arc(50 + BIRD_SIZE/2, birdY.current + BIRD_SIZE/2, BIRD_SIZE/2, 0, Math.PI * 2);
     ctx.fill();
@@ -203,8 +203,8 @@ export const FlappyGame: React.FC<GameProps> = ({ onClose }) => {
         {/* Header */}
         <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
           <div className="flex items-center gap-2">
-            <Zap size={14} className="text-cyan-400" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Proto_Runner v1.0</span>
+            <Zap size={14} className="text-accent" />
+            <span className="text-[11px] font-black uppercase tracking-widest text-white/40">Proto_Runner v1.0</span>
           </div>
           <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-lg transition-colors text-white/40">
             <X size={18} />
@@ -227,12 +227,12 @@ export const FlappyGame: React.FC<GameProps> = ({ onClose }) => {
                 animate={{ opacity: 1 }} 
                 className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 text-center p-8"
               >
-                <div className="w-16 h-16 rounded-full bg-cyan-400 flex items-center justify-center text-black mb-6 shadow-[0_0_30px_rgba(34,211,238,0.5)]">
+                <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center text-black mb-6 shadow-[0_0_30px_rgba(34,211,238,0.5)]">
                     <Zap size={32} />
                 </div>
                 <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-2">Mini_Game</h3>
-                <p className="text-[10px] text-white/40 uppercase tracking-widest font-black mb-8">Tap to bypass system security</p>
-                <div className="px-8 py-3 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-full animate-bounce">
+                <p className="text-[11px] text-white/40 uppercase tracking-widest font-black mb-8">Tap to bypass system security</p>
+                <div className="px-8 py-3 bg-white text-black text-[11px] font-black uppercase tracking-widest rounded-full animate-bounce">
                     Start Execution
                 </div>
               </motion.div>
@@ -245,7 +245,7 @@ export const FlappyGame: React.FC<GameProps> = ({ onClose }) => {
                 className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 text-center p-8 backdrop-blur-sm"
               >
                 <h3 className="text-4xl font-black text-red-500 uppercase italic tracking-tighter mb-1">System Fail</h3>
-                <p className="text-[10px] text-white/40 uppercase tracking-widest font-black mb-8">Connection Lost</p>
+                <p className="text-[11px] text-white/40 uppercase tracking-widest font-black mb-8">Connection Lost</p>
                 
                 <div className="grid grid-cols-2 gap-4 w-full mb-8">
                     <div className="p-4 bg-white/5 border border-white/10 rounded-2xl">
@@ -254,13 +254,13 @@ export const FlappyGame: React.FC<GameProps> = ({ onClose }) => {
                     </div>
                     <div className="p-4 bg-white/5 border border-white/10 rounded-2xl">
                         <p className="text-[8px] text-white/20 uppercase font-black mb-1">Best</p>
-                        <p className="text-2xl font-black text-cyan-400 italic">{highScore}</p>
+                        <p className="text-2xl font-black text-accent italic">{highScore}</p>
                     </div>
                 </div>
 
                 <button 
                     onClick={(e) => { e.stopPropagation(); resetGame(); }}
-                    className="w-full py-4 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-2xl flex items-center justify-center gap-2 hover:bg-cyan-400 transition-colors"
+                    className="w-full py-4 bg-white text-black text-[11px] font-black uppercase tracking-widest rounded-2xl flex items-center justify-center gap-2 hover:bg-accent transition-colors"
                 >
                     <RotateCcw size={14} /> Re-Initialize
                 </button>
@@ -277,7 +277,7 @@ export const FlappyGame: React.FC<GameProps> = ({ onClose }) => {
                 </div>
                 <div className="p-2 bg-black/50 border border-white/10 rounded-xl backdrop-blur-md">
                     <p className="text-[7px] text-white/40 uppercase font-black mb-0.5">High</p>
-                    <p className="text-xl font-black text-cyan-400 italic leading-none">{highScore}</p>
+                    <p className="text-xl font-black text-accent italic leading-none">{highScore}</p>
                 </div>
             </div>
           </div>
@@ -285,7 +285,7 @@ export const FlappyGame: React.FC<GameProps> = ({ onClose }) => {
 
         {/* Footer */}
         <div className="p-4 bg-white/[0.02] border-t border-white/10 flex items-center justify-center gap-2">
-            <div className="w-1 h-1 rounded-full bg-cyan-400" />
+            <div className="w-1 h-1 rounded-full bg-accent" />
             <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.4em]">Sub_Routine_Flappy_A_Alpha</span>
         </div>
       </div>

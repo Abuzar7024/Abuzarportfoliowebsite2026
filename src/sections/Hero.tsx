@@ -1,225 +1,200 @@
-import React from "react";
-import { motion } from "motion/react";
-import { heroStagger, heroItem, heroNameLine } from "../lib/motion-variants";
-import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import { Github, Linkedin, Mail, ArrowDown } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { AnimatePresence, animate, motion, useTransform, type MotionValue } from "motion/react";
+import { ArrowDown, ArrowUpRight, Download, Github, Linkedin, Mail, Move3D } from "lucide-react";
+import { profile } from "../data/profile";
+import { experience, yearsOfExperience } from "../data/experience";
+import { projects } from "../data/projects";
+import { Magnetic } from "../components/Magnetic";
+import { scrollToSection } from "../lib/scroll";
+import { usePrefersReducedMotion, useIsFinePointer } from "../hooks/useMediaQuery";
+import type { MonolithControls } from "../three/Monolith";
 
-const SKILL_TAGS = [
-  "Flutter Developer",
-  "AI Mobile Apps",
-  "Computer Vision",
-  "Firebase",
-  "REST APIs",
+const EASE = [0.16, 1, 0.3, 1] as const;
+const WORDS = ["mobile apps", "web platforms", "AI-powered products", "enterprise kiosks"];
+
+const BADGES = [
+  { label: "Flutter · Dart", x: "8%", y: "16%", delay: 0 },
+  { label: "React · TypeScript", x: "70%", y: "10%", delay: 0.8 },
+  { label: "Firebase · REST", x: "74%", y: "78%", delay: 1.6 },
+  { label: "Computer Vision", x: "6%", y: "76%", delay: 2.4 },
 ];
 
-const FLOATING_ORBS = [
-  { size: 280, x: "8%", y: "18%", delay: 0, duration: 9 },
-  { size: 200, x: "78%", y: "62%", delay: 1.5, duration: 11 },
-  { size: 140, x: "62%", y: "12%", delay: 0.8, duration: 8 },
-];
-
-export const Hero = () => {
+/** Cycling word with a masked slide — the one moving element in the copy. */
+function Cycle() {
+  const reduced = usePrefersReducedMotion();
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (reduced) return;
+    const id = setInterval(() => setI((n) => (n + 1) % WORDS.length), 2600);
+    return () => clearInterval(id);
+  }, [reduced]);
   return (
-    <section id="home" className="hero-section">
-      <div className="hero-bg">
-        <div
-          className="absolute inset-0 opacity-40 bg-cover bg-center mix-blend-lighten"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1669729026928-36afe1390851?auto=format&fit=crop&q=80&w=2000')`,
-          }}
-        />
+    <span className="relative inline-grid overflow-hidden align-bottom">
+      <span className="invisible col-start-1 row-start-1 whitespace-nowrap">{WORDS.reduce((a, b) => (a.length > b.length ? a : b))}</span>
+      <AnimatePresence mode="popLayout" initial={false}>
+        <motion.span key={WORDS[i]} className="col-start-1 row-start-1 whitespace-nowrap text-ink" initial={reduced ? false : { y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={reduced ? undefined : { y: "-100%", opacity: 0 }} transition={{ duration: 0.55, ease: EASE }}>
+          {WORDS[i]}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
 
-        {FLOATING_ORBS.map((orb, i) => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full bg-cyan-500/10 blur-3xl"
-            style={{ width: orb.size, height: orb.size, left: orb.x, top: orb.y }}
-            animate={{
-              y: [0, -24, 0],
-              x: [0, i % 2 === 0 ? 12 : -12, 0],
-              opacity: [0.35, 0.6, 0.35],
-            }}
-            transition={{
-              duration: orb.duration,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: orb.delay,
-            }}
+/**
+ * Hero: words on the left, the interactive signature object on the right (fixed scene layer).
+ * The right column is the interaction surface: drag to spin, click to pulse, hover to energise.
+ */
+export function Hero({ progress, controls }: { progress: MotionValue<number>; controls: MonolithControls }) {
+  const reduced = usePrefersReducedMotion();
+  const fine = useIsFinePointer();
+  const y = useTransform(progress, [0, 1], [0, -60]);
+  const opacity = useTransform(progress, [0, 0.6], [1, 0]);
+  const years = yearsOfExperience();
+  const companies = new Set(experience.map((e) => e.company)).size;
+  const drag = useRef<{ x: number; t: number } | null>(null);
+  const [hint, setHint] = useState(true);
+
+  const fade = (delay: number) => ({
+    initial: reduced ? false : { opacity: 0, y: 14 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.8, ease: EASE, delay },
+  });
+
+  const onDown = (e: React.PointerEvent) => {
+    drag.current = { x: e.clientX, t: performance.now() };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const onMove = (e: React.PointerEvent) => {
+    if (!drag.current) return;
+    const now = performance.now();
+    const dx = e.clientX - drag.current.x;
+    const dtMs = Math.max(8, now - drag.current.t);
+    controls.spin.set(controls.spin.get() + (dx / dtMs) * 0.9);
+    drag.current = { x: e.clientX, t: now };
+    setHint(false);
+  };
+  const onUp = () => {
+    drag.current = null;
+  };
+  const onClick = () => {
+    controls.pulse.set(1);
+    animate(controls.pulse, 0, { duration: 1.1, ease: [0.16, 1, 0.3, 1] });
+    setHint(false);
+  };
+
+  return (
+    <section id="home" className="relative min-h-[100svh]" aria-labelledby="hero-title">
+      <motion.div className="container-x grid min-h-[100svh] grid-cols-1 items-center gap-8 pb-14 pt-[46svh] lg:grid-cols-12 lg:pb-20 lg:pt-28" style={reduced ? undefined : { y, opacity }}>
+        <div className="lg:col-span-6">
+          <motion.p {...fade(0.05)} className="label">
+            {profile.availability}
+          </motion.p>
+
+          <h1 id="hero-title" className="h1 mt-5">
+            <motion.span {...fade(0.15)} className="block">
+              Abuzar Khan
+            </motion.span>
+            <motion.span {...fade(0.25)} className="mt-2 block text-[0.58em] font-semibold text-muted">
+              Software Developer · Mobile &amp; Web
+            </motion.span>
+          </h1>
+
+          <motion.p {...fade(0.4)} className="mt-6 max-w-lg text-[17px] leading-relaxed text-ink-2">
+            I build <Cycle /> that actually ship — from Flutter apps used by government and healthcare teams to AI‑powered signage and modern web experiences.
+          </motion.p>
+
+          <motion.div {...fade(0.55)} className="mt-8 flex flex-wrap items-center gap-3">
+            <Magnetic>
+              <button type="button" onClick={() => scrollToSection("work", 72)} className="btn-primary" data-cursor="View">
+                View projects <ArrowDown size={15} />
+              </button>
+            </Magnetic>
+            <a href={profile.links.resumePdf} download="Abuzar-Khan-Resume.pdf" className="btn-ghost" data-cursor="PDF">
+              Download resume <Download size={15} />
+            </a>
+            <button type="button" onClick={() => scrollToSection("contact", 72)} className="btn-link px-2">
+              Contact <ArrowUpRight size={15} />
+            </button>
+          </motion.div>
+
+          <motion.div {...fade(0.75)} className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-line pt-6">
+            <dl className="flex items-center gap-7">
+              {[
+                { v: `${years}+`, l: "years" },
+                { v: String(projects.length), l: "case studies" },
+                { v: String(companies), l: "companies" },
+              ].map((s) => (
+                <div key={s.l} className="flex items-baseline gap-1.5">
+                  <dd className="font-display text-2xl font-bold leading-none text-ink">{s.v}</dd>
+                  <dt className="text-xs text-muted">{s.l}</dt>
+                </div>
+              ))}
+            </dl>
+            <div className="flex items-center gap-2 sm:ml-auto">
+              {[
+                { href: profile.links.github, Icon: Github, label: "GitHub" },
+                { href: profile.links.linkedin, Icon: Linkedin, label: "LinkedIn" },
+                { href: `mailto:${profile.email}`, Icon: Mail, label: "Email" },
+              ].map(({ href, Icon, label }) => (
+                <a key={label} href={href} target={href.startsWith("http") ? "_blank" : undefined} rel={href.startsWith("http") ? "noopener noreferrer" : undefined} aria-label={label} className="glass flex h-10 w-10 items-center justify-center rounded-full text-ink-2 transition-colors hover:border-accent/60 hover:text-accent">
+                  <Icon size={16} />
+                </a>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+
+        {/* interaction surface for the object (desktop column) */}
+        <div className="relative hidden h-[70vh] min-h-[420px] lg:col-span-6 lg:block">
+          <div
+            className="absolute inset-0 touch-none select-none"
+            style={{ cursor: fine ? "grab" : undefined }}
+            onPointerDown={onDown}
+            onPointerMove={onMove}
+            onPointerUp={onUp}
+            onPointerCancel={onUp}
+            onPointerLeave={onUp}
+            onPointerEnter={() => controls.hover.set(1)}
+            onMouseLeave={() => controls.hover.set(0)}
+            onClick={onClick}
+            role="img"
+            aria-label="Interactive 3D crystal — drag to spin, click to pulse"
+            data-cursor="Drag"
           />
-        ))}
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.85, rotate: -5 }}
-          animate={{
-            opacity: 0.5,
-            scale: 1,
-            rotate: 0,
-            y: [0, -14, 0],
-          }}
-          transition={{
-            opacity: { duration: 3.5, ease: "easeOut" },
-            scale: { duration: 3.5, ease: "easeOut" },
-            rotate: { duration: 3.5, ease: "easeOut" },
-            y: { duration: 10, repeat: Infinity, ease: "easeInOut" },
-          }}
-          className="hero-moon"
-        >
-          <div className="relative w-full h-full">
-            <div
-              className="absolute inset-0 z-10"
-              style={{
-                background: "radial-gradient(circle at 50% 50%, transparent 20%, black 85%)",
-                mixBlendMode: "multiply",
-              }}
-            />
-            <ImageWithFallback
-              src="https://images.unsplash.com/photo-1760117144211-f734f9776595?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZWFsaXN0aWMlMjBkYXJrJTIwbW9vbiUyMHNwYWNlJTIwaGlnaCUyMHJlc29sdXRpb258ZW58MXx8fHwxNzcwMjA2NDc1fDA&ixlib=rb-4.1.0&q=80&w=1080"
-              alt="Moon Background"
-              className="w-full h-full object-contain grayscale brightness-110 contrast-125 select-none pointer-events-none mix-blend-screen"
-            />
-            <motion.div
-              className="absolute inset-0 bg-cyan-500/10 blur-[150px] rounded-full mix-blend-color-dodge"
-              animate={{ opacity: [0.4, 0.7, 0.4] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </div>
-        </motion.div>
-
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-black/10 to-black opacity-90" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-transparent opacity-60" />
-      </div>
-
-      <motion.div
-        variants={heroStagger}
-        initial="initial"
-        animate="animate"
-        className="hero-content"
-      >
-        <motion.div variants={heroItem} className="hero-badge">
-          <motion.span
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-cyan-500/20 text-[9px] font-black uppercase tracking-[0.25em] text-cyan-400"
-            animate={{
-              boxShadow: [
-                "0 0 0px rgba(34,211,238,0)",
-                "0 0 20px rgba(34,211,238,0.15)",
-                "0 0 0px rgba(34,211,238,0)",
-              ],
-            }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          >
+          {/* floating tech badges with parallax */}
+          {BADGES.map((b) => (
             <motion.span
-              className="w-1.5 h-1.5 rounded-full bg-cyan-400"
-              animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-            Available for Projects
-          </motion.span>
-        </motion.div>
-
-        <motion.div variants={heroItem} className="hero-name-wrap">
-          <motion.h1
-            className="relative text-[4.2rem] sm:text-[7.5rem] md:text-9xl lg:text-[11.5rem] font-black tracking-tighter text-white leading-[0.75] italic uppercase select-none"
-            initial="initial"
-            animate="animate"
-            variants={{
-              animate: { transition: { staggerChildren: 0.18, delayChildren: 0.55 } },
-            }}
-          >
-            <motion.span
-              variants={heroNameLine}
-              className="block mb-2 drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
+              key={b.label}
+              className="glass pointer-events-none absolute rounded-full px-3 py-1.5 font-mono text-[11px] text-ink-2"
+              style={{ left: b.x, top: b.y }}
+              initial={reduced ? false : { opacity: 0, y: 8 }}
+              animate={reduced ? { opacity: 1 } : { opacity: 1, y: [0, -8, 0] }}
+              transition={reduced ? { duration: 0.6 } : { opacity: { delay: 1.2 + b.delay * 0.3, duration: 0.6 }, y: { delay: b.delay, duration: 5, repeat: Infinity, ease: "easeInOut" } }}
+              aria-hidden="true"
             >
-              Abuzar
-            </motion.span>
-            <motion.span
-              variants={heroNameLine}
-              className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-white/80 to-cyan-500 drop-shadow-[0_0_60px_rgba(34,211,238,0.2)]"
-              animate={{ opacity: [0.85, 1, 0.85] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
-            >
-              Khan
-            </motion.span>
-          </motion.h1>
-        </motion.div>
-
-        <motion.div variants={heroItem} className="hero-tags">
-          {SKILL_TAGS.map((tag, i) => (
-            <motion.span
-              key={tag}
-              initial={{ opacity: 0, y: 16, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: 1 + i * 0.1, type: "spring", stiffness: 200, damping: 20 }}
-              whileHover={{ scale: 1.05, borderColor: "rgba(34,211,238,0.5)" }}
-              className="px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-white/70"
-            >
-              {tag}
+              {b.label}
             </motion.span>
           ))}
-        </motion.div>
-
-        <motion.p variants={heroItem} className="hero-description">
-          I build high-performance Flutter applications that integrate Artificial Intelligence,
-          Computer Vision, Camera Processing, and Cloud APIs to solve real-world retail and
-          fashion problems.
-        </motion.p>
-
-        <motion.div variants={heroItem} className="hero-actions">
-          <motion.button
-            onClick={() =>
-              document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" })
-            }
-            whileHover={{ scale: 1.04, boxShadow: "0 0 30px rgba(34,211,238,0.25)" }}
-            whileTap={{ scale: 0.96 }}
-            className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-black text-[11px] font-black uppercase tracking-[0.3em] rounded-full cursor-pointer group"
-          >
-            View Projects
-            <motion.span
-              animate={{ y: [0, 3, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >
-              <ArrowDown size={13} />
-            </motion.span>
-          </motion.button>
-
-          <motion.button
-            onClick={() =>
-              document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })
-            }
-            whileHover={{ scale: 1.04, borderColor: "rgba(34,211,238,0.6)", color: "#22d3ee" }}
-            whileTap={{ scale: 0.96 }}
-            className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/[0.06] border border-white/20 text-white text-[11px] font-black uppercase tracking-[0.3em] rounded-full backdrop-blur-sm cursor-pointer"
-          >
-            Contact Me
-          </motion.button>
-        </motion.div>
-
-        <motion.div variants={heroItem} className="hero-social">
-          {[
-            { href: "https://github.com/Abuzar7024", Icon: Github, hover: "#fff" },
-            {
-              href: "https://www.linkedin.com/in/abuzar-khan7024/",
-              Icon: Linkedin,
-              hover: "#60a5fa",
-            },
-            { href: "mailto:abuzxarrr87@gmail.com", Icon: Mail, hover: "#22d3ee" },
-          ].map(({ href, Icon, hover }) => (
-            <motion.a
-              key={href}
-              href={href}
-              target={href.startsWith("http") ? "_blank" : undefined}
-              rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
-              className="text-white/20"
-              whileHover={{ scale: 1.2, y: -4, color: hover }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 400, damping: 18 }}
-            >
-              <Icon size={28} />
-            </motion.a>
-          ))}
-        </motion.div>
+          <AnimatePresence>
+            {hint && (
+              <motion.p className="pointer-events-none absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-muted" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ delay: 1.6 }}>
+                <Move3D size={13} /> drag to spin · click to pulse
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
       </motion.div>
 
-      <div className="hero-bottom-spacer" aria-hidden="true" />
+      {/* phone interaction surface: the top band where the object sits */}
+      <div
+        className="absolute inset-x-0 top-0 h-[44svh] touch-pan-y lg:hidden"
+        onPointerDown={onDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+        onPointerCancel={onUp}
+        onClick={onClick}
+        aria-hidden="true"
+      />
     </section>
   );
-};
+}
