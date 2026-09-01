@@ -10,13 +10,13 @@ import { usePrefersReducedMotion, useIsFinePointer } from "../hooks/useMediaQuer
 import type { MonolithControls } from "../three/Monolith";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
-const WORDS = ["Flutter apps", "React Native apps", "React web platforms", "AI-powered products"];
+const WORDS = ["phone apps", "websites", "AI-powered products", "booking systems"];
 
 const BADGES = [
-  { label: "Flutter · Dart", x: "8%", y: "16%", delay: 0 },
-  { label: "React · React Native", x: "70%", y: "10%", delay: 0.8 },
-  { label: "Firebase · REST", x: "74%", y: "78%", delay: 1.6 },
-  { label: "Computer Vision", x: "6%", y: "76%", delay: 2.4 },
+  { label: "iPhone + Android", x: "6%", y: "16%", delay: 0 },
+  { label: "Live on the app stores", x: "62%", y: "9%", delay: 0.8 },
+  { label: "Websites & dashboards", x: "66%", y: "79%", delay: 1.6 },
+  { label: "Smart camera features", x: "5%", y: "76%", delay: 2.4 },
 ];
 
 /** Cycling word with a masked slide — the one moving element in the copy. */
@@ -99,17 +99,17 @@ export function Hero({ progress, controls }: { progress: MotionValue<number>; co
           </h1>
 
           <motion.p {...fade(0.4)} className="mt-6 max-w-lg text-[17px] leading-relaxed text-ink-2">
-            I build <Cycle /> that actually ship — from Flutter apps used by government and healthcare teams to AI‑powered signage and modern web experiences.
+I build <Cycle /> that people actually use every day — for government departments, hospitals, home-service teams and retail brands.
           </motion.p>
 
           <motion.div {...fade(0.55)} className="mt-8 flex flex-wrap items-center gap-3">
             <Magnetic>
               <button type="button" onClick={() => scrollToSection("work", 72)} className="btn-primary" data-cursor="View">
-                View projects <ArrowDown size={15} />
+                See my work <ArrowDown size={15} />
               </button>
             </Magnetic>
             <a href={profile.links.resumePdf} download="Abuzar-Khan-Resume.pdf" className="btn-ghost" data-cursor="PDF">
-              Download resume <Download size={15} />
+              Download CV <Download size={15} />
             </a>
             <button type="button" onClick={() => scrollToSection("contact", 72)} className="btn-link px-2">
               Contact <ArrowUpRight size={15} />
@@ -119,8 +119,8 @@ export function Hero({ progress, controls }: { progress: MotionValue<number>; co
           <motion.div {...fade(0.75)} className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-line pt-6">
             <dl className="flex items-center gap-7">
               {[
-                { v: `${years}+`, l: "years" },
-                { v: String(projects.length), l: "case studies" },
+                { v: `${years}+`, l: "years building apps" },
+                { v: String(projects.length), l: "products shipped" },
                 { v: String(companies), l: "companies" },
               ].map((s) => (
                 <div key={s.l} className="flex items-baseline gap-1.5">
@@ -177,7 +177,7 @@ export function Hero({ progress, controls }: { progress: MotionValue<number>; co
           <AnimatePresence>
             {hint && (
               <motion.p className="pointer-events-none absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-muted" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ delay: 1.6 }}>
-                <Move3D size={13} /> drag to spin · click to pulse
+                <Move3D size={13} /> drag me · click me
               </motion.p>
             )}
           </AnimatePresence>

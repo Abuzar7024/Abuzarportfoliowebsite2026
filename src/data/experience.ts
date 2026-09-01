@@ -9,6 +9,8 @@ export const experience: Experience[] = [
     start: "2026-06",
     end: null,
     location: "Hyderabad, India",
+    plain:
+      "I build the apps that run on smart advertising screens and phones — including the camera features that let a screen recognise who is standing in front of it and change what it shows.",
     summary:
       "Developing enterprise mobile architectures, building responsive UIs for kiosk and mobile devices, and collaborating with AI/ML teams to integrate real-time camera processing and Computer Vision models.",
     bullets: [
@@ -29,6 +31,8 @@ export const experience: Experience[] = [
     start: "2025-11",
     end: "2026-05",
     location: "Mumbai, India",
+    plain:
+      "I took apps from first idea all the way to live on the App Store and Google Play — building the features, keeping them fast, and getting them approved.",
     summary:
       "Managed the complete app lifecycle from development to store deployment with a focus on clean architecture and high-performance cross-platform delivery.",
     bullets: [
@@ -48,6 +52,8 @@ export const experience: Experience[] = [
     start: "2024-06",
     end: "2025-05",
     location: "Bhopal, India",
+    plain:
+      "My first developer job: building websites and apps that work on any screen size, turning designers' drawings into pages people could actually click through.",
     summary:
       "Built responsive web and mobile applications in Agile teams, focusing on seamless user experiences, rapid prototyping and scalable frontend code.",
     bullets: [

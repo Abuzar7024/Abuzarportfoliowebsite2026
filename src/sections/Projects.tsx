@@ -28,10 +28,10 @@ function CaseButton({ project, onOpen, className = "btn-primary", iconOnly = fal
         e.stopPropagation();
         onOpen(project);
       }}
-      aria-label={`Read the ${project.title} case study`}
+      aria-label={`See details for ${project.title}`}
       data-cursor="Open"
     >
-      {!iconOnly && "Case study "}
+      {!iconOnly && "See details "}
       <ArrowUpRight size={iconOnly ? 18 : 15} />
     </button>
   );
@@ -53,7 +53,7 @@ function Blueprint({ accent }: { accent: string }) {
         <circle cx="50%" cy="58%" r="38%" fill="none" stroke={accent} strokeOpacity="0.5" strokeDasharray="4 8" />
         <circle cx="50%" cy="58%" r="26%" fill="none" stroke="rgba(255,255,255,0.35)" strokeDasharray="2 6" />
       </svg>
-      <span className="absolute left-4 top-4 font-mono text-[10px] uppercase tracking-[0.14em] text-white/40">preview · interactive</span>
+      <span className="absolute left-4 top-4 font-mono text-[10px] uppercase tracking-[0.14em] text-white/40">live preview</span>
     </div>
   );
 }
@@ -81,12 +81,10 @@ function RepoBar({ project, index }: { project: Project; index: number }) {
         <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
         <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
       </span>
-      <span className="min-w-0 flex-1 truncate text-ink-2">
-        abuzar7024 <span className="text-muted">/</span> {slug}
-      </span>
+      <span className="min-w-0 flex-1 truncate text-ink-2">{project.title}</span>
       <span className="hidden text-muted sm:inline">{String(index + 1).padStart(2, "0")}</span>
       <span className="chip !py-0 !text-[11px]">
-        <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" /> live
+        <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" /> live now
       </span>
     </div>
   );
@@ -119,7 +117,7 @@ function Featured({ project, index, onOpen }: { project: Project; index: number;
               {project.title}
             </motion.h3>
             <p className="mt-3 text-[16px] leading-relaxed text-ink-2">{project.tagline}</p>
-            <p className="mt-2 text-sm text-muted">Role: {project.role}</p>
+            <p className="mt-2 text-sm text-muted">My role: {project.role}</p>
             <ul className="mt-5 divide-y divide-line border-y border-line">
               {project.features.slice(0, 3).map((f) => (
                 <li key={f} className="flex items-center gap-3 py-2.5 text-sm text-ink-2">
@@ -177,7 +175,7 @@ function Card({ project, onOpen, delay }: { project: Project; onOpen: (p: Projec
               <span className="uppercase tracking-[0.12em]" style={{ color: project.accent }}>
                 {project.category}
               </span>
-              <span className="text-muted">{project.kind}</span>
+              <span className="text-muted">{project.kind === "mobile" ? "phone app" : project.kind === "web" ? "website" : "platform"}</span>
             </p>
             <motion.h3 layoutId={`title-${project.id}`} className="mt-2 font-display text-xl font-bold tracking-tight">
               {project.title}
@@ -195,7 +193,7 @@ function Card({ project, onOpen, delay }: { project: Project; onOpen: (p: Projec
             </div>
             <StoreBadges links={project.links.slice(0, 2)} className="mt-4" compact />
             <div className="mt-auto flex items-center justify-between pt-5">
-              <span className="text-xs text-muted">Role: {project.role}</span>
+              <span className="text-xs text-muted">{project.role}</span>
               <CaseButton project={project} onOpen={onOpen} className="btn-link" />
             </div>
           </div>
@@ -267,7 +265,7 @@ export function Projects() {
   return (
     <section id="work" className="section" aria-labelledby="work-title">
       <div className="container-x">
-        <SectionHead id="work-title" label="Selected work" title="Products that shipped." text="Fashion tech, government, healthcare, home services and AI signage — real apps on real stores. Every preview is a live 3D device you can tilt; open any project for the full case study." />
+        <SectionHead id="work-title" label="My work" title="Real apps, real users." text="Every one of these is live right now — on the App Store, Google Play or the web. Tap any project to see what it does, what I built, and try it yourself." />
 
         <div className="mt-10 space-y-6 lg:mt-14">
           {flagshipProjects.map((p, i) => (

@@ -270,7 +270,7 @@ export function Services() {
   return (
     <section id="services" className="section !pt-0" aria-labelledby="services-title">
       <div className="container-x">
-        <SectionHead id="services-title" label="Services" title="What I can build for you." text="Available for freelance and contract work alongside full-time roles. Pick a service to send a short, structured request — budget ranges adapt to your region." />
+        <SectionHead id="services-title" label="Work with me" title="What I can build for you." text="Available for projects alongside my full-time role. Pick what you need and answer three short questions — prices are shown in your own currency." />
         <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:mt-14 lg:grid-cols-3 lg:gap-5">
           {services.map((s, i) => (
             <FadeIn key={s.id} delay={i * 0.05} className="h-full">
@@ -281,8 +281,7 @@ export function Services() {
                   </span>
                   <span className="font-mono text-[11px] text-muted">0{i + 1}</span>
                 </div>
-                <p className="mt-5 font-mono text-[11px] text-muted">service.{s.id}</p>
-                <h3 className="mt-1.5 font-display text-lg font-bold">{s.title}</h3>
+                <h3 className="mt-5 font-display text-lg font-bold">{s.title}</h3>
                 <p className="mt-0.5 text-[12.5px] text-muted">{s.subtitle}</p>
                 <p className="mt-3 text-sm leading-relaxed text-ink-2">{s.description}</p>
                 <ul className="mt-4 flex flex-wrap gap-1.5">
@@ -293,7 +292,7 @@ export function Services() {
                   ))}
                 </ul>
                 <span className="btn-link mt-auto pt-6">
-                  Request a quote <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+                  Get a quote <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-0.5" />
                 </span>
               </button>
             </FadeIn>

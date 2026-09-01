@@ -130,8 +130,8 @@ export function ProjectDetail({ project, onClose, onNavigate }: { project: Proje
                   <dd className="mt-1 text-ink">{project.role}</dd>
                 </div>
                 <div>
-                  <dt className="mono-label">Platform</dt>
-                  <dd className="mt-1 capitalize text-ink">{project.kind === "platform" ? "Web platform + devices" : project.kind}</dd>
+                  <dt className="mono-label">Where it runs</dt>
+                  <dd className="mt-1 text-ink">{project.kind === "platform" ? "Screens + web" : project.kind === "mobile" ? "iPhone & Android" : "Web"}</dd>
                 </div>
               </dl>
               <div className="mt-7 flex flex-wrap gap-3">
@@ -168,32 +168,32 @@ export function ProjectDetail({ project, onClose, onNavigate }: { project: Proje
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <Block title="Overview" wide>
+            <Block title="What it is" wide>
               <p className="max-w-3xl text-base leading-relaxed text-ink-2">{project.overview}</p>
             </Block>
 
             {project.problem && (
-              <Block title="Problem">
+              <Block title="The problem">
                 <p className="text-sm leading-relaxed text-ink-2">{project.problem}</p>
               </Block>
             )}
             {project.solution && (
-              <Block title="Solution">
+              <Block title="How it solves it">
                 <p className="text-sm leading-relaxed text-ink-2">{project.solution}</p>
               </Block>
             )}
 
-            <Block title="My contribution" wide={!project.product}>
+            <Block title="What I built" wide={!project.product}>
               <Bullets items={project.contribution} />
             </Block>
 
             {project.product && (
-              <Block title="Product">
+              <Block title="Inside the product">
                 <Bullets items={project.product} />
               </Block>
             )}
 
-            <Block title="Key features">
+            <Block title="Main features">
               <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {project.features.map((f) => (
                   <li key={f} className="rounded-xl border border-line bg-white/[0.02] px-3.5 py-2.5 text-sm text-ink-2">
@@ -203,7 +203,7 @@ export function ProjectDetail({ project, onClose, onNavigate }: { project: Proje
               </ul>
             </Block>
 
-            <Block title="Technology">
+            <Block title="Built with">
               <ul className="flex flex-wrap gap-2">
                 {project.tech.map((t) => (
                   <li key={t} className="chip chip-accent">

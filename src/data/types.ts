@@ -54,6 +54,8 @@ export interface Experience {
   start: string; // ISO yyyy-mm
   end: string | null; // null = present
   location: string;
+  /** Same facts as `summary`, written for a non-technical reader. */
+  plain: string;
   summary: string;
   bullets: string[];
   tech: string[];

@@ -91,12 +91,12 @@ export function Contact() {
       <AnimatePresence>{showGame && <FlappyGame onClose={() => setShowGame(false)} />}</AnimatePresence>
 
       <div className="container-x">
-        <SectionHead id="contact-title" label="Contact" title="Let’s build something." text="Have a role, a product idea or a problem worth solving? Pick a channel or send a message — I usually reply within 24 hours." />
+        <SectionHead id="contact-title" label="Get in touch" title="Let’s build something." text="Got a job, an app idea, or just a question? Message me however you like — I reply within a day." />
 
         <div className="mt-10 grid grid-cols-1 gap-6 lg:mt-14 lg:grid-cols-12 lg:gap-8">
           {/* channels */}
           <div className="lg:col-span-5">
-            <CodeWindow file="contacts.json" meta={`${CHANNELS.length} channels`}>
+            <CodeWindow file="Reach me directly" meta="I usually reply within a day">
             <ul className="divide-y divide-line px-5 sm:px-6">
               {CHANNELS.map((c, i) => (
                 <li key={c.label}>
@@ -121,19 +121,19 @@ export function Contact() {
             </ul>
             </CodeWindow>
             <FadeIn delay={0.2}>
-              <p className="mt-4 font-mono text-[12px] text-muted">
-                {"// "}{profile.location} · {profile.availability} · open to remote
+              <p className="mt-4 text-[13px] text-muted">
+                Based in {profile.location} · {profile.availability} · happy to work remotely
               </p>
             </FadeIn>
           </div>
 
           {/* form */}
           <FadeIn delay={0.1} className="lg:col-span-7">
-            <CodeWindow file="new-message.ts" meta="EmailJS · encrypted in transit" bodyClassName="p-6 sm:p-8">
+            <CodeWindow file="Send me a message" meta="goes straight to my inbox" bodyClassName="p-6 sm:p-8">
             {!success ? (
               <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
                 <div className="flex items-center justify-between gap-4">
-                  <p className="font-mono text-[12px] text-muted">{"// send a message"}</p>
+                  <p className="text-sm font-semibold text-ink">Send me a message</p>
                   <div className="flex gap-2" role="radiogroup" aria-label="Inquiry type">
                     {INQUIRY_TYPES.map((t) => (
                       <button key={t} type="button" role="radio" aria-checked={inquiryType === t} onClick={() => updateContact({ inquiryType: t })} className={`chip !py-1.5 transition-colors ${inquiryType === t ? "chip-accent" : "hover:border-line-2"}`}>
@@ -171,7 +171,7 @@ export function Contact() {
                 </div>
                 <label className="block">
                   <span className="mono-label">Message</span>
-                  <textarea required rows={5} placeholder="Tell me about your project or role…" className="input mt-1.5 resize-none" value={draft.message} onChange={(e) => updateContact({ message: e.target.value })} />
+                  <textarea required rows={5} placeholder="Tell me about your project or the role…" className="input mt-1.5 resize-none" value={draft.message} onChange={(e) => updateContact({ message: e.target.value })} />
                 </label>
                 <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-60">
                   {loading ? "Sending…" : (
@@ -180,7 +180,7 @@ export function Contact() {
                     </>
                   )}
                 </button>
-                <p className="text-[11px] text-muted">Your draft is saved in this browser. Location is only attached with your permission.</p>
+                <p className="text-[11px] text-muted">Your message is saved as you type, so you won’t lose it if you navigate away.</p>
               </form>
             ) : (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center gap-4 py-8 text-center">

@@ -19,9 +19,9 @@ export function Footer() {
               </div>
             </div>
             <p className="mt-6 max-w-md text-sm leading-relaxed text-ink-2">
-              This site is itself a project: React, TypeScript, Three.js and Motion — with WebGL detection, reduced-motion support and a print-ready vector resume.{" "}
+              I designed and built this site myself — the 3D, the animations and every page you just scrolled through.{" "}
               <a href={profile.links.portfolioRepo} target="_blank" rel="noopener noreferrer" className="text-accent underline decoration-accent/40 underline-offset-2 hover:decoration-accent">
-                Read the source.
+                See the code.
               </a>
             </p>
             <div className="mt-6 flex gap-2">
@@ -49,7 +49,7 @@ export function Footer() {
             </ul>
           </nav>
           <div className="lg:col-span-3">
-            <p className="mono-label mb-4">Built with</p>
+            <p className="mono-label mb-4">Made with</p>
             <ul className="flex flex-wrap gap-2">
               {["React 19", "TypeScript", "Three.js", "Motion", "Tailwind v4", "Vite"].map((t) => (
                 <li key={t} className="chip">
@@ -66,7 +66,7 @@ export function Footer() {
           <span>
             © {year} {profile.name}. All rights reserved.
           </span>
-          <span className="font-mono text-[11px]">build v2.1.0 · react 19 · three.js · vite</span>
+          <span className="text-xs">Designed &amp; built by {profile.name}</span>
         </div>
       </div>
     </footer>

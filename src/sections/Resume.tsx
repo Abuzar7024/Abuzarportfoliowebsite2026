@@ -31,21 +31,21 @@ export function Resume() {
       <div className="container-x">
         <SectionHead
           id="resume-title"
-          label="Resume"
-          title="The resume, as a vector document."
-          text="Real HTML, SVG and text — crisp at any zoom, indexable by ATS systems, printable to A4 and exported as a PDF."
+          label="My CV"
+          title="Prefer a CV? Here it is."
+          text="The full version — experience, projects and education on one page. Read it here, print it, or download the PDF."
           actions={
             <>
               <Magnetic>
                 <a href={profile.links.resumePdf} download="Abuzar-Khan-Resume.pdf" className="btn-primary" data-cursor="PDF">
-                  <Download size={15} /> Download Resume
+                  <Download size={15} /> Download CV
                 </a>
               </Magnetic>
               <button type="button" onClick={printResume} className="btn-ghost no-print">
                 <Printer size={15} /> Print
               </button>
               <a href={profile.links.resumePdf} target="_blank" rel="noopener noreferrer" className="btn-link px-2 no-print">
-                <FileText size={15} /> Open PDF
+                <FileText size={15} /> Open as PDF
               </a>
             </>
           }
@@ -64,7 +64,7 @@ export function Resume() {
         </div>
 
         <FadeIn className="mt-8 text-center">
-          <p className="text-xs text-muted">ATS-conscious layout · semantic headings · real text · no embedded screenshots</p>
+          <p className="text-xs text-muted">Recruiter-friendly · reads perfectly on any screen · prints to a single clean page</p>
         </FadeIn>
       </div>
     </section>

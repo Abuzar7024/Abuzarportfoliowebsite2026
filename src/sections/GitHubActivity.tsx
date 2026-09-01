@@ -112,12 +112,12 @@ export function GitHubActivity() {
   return (
     <section id="activity" className="section !pt-0" aria-labelledby="activity-title">
       <div className="container-x">
-        <SectionHead id="activity-title" label="GitHub" title="Live development activity." text="My real coding activity, loaded live from GitHub the moment you opened this page — nothing here is hard-coded." />
+        <SectionHead id="activity-title" label="Always building" title="I ship code every week." text="This updates itself: it reads my public projects straight from GitHub each time the page loads. Nothing here is typed in by hand." />
 
         <div className="mt-10 grid grid-cols-1 gap-4 lg:mt-14 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.5fr)] lg:gap-5">
           {/* Profile stats */}
           <FadeIn>
-            <CodeWindow file="gh api /users/Abuzar7024" meta="live" className="h-full" bodyClassName="p-6">
+            <CodeWindow file="My GitHub profile" meta="updates live" className="h-full" bodyClassName="p-6">
             <div className="flex items-center justify-between">
               <span className="inline-flex items-center gap-2 text-sm font-semibold">
                 <span className="icon-tile !h-9 !w-9">
@@ -132,7 +132,7 @@ export function GitHubActivity() {
 
             {status === "error" ? (
               <div className="mt-6 rounded-2xl border border-line bg-white/[0.02] p-5 text-sm text-ink-2">
-                <p>Live GitHub data is unavailable right now (rate limit or offline).</p>
+                <p>Could not load my live GitHub activity right now.</p>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <button type="button" onClick={() => void reload()} className="btn-ghost !min-h-0 !px-4 !py-2 text-xs">
                     <RefreshCw size={12} /> Retry
@@ -146,16 +146,16 @@ export function GitHubActivity() {
               <>
                 <dl className="mt-6 grid grid-cols-2 gap-3">
                   <div className="rounded-2xl border border-line bg-white/[0.02] p-4">
-                    <dt className="mono-label">Public repos</dt>
+                    <dt className="mono-label">Public projects</dt>
                     <dd className="mt-1 font-display text-3xl font-bold">{data ? data.user.public_repos : <span className="inline-block h-8 w-12 animate-pulse rounded bg-white/10" />}</dd>
                   </div>
                   <div className="rounded-2xl border border-line bg-white/[0.02] p-4">
-                    <dt className="mono-label">Member since</dt>
+                    <dt className="mono-label">Coding here since</dt>
                     <dd className="mt-1 font-display text-3xl font-bold">{data ? new Date(data.user.created_at).getFullYear() : <span className="inline-block h-8 w-16 animate-pulse rounded bg-white/10" />}</dd>
                   </div>
                 </dl>
                 <div className="mt-6">
-                  <p className="mono-label mb-3">Primary languages across public repos</p>
+                  <p className="mono-label mb-3">What I build with most</p>
                   {data ? (
                     <ul className="space-y-2.5">
                       {languages.map((l) => (
@@ -180,7 +180,7 @@ export function GitHubActivity() {
                     </div>
                   )}
                 </div>
-                {data && <p className="mt-5 text-[11px] text-muted">Fetched {formatDate(new Date(data.fetchedAt).toISOString())} · cached for 30 minutes in your browser.</p>}
+                {data && <p className="mt-5 text-[11px] text-muted">Fetched {formatDate(new Date(data.fetchedAt).toISOString())} · refreshed every 30 minutes.</p>}
               </>
             )}
             </CodeWindow>
@@ -188,19 +188,19 @@ export function GitHubActivity() {
 
           {/* Skyline */}
           <FadeIn delay={0.08}>
-            <CodeWindow file="repos --sort=pushed" meta="height = recency" className="h-full" bodyClassName="flex flex-col p-6">
+            <CodeWindow file="Recent projects" meta="taller = worked on more recently" className="h-full" bodyClassName="flex flex-col p-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="inline-flex items-center gap-2 text-sm font-semibold">
                 <span className="icon-tile !h-9 !w-9">
                   <GitBranch size={16} />
                 </span>
-                Repository skyline
+                Recent activity
               </p>
               <p className="mono-label">height = recency · colour = language</p>
             </div>
 
             {status === "error" ? (
-              <p className="mt-6 text-sm text-muted">Could not load repositories.</p>
+              <p className="mt-6 text-sm text-muted">Could not load projects right now.</p>
             ) : (
               <>
                 <ul className="mt-6 flex h-40 items-end gap-1.5 border-b border-line pb-px sm:gap-2" aria-label="Repositories by recency">

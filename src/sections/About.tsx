@@ -1,29 +1,35 @@
 import React from "react";
-import { CheckCircle2, MapPin } from "lucide-react";
+import { ArrowRight, MapPin, Smartphone, Sparkles, Globe, ShieldCheck } from "lucide-react";
 import { profile } from "../data/profile";
 import { experience, yearsOfExperience } from "../data/experience";
 import { projects } from "../data/projects";
-import { FadeIn, SectionHead } from "../components/Reveal";
-import { CodeWindow, Lines, Tok } from "../components/CodeWindow";
+import { Counter, FadeIn, SectionHead } from "../components/Reveal";
 
-function Pipeline() {
+const BUILD_ICONS = [Smartphone, Globe, Sparkles, ShieldCheck];
+
+/** Plain-language "how a project runs" strip — no jargon, just the five steps a client experiences. */
+function HowIWork() {
   const steps = profile.approach;
   return (
-    <FadeIn>
-      <CodeWindow file="pipeline.yml" meta={`${steps.length} stages · always green`} className="mt-6">
-        <ol className="grid grid-cols-1 gap-px bg-line sm:grid-cols-5">
+    <FadeIn className="mt-6">
+      <div className="card p-6 sm:p-8">
+        <p className="label">How working with me goes</p>
+        <h3 className="h3 mt-2">From first conversation to a live app</h3>
+        <ol className="mt-7 grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2 lg:grid-cols-5">
           {steps.map((s, i) => (
-            <li key={s.step} className="bg-bg-2 p-5">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[11px] text-muted">stage {i + 1}</span>
-                <CheckCircle2 size={14} className="text-success" aria-hidden="true" />
+            <li key={s.step} className="relative">
+              <div className="flex items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-accent/40 bg-accent/10 text-[13px] font-bold text-accent" style={{ clipPath: "polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px)" }}>
+                  {i + 1}
+                </span>
+                <p className="font-display text-base font-bold">{s.step}</p>
+                {i < steps.length - 1 && <ArrowRight size={14} className="ml-auto hidden text-muted lg:block" aria-hidden="true" />}
               </div>
-              <p className="mt-3 font-mono text-[13px] font-semibold text-ink">{s.step.toLowerCase().replace(/ & /g, "-").replace(/\s+/g, "-")}</p>
-              <p className="mt-2 text-[13px] leading-relaxed text-muted">{s.text}</p>
+              <p className="mt-2.5 text-[13.5px] leading-relaxed text-muted">{s.text}</p>
             </li>
           ))}
         </ol>
-      </CodeWindow>
+      </div>
     </FadeIn>
   );
 }
@@ -35,106 +41,89 @@ export function About() {
   return (
     <section id="about" className="section" aria-labelledby="about-title">
       <div className="container-x">
-        <SectionHead id="about-title" label="About" title="Engineering ability, product taste." text="A Flutter-first developer who ships production apps — and cares about how they look, feel and hold up over time." />
+        <SectionHead
+          id="about-title"
+          label="About me"
+          title="I turn ideas into apps people actually use."
+          text="I'm a mobile and web developer. My apps are live on the App Store and Google Play, used by government departments, hospitals, home-service teams and retail brands."
+        />
 
         <div className="mt-10 grid grid-cols-1 gap-6 lg:mt-14 lg:grid-cols-12">
-          {/* profile.json */}
+          {/* who I am */}
           <FadeIn className="lg:col-span-5">
-            <CodeWindow file="profile.json" meta="read-only" className="h-full">
-              <div className="flex items-center gap-4 border-b border-line p-5">
-                <img src={profile.photo} alt={`${profile.name} portrait`} width={64} height={64} className="h-16 w-16 rounded-xl object-cover object-[50%_25%] ring-1 ring-white/10" loading="lazy" decoding="async" />
-                <div className="min-w-0">
-                  <p className="font-display text-lg font-bold">{profile.name}</p>
-                  <p className="truncate text-sm text-ink-2">
-                    {experience[0].role} · {experience[0].company}
-                  </p>
-                  <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-muted">
-                    <MapPin size={12} /> {profile.location}
-                  </p>
-                </div>
+            <div className="card hud h-full overflow-hidden">
+              <div className="relative aspect-[4/3] overflow-hidden">
+                <img src={profile.photo} alt={`${profile.name}`} width={640} height={480} className="h-full w-full object-cover object-[50%_25%]" loading="lazy" decoding="async" />
+                <div className="absolute inset-0 bg-gradient-to-t from-bg-2 via-transparent to-transparent" aria-hidden="true" />
+                <span className="chip chip-accent absolute left-4 top-4 !py-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" /> Available for work
+                </span>
               </div>
-              <div className="p-5">
-                <Lines>
+              <div className="p-6">
+                <h3 className="h3">{profile.name}</h3>
+                <p className="mt-1.5 text-sm text-ink-2">
+                  {experience[0].role} at {experience[0].company}
+                </p>
+                <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted">
+                  <MapPin size={12} /> {profile.location} · happy to work remotely
+                </p>
+                <dl className="mt-6 grid grid-cols-3 gap-3 border-t border-line pt-5">
                   {[
-                    <Tok.p>{"{"}</Tok.p>,
-                    <>
-                      {"  "}<Tok.key>"role"</Tok.key>: <Tok.str>"{profile.title}"</Tok.str>,
-                    </>,
-                    <>
-                      {"  "}<Tok.key>"focus"</Tok.key>: [<Tok.str>"mobile"</Tok.str>, <Tok.str>"web"</Tok.str>, <Tok.str>"ai"</Tok.str>],
-                    </>,
-                    <>
-                      {"  "}<Tok.key>"experience"</Tok.key>: <Tok.num>{years}</Tok.num> <Tok.cm>// years</Tok.cm>
-                    </>,
-                    <>
-                      {"  "}<Tok.key>"caseStudies"</Tok.key>: <Tok.num>{projects.length}</Tok.num>,
-                    </>,
-                    <>
-                      {"  "}<Tok.key>"companies"</Tok.key>: <Tok.num>{companies}</Tok.num>,
-                    </>,
-                    <>
-                      {"  "}<Tok.key>"core"</Tok.key>: [<Tok.str>"Flutter"</Tok.str>, <Tok.str>"Dart"</Tok.str>, <Tok.str>"React"</Tok.str>, <Tok.str>"Firebase"</Tok.str>],
-                    </>,
-                    <>
-                      {"  "}<Tok.key>"status"</Tok.key>: <Tok.str>"open to roles"</Tok.str>,
-                    </>,
-                    <>
-                      {"  "}<Tok.key>"remote"</Tok.key>: <Tok.kw>true</Tok.kw>
-                    </>,
-                    <Tok.p>{"}"}</Tok.p>,
-                  ]}
-                </Lines>
+                    { v: years, s: "+", l: "years building apps" },
+                    { v: projects.length, s: "", l: "products shipped" },
+                    { v: companies, s: "", l: "companies" },
+                  ].map((x) => (
+                    <div key={x.l}>
+                      <dd className="font-display text-2xl font-bold leading-none text-ink">
+                        <Counter value={x.v} suffix={x.s} />
+                      </dd>
+                      <dt className="mt-1.5 text-[12px] leading-tight text-muted">{x.l}</dt>
+                    </div>
+                  ))}
+                </dl>
               </div>
-            </CodeWindow>
+            </div>
           </FadeIn>
 
-          {/* about.md */}
-          <FadeIn delay={0.08} className="lg:col-span-7">
-            <CodeWindow file="about.md" meta="markdown" className="h-full" bodyClassName="p-6 sm:p-8">
-              <p className="font-mono text-[13px] text-muted">
-                <span className="text-accent">#</span> Summary
+          {/* what I do */}
+          <div className="lg:col-span-7">
+            <FadeIn className="card p-6 sm:p-8">
+              <p className="text-[16px] leading-relaxed text-ink-2 sm:text-[17px]">
+                I build the apps and websites businesses run on — the kind people open every day without thinking about the code behind them. That means a booking app that shows your plumber arriving in real time, a hospital system that never freezes on a busy morning, or a screen in a mall that changes what it shows based on who's standing in front of it.
               </p>
-              <p className="mt-3 text-[15px] leading-relaxed text-ink-2 sm:text-base">{profile.summary}</p>
+              <p className="mt-4 text-[16px] leading-relaxed text-ink-2 sm:text-[17px]">
+                I look after the whole journey: the design, the app itself, the connection to your systems, and getting it approved and published on the App Store and Google Play.
+              </p>
+            </FadeIn>
 
-              <p className="mt-7 font-mono text-[13px] text-muted">
-                <span className="text-accent">##</span> What I build
-              </p>
-              <ul className="mt-3 grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
-                {profile.whatIBuild.map((w) => (
-                  <li key={w.label} className="flex gap-3 text-sm">
-                    <span className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-accent" aria-hidden="true" />
-                    <span>
-                      <span className="font-semibold text-ink">{w.label}</span> <span className="text-muted">— {w.text}</span>
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {profile.whatIBuild.map((w, i) => {
+                const Icon = BUILD_ICONS[i % BUILD_ICONS.length];
+                return (
+                  <FadeIn key={w.label} delay={i * 0.05} className="card card-hover p-5">
+                    <span className="icon-tile">
+                      <Icon size={18} />
                     </span>
-                  </li>
-                ))}
-              </ul>
+                    <h4 className="mt-4 font-display text-base font-bold">{w.label}</h4>
+                    <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">{w.text}</p>
+                  </FadeIn>
+                );
+              })}
+            </div>
 
-              <p className="mt-7 font-mono text-[13px] text-muted">
-                <span className="text-accent">##</span> Principles
-              </p>
-              <ol className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {profile.philosophy.map((p, i) => (
-                  <li key={p.title} className="rounded-xl border border-line bg-white/[0.02] p-4">
-                    <p className="font-mono text-[11px] text-accent">0{i + 1}</p>
-                    <p className="mt-2 text-sm font-semibold text-ink">{p.title}</p>
-                    <p className="mt-1.5 text-[13px] leading-relaxed text-muted">{p.text}</p>
-                  </li>
-                ))}
-              </ol>
-
-              <ul className="mt-7 flex flex-wrap gap-2">
-                {profile.interests.map((i) => (
-                  <li key={i} className="chip">
-                    {i}
-                  </li>
-                ))}
-              </ul>
-            </CodeWindow>
-          </FadeIn>
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {profile.philosophy.map((p, i) => (
+                <FadeIn key={p.title} delay={i * 0.05} className="card p-5">
+                  <p className="font-mono text-[11px] text-accent">0{i + 1}</p>
+                  <h4 className="mt-2.5 font-display text-base font-bold leading-snug">{p.title}</h4>
+                  <p className="mt-2 text-[13px] leading-relaxed text-muted">{p.text}</p>
+                </FadeIn>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <Pipeline />
+        <HowIWork />
       </div>
     </section>
   );
