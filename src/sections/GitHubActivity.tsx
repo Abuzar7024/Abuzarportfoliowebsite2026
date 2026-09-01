@@ -112,9 +112,9 @@ export function GitHubActivity() {
   return (
     <section id="activity" className="section !pt-0" aria-labelledby="activity-title">
       <div className="container-x">
-        <SectionHead id="activity-title" label="GitHub" title="Live development activity." text="Public repositories, primary languages and recency — fetched from the GitHub API when you opened this page. Nothing here is hard-coded." />
+        <SectionHead id="activity-title" label="GitHub" title="Live development activity." text="My real coding activity, loaded live from GitHub the moment you opened this page — nothing here is hard-coded." />
 
-        <div className="mt-10 grid gap-4 lg:mt-14 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.5fr)] lg:gap-5">
+        <div className="mt-10 grid grid-cols-1 gap-4 lg:mt-14 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.5fr)] lg:gap-5">
           {/* Profile stats */}
           <FadeIn>
             <CodeWindow file="gh api /users/Abuzar7024" meta="live" className="h-full" bodyClassName="p-6">
@@ -238,7 +238,7 @@ export function GitHubActivity() {
                   <span>older</span>
                 </div>
                 {data && (
-                  <ul className="mt-6 grid gap-2 sm:grid-cols-2">
+                  <ul className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {repos.slice(0, 6).map((r) => (
                       <li key={r.name}>
                         <a href={r.html_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-3 rounded-xl border border-line bg-white/[0.02] px-3.5 py-2.5 text-sm transition-colors hover:border-accent/50" data-cursor="Open">

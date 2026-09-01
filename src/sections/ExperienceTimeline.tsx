@@ -62,9 +62,9 @@ export function ExperienceTimeline() {
   return (
     <section id="experience" className="section" aria-labelledby="experience-title">
       <div className="container-x">
-        <SectionHead id="experience-title" label="Experience" title="Three companies, one trajectory: shipping." text="From web foundations to leading Flutter delivery, to enterprise mobile and computer vision at Ebani Tech — read it like a git log." />
+        <SectionHead id="experience-title" label="Experience" title="Three companies, one trajectory: shipping." text="Every role, what I owned, and what I delivered — from web foundations to leading mobile delivery and AI-powered products at Ebani Tech." />
 
-        <div className="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-12">
+        <div className="mt-10 grid grid-cols-1 gap-6 lg:mt-14 lg:grid-cols-12">
           <FadeIn className="lg:col-span-8">
             <CodeWindow file="git log --oneline --graph" meta={`${experience.length} roles`} bodyClassName="p-4 sm:p-6">
               <div className="relative">

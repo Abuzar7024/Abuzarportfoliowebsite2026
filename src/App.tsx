@@ -116,6 +116,7 @@ function Site() {
 
       <AnimatePresence>{intro && <Intro key="intro" reveal={reveal} onSkip={finish} reduced={render.reducedMotion} />}</AnimatePresence>
       <div className="grain" aria-hidden="true" />
+      <div className="scanlines" aria-hidden="true" />
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: intro ? 0 : 1 }} transition={{ duration: 0.9, ease: "easeOut", delay: intro ? 0 : 0.15 }}>
         <Cursor />

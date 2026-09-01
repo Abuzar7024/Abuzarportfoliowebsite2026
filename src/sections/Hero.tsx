@@ -10,11 +10,11 @@ import { usePrefersReducedMotion, useIsFinePointer } from "../hooks/useMediaQuer
 import type { MonolithControls } from "../three/Monolith";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
-const WORDS = ["mobile apps", "web platforms", "AI-powered products", "enterprise kiosks"];
+const WORDS = ["Flutter apps", "React Native apps", "React web platforms", "AI-powered products"];
 
 const BADGES = [
   { label: "Flutter · Dart", x: "8%", y: "16%", delay: 0 },
-  { label: "React · TypeScript", x: "70%", y: "10%", delay: 0.8 },
+  { label: "React · React Native", x: "70%", y: "10%", delay: 0.8 },
   { label: "Firebase · REST", x: "74%", y: "78%", delay: 1.6 },
   { label: "Computer Vision", x: "6%", y: "76%", delay: 2.4 },
 ];
@@ -29,14 +29,13 @@ function Cycle() {
     return () => clearInterval(id);
   }, [reduced]);
   return (
-    <span className="relative inline-grid overflow-hidden align-bottom">
-      <span className="invisible col-start-1 row-start-1 whitespace-nowrap">{WORDS.reduce((a, b) => (a.length > b.length ? a : b))}</span>
+    <motion.span layout transition={{ layout: { type: "spring", stiffness: 260, damping: 30 } }} className="relative inline-flex overflow-hidden align-baseline font-semibold">
       <AnimatePresence mode="popLayout" initial={false}>
-        <motion.span key={WORDS[i]} className="col-start-1 row-start-1 whitespace-nowrap text-ink" initial={reduced ? false : { y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={reduced ? undefined : { y: "-100%", opacity: 0 }} transition={{ duration: 0.55, ease: EASE }}>
+        <motion.span key={WORDS[i]} className="whitespace-nowrap text-ink" initial={reduced ? false : { y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={reduced ? undefined : { y: "-100%", opacity: 0 }} transition={{ duration: 0.5, ease: EASE }}>
           {WORDS[i]}
         </motion.span>
       </AnimatePresence>
-    </span>
+    </motion.span>
   );
 }
 
@@ -91,7 +90,7 @@ export function Hero({ progress, controls }: { progress: MotionValue<number>; co
           </motion.p>
 
           <h1 id="hero-title" className="h1 mt-5">
-            <motion.span {...fade(0.15)} className="block">
+            <motion.span {...fade(0.15)} className="glitch block" data-text="Abuzar Khan">
               Abuzar Khan
             </motion.span>
             <motion.span {...fade(0.25)} className="mt-2 block text-[0.58em] font-semibold text-muted">

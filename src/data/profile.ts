@@ -38,7 +38,7 @@ export const profile = {
     },
   ],
   whatIBuild: [
-    { label: "Mobile apps", text: "Cross-platform Flutter apps for Android & iOS, from multi-step enterprise forms to real-time tracking." },
+    { label: "Mobile apps", text: "Cross-platform Flutter and React Native apps for Android & iOS, from multi-step enterprise forms to real-time tracking." },
     { label: "Web experiences", text: "React + TypeScript interfaces with Motion and Three.js — like this portfolio." },
     { label: "AI-powered features", text: "Computer Vision model integration, camera pipelines and virtual try-on overlays on device." },
     { label: "API & cloud integration", text: "REST APIs, Firebase Auth, Cloud Firestore, FCM push notifications and Google Maps." },

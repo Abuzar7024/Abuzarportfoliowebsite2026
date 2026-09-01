@@ -16,6 +16,7 @@ export const skills: Skill[] = [
   { name: "Dart", category: "Mobile", core: true, context: "The language behind every Flutter app I have shipped." },
   { name: "Android", category: "Mobile", context: "Play Store deployments for Tajneed, Sadeeq and Riayah.", projects: ["tajneed", "sadeeq-user", "riayah"] },
   { name: "iOS", category: "Mobile", context: "App Store deployment for Tajneed; enterprise iOS builds at Ebani Tech.", projects: ["tajneed"] },
+  { name: "React Native", category: "Mobile", context: "Cross-platform mobile development alongside Flutter, sharing the same React foundations as my web work." },
   // AI & CV
   { name: "Computer Vision", category: "AI & Computer Vision", core: true, context: "Integrating CV models with real-time camera processing at Ebani Tech.", projects: ["digitopia"] },
   { name: "Virtual Try-On", category: "AI & Computer Vision", context: "Overlay pipelines for visualising products live from the camera feed." },

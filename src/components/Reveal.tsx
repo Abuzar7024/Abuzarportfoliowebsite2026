@@ -26,7 +26,7 @@ export function SectionHead({ label, title, text, id, actions }: { label: string
     <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <FadeIn className="max-w-2xl">
         <p className="label">{label}</p>
-        <h2 id={id} className="h2 mt-3">
+        <h2 id={id} className="h2 caret mt-3">
           {title}
         </h2>
         {text && <p className="lead mt-4 max-w-xl">{text}</p>}

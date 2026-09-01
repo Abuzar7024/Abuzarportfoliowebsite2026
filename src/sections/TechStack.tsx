@@ -45,11 +45,11 @@ export function TechStack() {
   return (
     <section id="stack" className="section !pt-0" aria-labelledby="stack-title">
       <div className="container-x">
-        <SectionHead id="stack-title" label="Skills" title="Skills with receipts." text="No proficiency bars. Each technology is tagged with the projects it shipped in (×n) — open a file, tap a chip for the context it was used in. Red dots mark the core stack." />
+        <SectionHead id="stack-title" label="Skills" title="Skills with receipts." text="Tap any technology to see the real projects it shipped in — no made-up proficiency bars. Red dots mark my core stack." />
 
-        <div className="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-12">
-          {/* explorer */}
-          <FadeIn className="lg:col-span-4">
+        <div className="mt-10 grid grid-cols-1 gap-6 lg:mt-14 lg:grid-cols-12">
+          {/* explorer (desktop only — phones use the tab strip) */}
+          <FadeIn className="hidden lg:col-span-4 lg:block">
             <CodeWindow file="explorer" meta={`${skills.length} technologies`} className="h-full">
               <ul className="p-2">
                 {skillCategories.map((c) => {
@@ -81,7 +81,7 @@ export function TechStack() {
           </FadeIn>
 
           {/* editor */}
-          <FadeIn delay={0.08} className="lg:col-span-8">
+          <FadeIn delay={0.08} className="col-span-1 lg:col-span-8">
             <CodeWindow file={FILES[tab]} tabs={skillCategories.map((c) => ({ id: c.id, label: FILES[c.id] }))} activeTab={tab} onTab={(id) => { setTab(id as SkillCategory); setSelected(null); }} meta={`${list.length} items · ${coreCount} core`} className="h-full" bodyClassName="p-5 sm:p-6">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div key={tab} initial={reduced ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={reduced ? undefined : { opacity: 0, y: -6 }} transition={{ duration: 0.25 }}>

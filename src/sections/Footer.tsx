@@ -9,7 +9,7 @@ export function Footer() {
   return (
     <footer className="border-t border-line" role="contentinfo">
       <div className="container-x py-14">
-        <div className="grid gap-10 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
           <div className="lg:col-span-6">
             <div className="flex items-center gap-3">
               <LogoMark />
@@ -66,7 +66,7 @@ export function Footer() {
           <span>
             © {year} {profile.name}. All rights reserved.
           </span>
-          <span className="font-mono text-[11px]">build v2.0.0 · react 19 · three.js · vite</span>
+          <span className="font-mono text-[11px]">build v2.1.0 · react 19 · three.js · vite</span>
         </div>
       </div>
     </footer>

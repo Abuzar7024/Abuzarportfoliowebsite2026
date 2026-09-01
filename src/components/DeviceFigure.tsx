@@ -14,6 +14,8 @@ interface DeviceFigureProps {
   interactive?: boolean;
   /** Mount the WebGL scene immediately instead of waiting for viewport entry. */
   eager?: boolean;
+  /** Only use WebGL on the "high" tier; phones/tablets get the static preview. */
+  highTierOnly?: boolean;
 }
 
 /**
@@ -22,7 +24,7 @@ interface DeviceFigureProps {
  * - pauses its render loop while off screen
  * - degrades to a CSS-3D framed image when WebGL is unavailable
  */
-export function DeviceFigure({ project, profile, className = "", scale, interactive = true, eager = false }: DeviceFigureProps) {
+export function DeviceFigure({ project, profile, className = "", scale, interactive = true, eager = false, highTierOnly = false }: DeviceFigureProps) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInViewport(ref, "20%");
   const [seen, setSeen] = useState(eager);
@@ -40,7 +42,7 @@ export function DeviceFigure({ project, profile, className = "", scale, interact
         style={{ background: `radial-gradient(circle, ${project.accent}26, transparent 60%)` }}
         aria-hidden="true"
       />
-      {profile.use3D && seen ? (
+      {profile.use3D && seen && !(highTierOnly && profile.tier !== "high") ? (
         <Suspense fallback={fallback}>
           <DeviceScene
             kind={project.device}

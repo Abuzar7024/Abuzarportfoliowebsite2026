@@ -112,7 +112,7 @@ export function ProjectDetail({ project, onClose, onNavigate }: { project: Proje
 
         <div ref={scrollRef} className="scrollbar-thin flex-1 overflow-y-auto overscroll-contain">
           {/* hero */}
-          <div className="grid gap-6 px-5 pt-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10 lg:px-12 lg:pt-12">
+          <div className="grid grid-cols-1 gap-6 px-5 pt-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10 lg:px-12 lg:pt-12">
             <motion.div initial={reduced ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <span className="mono-label" style={{ color: project.accent }}>
@@ -163,7 +163,7 @@ export function ProjectDetail({ project, onClose, onNavigate }: { project: Proje
 
           {/* body */}
           <motion.div
-            className="grid gap-10 px-5 py-10 sm:px-8 md:grid-cols-2 lg:gap-x-14 lg:px-12 lg:py-14"
+            className="grid grid-cols-1 gap-10 px-5 py-10 sm:px-8 md:grid-cols-2 lg:gap-x-14 lg:px-12 lg:py-14"
             initial={reduced ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
@@ -194,7 +194,7 @@ export function ProjectDetail({ project, onClose, onNavigate }: { project: Proje
             )}
 
             <Block title="Key features">
-              <ul className="grid gap-2 sm:grid-cols-2">
+              <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {project.features.map((f) => (
                   <li key={f} className="rounded-xl border border-line bg-white/[0.02] px-3.5 py-2.5 text-sm text-ink-2">
                     {f}

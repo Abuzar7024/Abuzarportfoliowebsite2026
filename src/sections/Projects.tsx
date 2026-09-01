@@ -99,12 +99,12 @@ function Featured({ project, index, onOpen }: { project: Project; index: number;
   const live = project.links.find((l) => l.primary) ?? project.links[0];
   return (
     <FadeIn amount={0.2}>
-      <motion.article layoutId={`card-${project.id}`} className="card card-hover cursor-pointer overflow-hidden" onClick={() => onOpen(project)} data-cursor="Open">
+      <motion.article layoutId={`card-${project.id}`} className="card card-hover hud cursor-pointer overflow-hidden" onClick={() => onOpen(project)} data-cursor="Open">
         <RepoBar project={project} index={index} />
-        <div className="grid lg:grid-cols-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12">
         <div className={`relative min-h-[300px] sm:min-h-[380px] lg:col-span-7 lg:min-h-[460px] ${flip ? "lg:order-2" : ""}`}>
           <Blueprint accent={project.accent} />
-          <DeviceFigure project={project} profile={profile} className="absolute inset-0" interactive scale={project.device === "phone" ? 1.05 : 0.98} />
+          <DeviceFigure project={project} profile={profile} className="absolute inset-0" interactive highTierOnly scale={project.device === "phone" ? 1.05 : 0.98} />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-bg-2/90 to-transparent" aria-hidden="true" />
         </div>
         <div className={`flex flex-col justify-between p-6 sm:p-8 lg:col-span-5 ${flip ? "lg:order-1" : ""}`}>
@@ -208,7 +208,7 @@ function Card({ project, onOpen, delay }: { project: Project; onOpen: (p: Projec
 function Compact({ project, onOpen }: { project: Project; onOpen: (p: Project) => void }) {
   return (
     <FadeIn>
-      <motion.article layoutId={`card-${project.id}`} className="card card-hover grid cursor-pointer gap-4 p-6 lg:grid-cols-12 lg:items-center sm:p-7" onClick={() => onOpen(project)} data-cursor="Open">
+      <motion.article layoutId={`card-${project.id}`} className="card card-hover grid grid-cols-1 cursor-pointer gap-4 p-6 lg:grid-cols-12 lg:items-center sm:p-7" onClick={() => onOpen(project)} data-cursor="Open">
         <div className="lg:col-span-8">
           <p className="font-mono text-[11px] uppercase tracking-[0.12em]" style={{ color: project.accent }}>
             {project.category}
@@ -275,7 +275,7 @@ export function Projects() {
           ))}
         </div>
 
-        <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {largeProjects.map((p, i) => (
             <Card key={p.id} project={p} onOpen={open} delay={i * 0.06} />
           ))}

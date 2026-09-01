@@ -110,7 +110,7 @@ export function ResumeDocument({ siteUrl }: { siteUrl?: string }) {
       {/* Skills */}
       <section className="mt-5">
         <h2 className="r-h2">Skills</h2>
-        <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
           {skillCategories.map((c) => (
             <div key={c.id} className="text-[11.5px]">
               <span className="font-semibold">{c.id}: </span>
@@ -159,7 +159,7 @@ export function ResumeDocument({ siteUrl }: { siteUrl?: string }) {
       {/* Projects */}
       <section className="mt-5">
         <h2 className="r-h2">Projects</h2>
-        <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
           {resumeProjects.map((p) => {
             const link = p.links.find((l) => l.primary) ?? p.links[0];
             return (
@@ -191,7 +191,7 @@ export function ResumeDocument({ siteUrl }: { siteUrl?: string }) {
       {/* Education */}
       <section className="mt-5">
         <h2 className="r-h2">Education</h2>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {education.map((e) => (
             <div key={e.id}>
               <h3 className="text-[12.5px] font-bold">{e.degree}</h3>

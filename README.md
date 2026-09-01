@@ -1,6 +1,6 @@
 # Abuzar Khan — 3D Developer Portfolio
 
-A cinematic developer portfolio built as a product: React 19 + TypeScript, Three.js via React Three Fiber, Motion, Lenis, Tailwind CSS v4 and Vite. The visual identity is a shader-built digital portrait (the real photograph re-lit as a posterised black / deep-red / warm-light sculpture with a luminance-driven parallax) that emerges from darkness in the opening and then travels into the hero in one continuous shot. Every section is rendered from a single typed data source (`src/data`), the resume is real vector HTML/SVG (also exported to PDF), and every WebGL layer has capability detection, offscreen pausing and a CSS fallback.
+A cyberpunk software-engineer portfolio in red and black: React 19 + TypeScript, Three.js via React Three Fiber, Motion, Lenis, Tailwind CSS v4 and Vite. The signature object is an interactive faceted crystal (drag to spin with inertia, click to pulse, orbiting satellites) that is lit out of darkness by a sweeping red light in the opening and then travels into the hero in one continuous shot. Content sections use an IDE language — profile.json, about.md, file-tab skills, a git-log experience timeline, repo-style project cards with live 3D device mockups and store badges — with cut-corner panels, HUD brackets, scanlines and a terminal caret. Every section renders from a single typed data source (`src/data`), the resume is real vector HTML/SVG (also exported to PDF), and every WebGL layer has capability detection, offscreen pausing and a CSS/SVG fallback.
 
 ## Stack
 
@@ -47,7 +47,7 @@ npm run dev                    # http://localhost:3000
 ```
 src/
   data/            profile, experience, education, skills, projects  ← single source of truth
-  three/           SceneCanvas (WebGL boundary), Portrait (shader portrait), Atmosphere (dust + red light), DeviceMock
+  three/           SceneCanvas (WebGL boundary), Monolith (interactive crystal), DeviceMock
   lib/screenPainter.ts   procedural, number-free product UIs painted to canvas textures
   components/      Cursor, Navbar, Magnetic, TiltCard, Reveal, DeviceFigure, ResumeDocument, Fallbacks…
   sections/        Hero, About, TechStack, Projects, ProjectDetail, ExperienceTimeline,
@@ -59,7 +59,7 @@ public/            favicon, manifest, robots, generated PDF/OG/icon
 
 ## Performance & resilience
 
-- Two persistent WebGL layers — the portrait (one plane + custom shader) and a sparse dust/light atmosphere — plus lazy per-project device scenes. WebGL is detected once; unsupported/low-power (`saveData`) devices get SVG/CSS-3D fallbacks that reuse the same painted screens.
+- One persistent WebGL layer (the crystal) plus lazy per-project device scenes; phone/tablet tiers swap card previews to static images (`highTierOnly`). WebGL is detected once; unsupported/low-power (`saveData`) devices get SVG/CSS-3D fallbacks that reuse the same painted screens.
 - Device tier (`high` / `medium` / `low`) drives DPR (max 1.75 → 1.0), particle counts, antialiasing and whether the tier-2 project cards use WebGL at all.
 - Every canvas stops its render loop when offscreen (`frameloop="never"`) and switches to on-demand rendering under `prefers-reduced-motion`.
 - three.js / R3F / drei are lazy-loaded; the initial bundle is ~74 kB gzipped.

@@ -11,7 +11,7 @@ function Pipeline() {
   return (
     <FadeIn>
       <CodeWindow file="pipeline.yml" meta={`${steps.length} stages · always green`} className="mt-6">
-        <ol className="grid gap-px bg-line sm:grid-cols-5">
+        <ol className="grid grid-cols-1 gap-px bg-line sm:grid-cols-5">
           {steps.map((s, i) => (
             <li key={s.step} className="bg-bg-2 p-5">
               <div className="flex items-center justify-between">
@@ -37,7 +37,7 @@ export function About() {
       <div className="container-x">
         <SectionHead id="about-title" label="About" title="Engineering ability, product taste." text="A Flutter-first developer who ships production apps — and cares about how they look, feel and hold up over time." />
 
-        <div className="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-12">
+        <div className="mt-10 grid grid-cols-1 gap-6 lg:mt-14 lg:grid-cols-12">
           {/* profile.json */}
           <FadeIn className="lg:col-span-5">
             <CodeWindow file="profile.json" meta="read-only" className="h-full">
@@ -99,7 +99,7 @@ export function About() {
               <p className="mt-7 font-mono text-[13px] text-muted">
                 <span className="text-accent">##</span> What I build
               </p>
-              <ul className="mt-3 grid gap-x-8 gap-y-3 sm:grid-cols-2">
+              <ul className="mt-3 grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
                 {profile.whatIBuild.map((w) => (
                   <li key={w.label} className="flex gap-3 text-sm">
                     <span className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-accent" aria-hidden="true" />
@@ -113,7 +113,7 @@ export function About() {
               <p className="mt-7 font-mono text-[13px] text-muted">
                 <span className="text-accent">##</span> Principles
               </p>
-              <ol className="mt-3 grid gap-3 sm:grid-cols-3">
+              <ol className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {profile.philosophy.map((p, i) => (
                   <li key={p.title} className="rounded-xl border border-line bg-white/[0.02] p-4">
                     <p className="font-mono text-[11px] text-accent">0{i + 1}</p>

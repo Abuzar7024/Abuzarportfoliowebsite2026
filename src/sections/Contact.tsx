@@ -11,7 +11,8 @@ import { useUserSession } from "../context/UserSessionContext";
 import type { InquiryType } from "../lib/user-session";
 import { buildLocationParams } from "../lib/emailjs-params";
 import { requestUserGeolocation } from "../lib/geolocation";
-import { DIAL_CODE_OPTIONS, formatVisitorPhone, getPhonePlaceholder } from "../lib/dial-codes";
+import { formatVisitorPhone, getPhonePlaceholder } from "../lib/dial-codes";
+import { DialCodePicker } from "../components/DialCodePicker";
 
 const INQUIRY_TYPES = ["general", "job"] as const;
 const INQUIRY_LABELS: Record<(typeof INQUIRY_TYPES)[number], string> = { general: "General", job: "Hiring" };
@@ -92,7 +93,7 @@ export function Contact() {
       <div className="container-x">
         <SectionHead id="contact-title" label="Contact" title="Let’s build something." text="Have a role, a product idea or a problem worth solving? Pick a channel or send a message — I usually reply within 24 hours." />
 
-        <div className="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-12 lg:gap-8">
+        <div className="mt-10 grid grid-cols-1 gap-6 lg:mt-14 lg:grid-cols-12 lg:gap-8">
           {/* channels */}
           <div className="lg:col-span-5">
             <CodeWindow file="contacts.json" meta={`${CHANNELS.length} channels`}>
@@ -141,7 +142,7 @@ export function Contact() {
                     ))}
                   </div>
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <label className="block">
                     <span className="mono-label">Name</span>
                     <input required type="text" placeholder="Your name" className="input mt-1.5" autoComplete="name" value={draft.fullName} onChange={(e) => updateContact({ fullName: e.target.value })} />
@@ -164,14 +165,8 @@ export function Contact() {
                     Phone <span className="normal-case tracking-normal">(optional)</span>
                   </span>
                   <div className="mt-1.5 flex gap-2">
-                    <select value={draft.dialCode} onChange={(e) => updateContact({ dialCode: e.target.value, dialCodeManual: true })} className="input w-auto max-w-[9rem] shrink-0" aria-label="Country dial code">
-                      {DIAL_CODE_OPTIONS.map((opt) => (
-                        <option key={opt.countryCode} value={opt.dialCode}>
-                          {opt.flag} {opt.dialCode}
-                        </option>
-                      ))}
-                    </select>
-                    <input type="tel" value={draft.phoneNumber} onChange={(e) => updateContact({ phoneNumber: e.target.value.replace(/\D/g, "") })} placeholder={getPhonePlaceholder(draft.dialCode)} maxLength={12} className="input" aria-label="Phone number" autoComplete="tel-national" />
+                    <DialCodePicker value={draft.dialCode} onChange={(dialCode) => updateContact({ dialCode, dialCodeManual: true })} />
+                    <input type="tel" value={draft.phoneNumber} onChange={(e) => updateContact({ phoneNumber: e.target.value.replace(/\D/g, "") })} placeholder={getPhonePlaceholder(draft.dialCode)} maxLength={12} className="input min-w-0" aria-label="Phone number" autoComplete="tel-national" />
                   </div>
                 </div>
                 <label className="block">

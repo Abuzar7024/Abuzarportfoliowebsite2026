@@ -16,7 +16,7 @@ interface CodeWindowProps extends React.HTMLAttributes<HTMLDivElement> {
 /** IDE-style window: traffic lights, file tabs, monospace meta. The container for every content block. */
 export function CodeWindow({ file, tabs, activeTab, onTab, meta, children, className = "", bodyClassName = "", ...rest }: CodeWindowProps) {
   return (
-    <div className={`card overflow-hidden ${className}`} {...rest}>
+    <div className={`card hud overflow-hidden ${className}`} {...rest}>
       <div className="flex items-center gap-3 border-b border-line bg-white/[0.02] px-4 py-2.5">
         <span className="flex gap-1.5" aria-hidden="true">
           <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
