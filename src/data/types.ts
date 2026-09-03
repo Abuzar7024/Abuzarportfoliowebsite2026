@@ -82,6 +82,8 @@ export type SkillCategory =
 export interface Skill {
   name: string;
   category: SkillCategory;
+  /** One line a non-technical reader understands: what this actually does. */
+  plain: string;
   context: string;
   projects?: string[];
   core?: boolean;
