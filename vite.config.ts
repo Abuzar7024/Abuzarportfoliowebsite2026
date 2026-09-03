@@ -26,6 +26,8 @@ function siteUrlPlugin(siteUrl: string): Plugin {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
+    // GitHub Pages serves this from /<repo>/, so assets need that prefix.
+    base: env.VITE_BASE ?? '/',
     plugins: [react(), tailwindcss(), siteUrlPlugin(env.VITE_SITE_URL ?? '')],
     resolve: {
       alias: {

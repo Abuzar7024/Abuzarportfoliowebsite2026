@@ -19,7 +19,8 @@ export const profile = {
     githubUser: "Abuzar7024",
     linkedin: "https://www.linkedin.com/in/abuzar-khan7024/",
     portfolioRepo: "https://github.com/Abuzar7024/Abuzarportfoliowebsite2026",
-    resumePdf: "/Abuzar-Khan-Resume.pdf",
+    // BASE_URL keeps this correct when served from a subpath (GitHub Pages project site).
+    resumePdf: `${import.meta.env.BASE_URL}Abuzar-Khan-Resume.pdf`,
   },
   summary:
     "Flutter developer with 2+ years of professional experience shipping production mobile applications across government, healthcare, home-services and retail domains. Currently at Ebani Tech, building enterprise Flutter applications for kiosk and mobile devices and integrating Computer Vision models with real-time camera processing. Experienced in REST API integration, Firebase, GetX / Riverpod / Provider state management, Clean Architecture and the full app-store deployment lifecycle.",
