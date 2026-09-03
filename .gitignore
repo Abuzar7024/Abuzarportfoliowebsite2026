@@ -38,3 +38,5 @@ coverage/
 
 # Smoke-test screenshots/report
 .smoke/
+.vercel
+.env*
