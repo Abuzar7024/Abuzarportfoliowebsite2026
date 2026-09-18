@@ -37,7 +37,7 @@ for (const [name, w, h, mobile] of [["desktop", 1440, 900, false], ["mobile", 39
   const canvas = await page.$("canvas").then(Boolean);
   await page.evaluate(() => document.getElementById("work")?.scrollIntoView());
   await new Promise((r) => setTimeout(r, 1500));
-  const projects = await page.$$eval("#work article", (n) => n.length);
+  const projects = await page.$$eval("[data-project-open]", (n) => n.length);
   await page.screenshot({ path: `${OUT}/live-${name}.png` });
 
   console.log(`${name}: title=${JSON.stringify(title)} overflow=${overflow} canvas=${canvas} projects=${projects} errors=${errs.length} failedReq=${fails.length}`);
