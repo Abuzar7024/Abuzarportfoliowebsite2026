@@ -54,7 +54,9 @@ export function Skills() {
           </Rise>
           <Rise delay={0.1}>
             <p className="t-body measure max-w-[38ch] lg:text-right">
-              Hover or focus any technology to see which products it shipped in.
+              <span className="hidden sm:inline">Hover or focus</span>
+              <span className="sm:hidden">Tap</span> any technology to see which products it shipped
+              in.
             </p>
           </Rise>
         </div>
@@ -120,12 +122,12 @@ export function Skills() {
             </Rise>
           </div>
 
-          {/* linked detail */}
+          {/* linked detail - sticks to the viewport so a tap is always visible */}
           <div className="lg:col-span-4">
             <div
               id="skill-detail"
               aria-live="polite"
-              className="slab min-h-[15rem] p-6 sm:p-7 lg:sticky lg:top-28"
+              className="slab sticky bottom-4 z-20 min-h-[12rem] bg-bg-2/95 p-6 backdrop-blur-xl sm:p-7 lg:bottom-auto lg:top-28 lg:min-h-[15rem] lg:bg-transparent lg:backdrop-blur-none"
             >
               <AnimatePresence mode="wait" initial={false}>
                 {activeSkill ? (

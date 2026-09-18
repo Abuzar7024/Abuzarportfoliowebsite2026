@@ -9,8 +9,8 @@ const LINKS = [
   { n: "02", id: "experience", label: "Experience" },
   { n: "03", id: "work", label: "Work" },
   { n: "04", id: "skills", label: "Skills" },
-  { n: "05", id: "resume", label: "Resume" },
-  { n: "06", id: "contact", label: "Contact" },
+  { n: "06", id: "resume", label: "Resume" },
+  { n: "07", id: "contact", label: "Contact" },
 ];
 
 /** Smooth scroll that respects Lenis when it is running. */

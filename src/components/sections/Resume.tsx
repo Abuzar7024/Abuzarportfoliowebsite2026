@@ -112,8 +112,8 @@ export function Resume() {
                 className="relative"
               >
                 <div className="relative overflow-hidden rounded-[3px] border border-line bg-white shadow-[0_40px_100px_-30px_rgba(0,0,0,0.9)]">
-                  {/* scaled-down real document */}
-                  <div className="pointer-events-none origin-top" style={{ transform: "scale(0.92)", width: "108.7%" }}>
+                  {/* scaled-down real document, kept inside the column */}
+                  <div className="pointer-events-none w-full origin-top-left" style={{ transform: "scale(0.92)", width: "108.695%" }}>
                     <ResumeDocument />
                   </div>
                   {/* fade so the crop reads as intentional */}
