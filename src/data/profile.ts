@@ -3,9 +3,9 @@ import photo from "../assets/abuzar-khan.jpg";
 export const profile = {
   name: "Abuzar Khan",
   firstName: "Abuzar",
-  title: "Software Developer",
-  roleLine: "Software Developer • Mobile & Web • Product Builder",
-  headline: "Building digital products that actually ship.",
+  title: "Flutter Developer",
+  roleLine: "Flutter Developer · Mobile Application Developer",
+  headline: "Building intelligent mobile experiences, AI-integrated applications and interactive digital products.",
   intro:
     "I build phone apps and websites that people use every day — for government departments, hospitals, home-service teams and retail brands.",
   availability: "Open to Software Development Roles",

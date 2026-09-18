@@ -4,7 +4,7 @@ export const experience: Experience[] = [
   {
     id: "ebani",
     company: "Ebani Tech",
-    role: "Flutter Developer",
+    role: "Software Developer / Flutter Developer",
     period: "Jun 2026 — Present",
     start: "2026-06",
     end: null,
@@ -15,13 +15,16 @@ export const experience: Experience[] = [
       "Developing enterprise mobile architectures, building responsive UIs for kiosk and mobile devices, and collaborating with AI/ML teams to integrate real-time camera processing and Computer Vision models.",
     bullets: [
       "Develop enterprise Flutter applications for Android and iOS.",
+      "Build TryonRetail, an AI-assisted retail kiosk experience, using Flutter and Riverpod.",
+      "Work on Essonify, integrating Stripe and Apple In-App Purchase billing and MediaPipe/OpenCV camera processing.",
+      "Contribute to Digitopia, the digital signage ecosystem: playlist and media management, authentication and role-based workflows.",
       "Build scalable mobile architectures and responsive UI for kiosk and mobile devices.",
       "Integrate REST APIs and backend services.",
       "Work with AI/ML teams to integrate Computer Vision models and implement real-time camera processing.",
       "Optimize application performance and maintain production applications.",
       "Collaborate with backend and design teams.",
     ],
-    tech: ["Flutter", "Dart", "REST APIs", "Computer Vision", "Firebase", "Android", "iOS"],
+    tech: ["Flutter", "Dart", "Riverpod", "REST APIs", "Computer Vision", "Firebase", "Supabase", "Stripe", "Android", "iOS"],
   },
   {
     id: "ohara",

@@ -11,7 +11,7 @@ export interface ProjectLink {
 
 export interface ScreenSpec {
   /** Visual style painted onto the 3D device screen (procedural, illustrative). */
-  variant: "dashboard" | "landing" | "form" | "services" | "provider" | "health" | "portfolio" | "wardrobe";
+  variant: "dashboard" | "landing" | "form" | "services" | "provider" | "health" | "portfolio" | "wardrobe" | "kiosk" | "social" | "signage";
   accent: string;
   accent2?: string;
   title: string;
@@ -29,6 +29,10 @@ export interface Project {
   period?: string;
   /** 1 = flagship (full-width immersive), 2 = large card, 3 = compact */
   tier: 1 | 2 | 3;
+  /** Featured work leads the Selected Work section; the rest fall into the archive. */
+  featured?: boolean;
+  /** Short label pair shown on the showcase slab, e.g. "Retail" / "Kiosk". */
+  facets?: string[];
   accent: string;
   device: DeviceKind;
   screen: ScreenSpec;
@@ -72,12 +76,15 @@ export interface Education {
 
 export type SkillCategory =
   | "Mobile"
-  | "AI & Computer Vision"
-  | "Frontend"
-  | "Backend & Cloud"
   | "State Management"
-  | "Architecture"
+  | "Backend"
+  | "Integrations"
+  | "AI & Computer Vision"
+  | "Web"
   | "Tools";
+
+/** Honest proficiency banding: never implies expert level where it is not earned. */
+export type SkillLevel = "core" | "working" | "familiar";
 
 export interface Skill {
   name: string;
@@ -87,4 +94,5 @@ export interface Skill {
   context: string;
   projects?: string[];
   core?: boolean;
+  level: SkillLevel;
 }

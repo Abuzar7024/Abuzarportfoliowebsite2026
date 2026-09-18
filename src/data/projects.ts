@@ -2,6 +2,54 @@ import type { Project } from "./types";
 
 export const projects: Project[] = [
   {
+    id: "tryonretail",
+    title: "TryonRetail",
+    tagline: "In-store screens that let shoppers see how something looks on them before they ever reach a fitting room.",
+    category: "Retail kiosk experience",
+    kind: "platform",
+    role: "Flutter Developer @ Ebani Tech",
+    organization: "Ebani Tech",
+    period: "2026 - Present",
+    tier: 1,
+    featured: true,
+    facets: ["Retail", "Kiosk", "AI"],
+    accent: "#ff2d3f",
+    device: "dashboard",
+    screen: {
+      variant: "kiosk",
+      accent: "#ff2d3f",
+      accent2: "#ff8a6b",
+      title: "TryonRetail",
+      subtitle: "Try it on. In store.",
+    },
+    overview:
+      "TryonRetail is a retail and kiosk experience built at Ebani Tech. It runs on interactive in-store screens, guiding a shopper through onboarding and into an AI-assisted try-on flow, with separate paths for customers and for salespeople working alongside them on the floor.",
+    problem:
+      "Fitting rooms are a bottleneck. Shoppers queue to try things on, staff spend their time fetching sizes, and a large share of interest never converts because trying something on is slow.",
+    solution:
+      "A touchscreen experience placed on the shop floor: the shopper is onboarded on-screen, AI processing handles the try-on visualisation, and salespeople get their own workflow for assisting customers through the same system.",
+    contribution: [
+      "Build the Flutter application that runs the interactive retail and kiosk screens.",
+      "Implement the on-screen onboarding flow and the customer and salesperson journeys.",
+      "Use Riverpod for state across the multi-step kiosk flows.",
+      "Work with the AI/ML team to integrate the AI processing behind the try-on experience.",
+      "Build responsive layouts that hold up across kiosk and mobile screen sizes.",
+    ],
+    features: [
+      "Interactive in-store kiosk screens",
+      "Guided shopper onboarding",
+      "AI-assisted try-on processing",
+      "Customer journey",
+      "Salesperson-assisted workflow",
+      "Responsive kiosk and mobile layouts",
+    ],
+    tech: ["Flutter", "Dart", "Riverpod", "Computer Vision integration", "REST APIs", "Android"],
+    techNote:
+      "Reflects my application-layer role at Ebani Tech. I integrate the AI processing into the Flutter client; I do not train the underlying models.",
+    links: [],
+    verifiedNote: "Role and scope described from my work at Ebani Tech. The product is deployed in-store and has no public URL.",
+  },
+  {
     id: "digitopia",
     title: "Digitopia",
     tagline: "Smart advertising screens for malls and hotels — controlled from one dashboard, anywhere in the country.",
@@ -12,13 +60,15 @@ export const projects: Project[] = [
     period: "2026 — Present",
     tier: 1,
     accent: "#ff2d3f",
+    featured: true,
+    facets: ["Signage", "CMS", "AI"],
     device: "dashboard",
     screen: {
-      variant: "dashboard",
+      variant: "signage",
       accent: "#ff2d3f",
       accent2: "#ff8a6b",
       title: "Digitopia CMS",
-      subtitle: "Screens · Campaigns · Analytics",
+      subtitle: "Screens - Playlists - Schedule",
     },
     overview:
       "Digitopia is Ebani Tech's AI-powered digital signage and DOOH (digital out-of-home) platform. It lets businesses manage content on digital displays across multiple locations from a single cloud CMS, while AI viewer analytics — anonymous age and gender detection and dwell-time heatmaps — personalise what each screen shows and measure how audiences respond.",
@@ -31,6 +81,7 @@ export const projects: Project[] = [
       "Develop enterprise Flutter applications for Android and iOS, including responsive UI for kiosk and mobile devices.",
       "Work with the AI/ML team to integrate Computer Vision models and implement real-time camera processing.",
       "Integrate REST APIs and backend services, optimise application performance and maintain production applications.",
+      "Build playlist and media management, authentication and role-based workflows on the application layer.",
     ],
     product: [
       "Cloud CMS: manage 1 to 1,000+ screens from one dashboard with screen-by-screen (hyperlocal) campaign control.",
@@ -51,7 +102,7 @@ export const projects: Project[] = [
       "Built on AiVi™ (Artificial Intelligence Virtual Interface), Ebani Tech's technology for anonymous audience mapping and remote content management.",
       "Serves fashion, healthcare, education, electronics retail, restaurants, automotive, jewellery, banking and real-estate deployments.",
     ],
-    tech: ["Flutter", "Dart", "Computer Vision", "REST APIs", "Firebase", "React", "Redux", "MUI"],
+    tech: ["Flutter", "Dart", "Computer Vision integration", "REST APIs", "Firebase", "Supabase", "React", "Redux", "MUI"],
     techNote:
       "Flutter, Dart, Computer Vision, REST APIs and Firebase reflect my application-layer stack at Ebani Tech. React, Redux and MUI are observed in the live web CMS build (app.digitopia.live).",
     links: [
@@ -125,6 +176,8 @@ export const projects: Project[] = [
     role: "Mobile App Developer",
     organization: "Essonify Group Inc.",
     tier: 1,
+    featured: true,
+    facets: ["Mobile", "Payments", "Vision"],
     accent: "#ff4f9a",
     device: "phone",
     screen: {
@@ -141,9 +194,11 @@ export const projects: Project[] = [
     solution:
       "A digitised wardrobe, an AI Style Partner that generates personalised outfits, and a calendar-aware daily look forecast — with a community feed and shoppable looks so inspiration turns into outfits.",
     contribution: [
-      "Mobile application development for the cross-platform app, in line with my Flutter, AI-integration and virtual try-on focus areas.",
-      "Camera and image pipelines, AI API integration and responsive UI — the same capabilities listed in my skills and current focus.",
-      "Specific responsibilities on this product are not detailed in my public resume; the product description below is verified from the store listing.",
+      "Flutter and Dart development on the cross-platform application.",
+      "Integrate Stripe and Apple In-App Purchase for subscription and billing flows.",
+      "Integrate MediaPipe and OpenCV for camera-based image processing.",
+      "Android build configuration across Gradle and the Kotlin layer, through to release.",
+      "Production debugging on live builds across iOS and Android.",
     ],
     product: [
       "Plan outfits around life events — workdays, dinners, travel and special occasions.",
@@ -164,15 +219,56 @@ export const projects: Project[] = [
       "Available on iOS and Android (App Store version 1.0.4, Lifestyle, 16+).",
       "Essonify Group Inc. — \"Life is made of moments. Style them all.\"",
     ],
-    tech: ["Flutter", "Dart", "AI API Integration", "Camera Integration", "REST APIs"],
+    tech: ["Flutter", "Dart", "Stripe", "Apple In-App Purchase", "MediaPipe", "OpenCV", "Android", "iOS", "REST APIs"],
     techNote:
-      "Flutter, Dart, camera and AI-API integration reflect my mobile stack and focus areas; the store listings do not disclose the app's framework.",
+      "Reflects my own work on the application: subscription and billing integration, camera and vision processing, and the Android build and release layer.",
     links: [
       { label: "App Store", href: "https://apps.apple.com/us/app/essonify-style-unified/id6761996798", kind: "appstore", primary: true },
       { label: "Google Play", href: "https://play.google.com/store/apps/details?id=com.essonify.app&pcampaignid=web_share", kind: "playstore" },
       { label: "essonify.com", href: "https://www.essonify.com/download", kind: "website" },
     ],
     verifiedNote: "Product description verified against essonify.com and the App Store listing on 26 Aug 2026.",
+  },
+  {
+    id: "spoto",
+    title: "Spoto",
+    tagline: "A social app built around spotlighting people - chat, presence and a coin-based economy.",
+    category: "Social application",
+    kind: "mobile",
+    role: "Flutter Developer",
+    tier: 2,
+    featured: true,
+    facets: ["Social", "Chat", "Payments"],
+    accent: "#8b5cf6",
+    device: "phone",
+    screen: {
+      variant: "social",
+      accent: "#8b5cf6",
+      accent2: "#ff2d3f",
+      title: "Spoto",
+      subtitle: "Spotlight - Chat - Coins",
+    },
+    overview:
+      "Spoto is a social application built in Flutter on a Firebase backend. It combines social interaction, real-time chat and a spotlight feature with a coin-based monetisation model handled through in-app purchases.",
+    problem:
+      "Social apps tend to reward whoever already has an audience, so new voices stay invisible and conversations never start.",
+    solution:
+      "A spotlight mechanic that surfaces people rather than just posts, paired with direct chat and a coin economy that gives visibility and interactions a clear, purchasable value.",
+    contribution: [
+      "Build the Flutter application across its social, chat and spotlight features.",
+      "Implement Firebase authentication, data and real-time messaging.",
+      "Integrate a coin-based feature system with Google Play Billing for in-app purchases.",
+    ],
+    features: [
+      "Social profiles and interactions",
+      "Real-time chat",
+      "Spotlight feature",
+      "Coin-based economy",
+      "In-app purchases",
+      "Firebase authentication",
+    ],
+    tech: ["Flutter", "Dart", "Firebase", "Google Play Billing"],
+    links: [],
   },
   {
     id: "tajneed",
@@ -391,3 +487,15 @@ export const projectById = (id: string) => projects.find((p) => p.id === id);
 export const flagshipProjects = projects.filter((p) => p.tier === 1);
 export const largeProjects = projects.filter((p) => p.tier === 2);
 export const compactProjects = projects.filter((p) => p.tier === 3);
+
+/** The four projects that lead Selected Work, in narrative order. */
+export const FEATURED_ORDER = ["tryonretail", "essonify", "digitopia", "spoto"] as const;
+
+export const featuredProjects: Project[] = FEATURED_ORDER.map(
+  (id) => projects.find((p) => p.id === id)!
+).filter(Boolean);
+
+/** Everything else - still verified work, shown under "More Selected Work". */
+export const archiveProjects: Project[] = projects.filter(
+  (p) => !(FEATURED_ORDER as readonly string[]).includes(p.id)
+);
