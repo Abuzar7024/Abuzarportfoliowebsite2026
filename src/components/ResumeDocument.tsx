@@ -112,11 +112,11 @@ export function ResumeDocument({ siteUrl }: { siteUrl?: string }) {
         <h2 className="r-h2">Skills</h2>
         <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
           {skillCategories.map((c) => (
-            <div key={c.id} className="text-[11.5px]">
-              <span className="font-semibold">{c.id}: </span>
+            <div key={c} className="text-[11.5px]">
+              <span className="font-semibold">{c}: </span>
               <span style={{ color: "var(--paper-ink-2)" }}>
                 {skills
-                  .filter((s) => s.category === c.id)
+                  .filter((s) => s.category === c)
                   .map((s) => s.name)
                   .join(", ")}
               </span>

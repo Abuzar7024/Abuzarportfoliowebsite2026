@@ -25,9 +25,9 @@ const BASE = `http://127.0.0.1:${PORT}`;
 
 const CANDIDATES = [
   process.env.BROWSER_PATH,
+  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
   "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
   "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
-  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
   "/usr/bin/google-chrome",
   "/usr/bin/chromium",
 ].filter(Boolean);
@@ -123,7 +123,7 @@ async function runViewport(browser, { name, width, height, mobile = false, reduc
   // Project detail flow
   await page.evaluate(() => document.getElementById("work")?.scrollIntoView({ behavior: "instant", block: "start" }));
   await new Promise((r) => setTimeout(r, 800));
-  await page.click("#work article");
+  await page.click("[data-project-open]");
   await new Promise((r) => setTimeout(r, 1500));
   entry.checks.detailOpen = await page.$("[role='dialog'][aria-modal='true']").then(Boolean);
   entry.checks.detailHash = await page.evaluate(() => location.hash);
@@ -139,17 +139,25 @@ async function runViewport(browser, { name, width, height, mobile = false, reduc
   // Identity scene process diagram + skill chip interaction
   await page.evaluate(() => document.getElementById("about")?.scrollIntoView({ behavior: "instant", block: "center" }));
   await new Promise((r) => setTimeout(r, 800));
-  entry.checks.approachDiagram = await page.$("#about svg path").then(Boolean);
+  entry.checks.aboutStats = await page.$$eval("#about dt", (n) => n.length).catch(() => 0);
   await page.evaluate(() => {
-    document.getElementById("stack")?.scrollIntoView({ behavior: "instant", block: "start" });
-    const chip = document.querySelector("#stack button[aria-pressed]");
+    document.getElementById("skills")?.scrollIntoView({ behavior: "instant", block: "start" });
+    const chip = document.querySelector("#skills button[aria-pressed]");
     chip?.click();
   });
   await new Promise((r) => setTimeout(r, 700));
-  entry.checks.skillChipOpened = await page.$eval("#stack button[aria-pressed='true']", (el) => el.textContent?.trim()).catch(() => null);
+  entry.checks.skillChipOpened = await page
+    .$eval("#skills button[aria-pressed='true']", (el) => el.textContent?.trim())
+    .catch(() => null);
+  entry.checks.skillLinkedProjects = await page.$$eval("#skill-detail li", (n) => n.length).catch(() => 0);
 
-  // Fullscreen menu (all widths)
-  {
+  // Mobile menu - the trigger is intentionally hidden at >=lg, where the inline nav is used.
+  const menuVisible = await page
+    .$eval("button[aria-controls='site-menu']", (el) => getComputedStyle(el).display !== "none")
+    .catch(() => false);
+  entry.checks.menuTriggerVisible = menuVisible;
+  entry.checks.desktopNavLinks = await page.$$eval("header nav ul a", (n) => n.length).catch(() => 0);
+  if (menuVisible) {
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
     await new Promise((r) => setTimeout(r, 400));
     entry.checks.menuButtonRect = await page.$eval("button[aria-controls='site-menu']", (el) => {
@@ -171,8 +179,9 @@ async function runViewport(browser, { name, width, height, mobile = false, reduc
 
   // Resume + contact visible
   entry.checks.resumePaper = await page.$(".resume-paper h1").then(Boolean);
-  entry.checks.contactForm = await page.$("#contact form").then(Boolean);
-  entry.checks.githubSection = await page.$eval("#activity", (el) => el.textContent?.includes("Public repos")).catch(() => false);
+  entry.checks.contactLinks = await page.$$eval("#contact a[href]", (n) => n.length);
+  entry.checks.educationSection = await page.$("#education").then(Boolean);
+  entry.checks.skillsSection = await page.$("#skills").then(Boolean);
 
   // Direct deep link
   await page.goto(`${BASE}/#project=ebani`, { waitUntil: "networkidle2" });

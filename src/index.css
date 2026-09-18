@@ -14,6 +14,7 @@
   --color-line-2: rgba(255, 255, 255, 0.16);
   --color-accent: #ff2b3d;
   --color-accent-deep: #d8172a;
+  --color-accent-soft: rgba(255, 43, 61, 0.12);
   --color-accent-2: #ff7a5c;
   --color-success: #3ddc97;
   --color-warn: #f5b942;
@@ -34,6 +35,15 @@
 
   --breakpoint-xs: 30rem;
   --breakpoint-3xl: 120rem;
+
+  /* Editorial type scale - fluid, capped so nothing stretches on ultrawide. */
+  --step-display: clamp(3rem, 11vw, 9.5rem);
+  --step-h1: clamp(2.5rem, 7vw, 5.75rem);
+  --step-h2: clamp(2rem, 4.6vw, 3.75rem);
+  --step-h3: clamp(1.375rem, 2.1vw, 1.875rem);
+  --step-body: clamp(1rem, 1.05vw, 1.125rem);
+
+  --ease-cine: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* ───────────────────────── Base ───────────────────────── */
@@ -572,5 +582,134 @@
   * {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+}
+
+/* ═════════════════════ v3 Editorial design system ═════════════════════ */
+@layer components {
+  /* Wider canvas for the new editorial layouts. */
+  .shell {
+    @apply mx-auto w-full max-w-[96rem];
+    padding-left: var(--gutter);
+    padding-right: var(--gutter);
+  }
+  /* Comfortable measure - never let prose stretch across a wide screen. */
+  .measure {
+    max-width: 68ch;
+  }
+  .measure-tight {
+    max-width: 46ch;
+  }
+
+  .display {
+    @apply font-display font-extrabold text-ink;
+    font-size: var(--step-display);
+    line-height: 0.88;
+    letter-spacing: -0.045em;
+  }
+  .t-h1 {
+    @apply font-display font-extrabold text-ink;
+    font-size: var(--step-h1);
+    line-height: 0.95;
+    letter-spacing: -0.038em;
+  }
+  .t-h2 {
+    @apply font-display font-bold text-ink;
+    font-size: var(--step-h2);
+    line-height: 1.02;
+    letter-spacing: -0.032em;
+  }
+  .t-h3 {
+    @apply font-display font-bold text-ink;
+    font-size: var(--step-h3);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+  .t-body {
+    font-size: var(--step-body);
+    @apply leading-[1.65] text-ink-2;
+  }
+
+  /* Section index marker: "01 / WORK" */
+  .sec-index {
+    @apply flex items-baseline gap-3 font-mono text-[11px] uppercase tracking-[0.2em] text-muted;
+  }
+  .sec-index b {
+    @apply font-mono font-semibold text-accent;
+  }
+
+  /* Hairline rule used to separate editorial blocks. */
+  .rule {
+    @apply h-px w-full;
+    background: linear-gradient(90deg, rgba(255, 43, 61, 0.5), rgba(255, 255, 255, 0.08) 22%, rgba(255, 255, 255, 0.02));
+  }
+
+  /* Flat editorial surface - squared, no clip-path, quieter than .card */
+  .slab {
+    @apply relative border border-line bg-white/[0.02];
+    border-radius: 2px;
+    transition:
+      border-color 0.5s var(--ease-cine),
+      background-color 0.5s var(--ease-cine),
+      transform 0.5s var(--ease-cine);
+  }
+  .slab-hover:hover {
+    @apply border-line-2 bg-white/[0.04];
+  }
+
+  /* Red used as an interaction state, not a surface. */
+  .lift {
+    transition: transform 0.55s var(--ease-cine), box-shadow 0.55s var(--ease-cine);
+  }
+  .lift:hover {
+    transform: translateY(-4px);
+  }
+
+  /* Link with an underline that draws in on hover. */
+  .ul-draw {
+    @apply relative inline-block;
+  }
+  .ul-draw::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    height: 1px;
+    width: 100%;
+    background: var(--color-accent);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.5s var(--ease-cine);
+  }
+  .ul-draw:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
+@layer utilities {
+  /* Masks a block so it can be revealed by sliding its child up. */
+  .clip-reveal {
+    overflow: hidden;
+    display: block;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Anchored sections must clear the fixed header when deep-linked or nav-scrolled. */
+@layer base {
+  #about,
+  #experience,
+  #work,
+  #skills,
+  #education,
+  #resume,
+  #contact {
+    scroll-margin-top: 5.5rem;
   }
 }

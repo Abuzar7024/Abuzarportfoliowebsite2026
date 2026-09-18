@@ -6,9 +6,9 @@ const URL_ = process.env.SITE ?? "https://abuzar7024.github.io/Abuzarportfoliowe
 const OUT = process.env.OUT ?? ".";
 const exe = [
   process.env.BROWSER_PATH,
+  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
   "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
   "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
-  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
   "/usr/bin/google-chrome",
 ].filter(Boolean).find((p) => existsSync(p));
 

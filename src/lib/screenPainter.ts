@@ -603,6 +603,144 @@ function paintWardrobe(p: Painter, spec: ScreenSpec, W: number, H: number) {
   p.rect(W / 2 - 60, H - 14, 120, 5, 3, hexToRgba(pal.ink, 0.6));
 }
 
+
+/** Retail try-on kiosk: a portrait touchscreen with a live camera frame and size rail. */
+function paintKiosk(p: Painter, spec: ScreenSpec, W: number, H: number) {
+  const pal = DARK(spec.accent, spec.accent2 ?? spec.accent);
+  p.rect(0, 0, W, H, 0, "#08090c");
+
+  // header
+  p.text(40, 60, spec.title, 26, pal.ink, 700, "Manrope, Inter, sans-serif");
+  p.text(40, 88, spec.subtitle ?? "Try it on. In store.", 13, pal.muted, 500, "JetBrains Mono, monospace");
+  p.rect(W - 152, 38, 112, 34, 6, hexToRgba(pal.accent, 0.16), hexToRgba(pal.accent, 0.5));
+  p.text(W - 96, 60, "LIVE", 11, pal.accent, 700, "JetBrains Mono, monospace", "center");
+
+  // camera stage with detected silhouette
+  const sx = 40;
+  const sy = 120;
+  const sw = W - 80;
+  const sh = Math.round(H * 0.5);
+  p.rect(sx, sy, sw, sh, 12, "#101218", pal.line);
+  p.rect(sx + sw / 2 - 90, sy + 40, 180, sh - 90, 90, hexToRgba(pal.accent, 0.1));
+  p.circle(sx + sw / 2, sy + 96, 46, hexToRgba(pal.accent, 0.22));
+
+  // tracking corners
+  const c = 22;
+  [[sx + 24, sy + 24], [sx + sw - 24 - c, sy + 24], [sx + 24, sy + sh - 24 - c], [sx + sw - 24 - c, sy + sh - 24 - c]].forEach(
+    ([cx, cy]) => p.rect(cx, cy, c, c, 3, "transparent", hexToRgba(pal.accent, 0.8))
+  );
+  p.text(sx + 24, sy + sh - 44, "FIT DETECTED", 11, pal.accent, 700, "JetBrains Mono, monospace");
+
+  // size rail
+  const ry = sy + sh + 36;
+  p.text(40, ry, "Select size", 16, pal.ink, 600);
+  const sizes = ["XS", "S", "M", "L", "XL"];
+  sizes.forEach((sz, i) => {
+    const bw = (W - 80 - 4 * 12) / 5;
+    const x = 40 + i * (bw + 12);
+    const on = i === 2;
+    p.rect(x, ry + 20, bw, 58, 8, on ? pal.accent : pal.surface, on ? undefined : pal.line);
+    p.text(x + bw / 2, ry + 56, sz, 15, on ? "#ffffff" : pal.ink2, 700, undefined, "center");
+  });
+
+  // product row
+  const py = ry + 112;
+  p.text(40, py, "More in this look", 16, pal.ink, 600);
+  for (let i = 0; i < 3; i++) {
+    const bw = (W - 80 - 2 * 14) / 3;
+    const x = 40 + i * (bw + 14);
+    p.rect(x, py + 20, bw, 128, 10, pal.surface, pal.line);
+    p.rect(x + 16, py + 36, bw - 32, 72, 8, hexToRgba(i === 0 ? pal.accent : pal.ink, 0.18));
+    p.lines(x + 16, py + 120, bw - 48, 1, 7, 0, hexToRgba(pal.ink, 0.25));
+  }
+
+  // action bar
+  p.rect(40, H - 108, W - 80, 62, 8, pal.accent);
+  p.text(W / 2, H - 70, "CALL A STYLIST", 14, "#ffffff", 700, "JetBrains Mono, monospace", "center");
+}
+
+/** Social app: spotlight rail, feed and a coin balance. */
+function paintSocial(p: Painter, spec: ScreenSpec, W: number, H: number) {
+  const pal = DARK(spec.accent, spec.accent2 ?? spec.accent);
+  p.rect(0, 0, W, H, 0, "#0a0910");
+  const top = phoneStatusBar(p, pal, W);
+
+  p.text(28, top + 48, spec.title, 28, pal.ink, 700, "Manrope, Inter, sans-serif");
+  // coin balance
+  p.rect(W - 132, top + 24, 104, 34, 17, hexToRgba(pal.accent, 0.16), hexToRgba(pal.accent, 0.45));
+  p.circle(W - 112, top + 41, 9, pal.accent2 ?? pal.accent);
+  p.text(W - 94, top + 46, "1,240", 13, pal.ink, 700, "JetBrains Mono, monospace");
+
+  // spotlight rail
+  p.text(28, top + 96, "Spotlight", 14, pal.muted, 600, "JetBrains Mono, monospace");
+  for (let i = 0; i < 5; i++) {
+    const x = 28 + i * 74;
+    if (x + 60 > W) break;
+    p.circle(x + 30, top + 148, 30, hexToRgba(i === 0 ? pal.accent : pal.ink, 0.18));
+    p.circle(x + 30, top + 148, 31, "transparent");
+    p.rect(x + 30 - 31, top + 148 - 31, 62, 62, 31, "transparent", i === 0 ? pal.accent : pal.line);
+    p.lines(x + 12, top + 190, 36, 1, 6, 0, hexToRgba(pal.ink, 0.2));
+  }
+
+  // feed
+  for (let i = 0; i < 2; i++) {
+    const y = top + 232 + i * 268;
+    p.rect(28, y, W - 56, 248, 16, pal.surface, pal.line);
+    p.circle(56, y + 36, 18, hexToRgba(pal.accent, 0.3));
+    p.lines(84, y + 26, 110, 2, 8, 8, hexToRgba(pal.ink, 0.28));
+    p.rect(44, y + 72, W - 88, 116, 12, hexToRgba(i === 0 ? pal.accent : pal.ink, 0.12));
+    // reactions
+    for (let k = 0; k < 3; k++) {
+      p.circle(62 + k * 44, y + 214, 11, hexToRgba(k === 0 ? pal.accent : pal.ink, 0.25));
+    }
+    p.rect(W - 132, y + 200, 88, 28, 14, hexToRgba(pal.accent, 0.18));
+    p.text(W - 88, y + 219, "Chat", 11, pal.accent, 700, "JetBrains Mono, monospace", "center");
+  }
+
+  // tab bar
+  p.rect(0, H - 92, W, 92, 0, pal.surface);
+  for (let i = 0; i < 5; i++) {
+    const x = W / 10 + (i * W) / 5;
+    p.circle(x, H - 56, 11, i === 0 ? pal.accent : hexToRgba(pal.ink, 0.18));
+  }
+  p.rect(W / 2 - 60, H - 14, 120, 5, 3, hexToRgba(pal.ink, 0.5));
+}
+
+/** Digital-signage player: a screen grid with playlist and schedule. */
+function paintSignage(p: Painter, spec: ScreenSpec, W: number, H: number) {
+  const pal = DARK(spec.accent, spec.accent2 ?? spec.accent);
+  const top = browserChrome(p, pal, W, "app.digitopia.live");
+  p.rect(0, top, W, H - top, 0, pal.bg);
+
+  p.text(36, top + 52, spec.title, 24, pal.ink, 700, "Manrope, Inter, sans-serif");
+  p.text(36, top + 78, spec.subtitle ?? "Screens - Playlists - Schedule", 12, pal.muted, 500, "JetBrains Mono, monospace");
+
+  // screen grid
+  for (let i = 0; i < 6; i++) {
+    const col = i % 3;
+    const row = Math.floor(i / 3);
+    const bw = (W - 72 - 2 * 16) / 3;
+    const x = 36 + col * (bw + 16);
+    const y = top + 108 + row * 150;
+    const online = i !== 4;
+    p.rect(x, y, bw, 132, 10, pal.surface, pal.line);
+    p.rect(x + 14, y + 14, bw - 28, 70, 6, hexToRgba(online ? pal.accent : pal.ink, 0.16));
+    p.circle(x + 22, y + 106, 5, online ? "#3ddc97" : "#f5b942");
+    p.text(x + 36, y + 111, online ? "Playing" : "Idle", 11, pal.ink2, 600, "JetBrains Mono, monospace");
+  }
+
+  // playlist
+  const py = top + 424;
+  p.text(36, py, "Playlist", 16, pal.ink, 600);
+  for (let i = 0; i < 4; i++) {
+    const y = py + 20 + i * 46;
+    p.rect(36, y, W - 72, 38, 6, i === 0 ? hexToRgba(pal.accent, 0.12) : pal.surface, pal.line);
+    p.rect(48, y + 11, 16, 16, 3, hexToRgba(i === 0 ? pal.accent : pal.ink, 0.4));
+    p.lines(76, y + 14, 180, 1, 7, 0, hexToRgba(pal.ink, 0.28));
+    p.text(W - 60, y + 24, `0:${15 + i * 5}`, 11, pal.muted, 600, "JetBrains Mono, monospace", "right");
+  }
+}
+
 export function paintScreen(canvas: HTMLCanvasElement, spec: ScreenSpec, kind: DeviceKind): HTMLCanvasElement {
   const { w, h } = SCREEN_SIZE[kind];
   canvas.width = w;
@@ -635,6 +773,15 @@ export function paintScreen(canvas: HTMLCanvasElement, spec: ScreenSpec, kind: D
       break;
     case "wardrobe":
       paintWardrobe(p, spec, w, h);
+      break;
+    case "kiosk":
+      paintKiosk(p, spec, w, h);
+      break;
+    case "social":
+      paintSocial(p, spec, w, h);
+      break;
+    case "signage":
+      paintSignage(p, spec, w, h);
       break;
   }
   return canvas;
