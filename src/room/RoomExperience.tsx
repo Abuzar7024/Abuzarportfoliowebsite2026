@@ -1,6 +1,6 @@
 import React, { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { FileText, MousePointerClick } from "lucide-react";
+import { FileText, Monitor, MousePointerClick } from "lucide-react";
 import { Toaster } from "sonner";
 import type { RenderProfile } from "../hooks/useDeviceTier";
 import { profile } from "../data/profile";
@@ -44,9 +44,20 @@ function FirstHint() {
           exit={{ opacity: 0 }}
           transition={{ delay: 0.8 }}
         >
-          <span className="flex items-center gap-2 rounded-full border border-line-2 bg-bg/80 px-4 py-2 text-[12.5px] text-ink-2 backdrop-blur">
+          <span className="desktop-room-hint flex items-center gap-2 rounded-full border border-line-2 bg-bg/80 px-4 py-2 text-[12.5px] text-ink-2 backdrop-blur">
             <MousePointerClick size={14} className="text-accent-ink" aria-hidden="true" />
             Click the glowing objects · drag to look around
+          </span>
+          <span className="phone-room-hint items-center gap-3 rounded-2xl border border-line-2 bg-bg/90 px-3.5 py-2.5 text-[12px] text-ink-2 shadow-lg backdrop-blur-xl">
+            <span className="phone-swipe-track" aria-hidden="true">
+              <span className="phone-swipe-arrow">‹</span>
+              <span className="phone-swipe-thumb" />
+              <span className="phone-swipe-arrow">›</span>
+            </span>
+            <span className="text-left leading-snug">
+              <span className="block font-medium text-ink">Swipe around to explore the room</span>
+              <span className="block text-[11px] text-muted">Move your finger to look around · tap glowing objects</span>
+            </span>
           </span>
         </motion.p>
       )}
@@ -129,6 +140,15 @@ export function RoomExperience({ render, active }: { render: RenderProfile; acti
             Resume
           </a>
         </header>
+      )}
+
+      {!flat && !inComputer && (
+        <aside className="pointer-events-none fixed inset-x-0 top-[4.75rem] z-40 flex justify-center px-3 lg:hidden">
+          <span className="flex max-w-full items-center gap-2 rounded-full border border-line-2 bg-[#131417]/85 px-3 py-2 text-center text-[11px] leading-tight text-ink-2 shadow-lg backdrop-blur-xl sm:px-4 sm:text-[12px]">
+            <Monitor size={14} className="shrink-0 text-accent-ink" aria-hidden="true" />
+            <span>For the best view, open this site on a computer</span>
+          </span>
+        </aside>
       )}
 
       {!flat && <HotspotPins />}

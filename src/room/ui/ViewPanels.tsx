@@ -8,7 +8,7 @@ import { actions, useRoom } from "../store";
 function Panel({ title, hint, children }: { title: string; hint: string; children: React.ReactNode }) {
   return (
     <motion.aside
-      className="hud fixed bottom-24 left-3 right-3 z-30 p-5 sm:left-6 sm:right-auto sm:w-[22rem]"
+      className="hud scrollbar-thin fixed bottom-24 left-3 right-3 z-30 max-h-[calc(100dvh-10rem)] overflow-y-auto p-4 sm:left-6 sm:right-auto sm:w-[22rem] sm:p-5"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 12 }}
