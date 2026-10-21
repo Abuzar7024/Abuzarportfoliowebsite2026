@@ -38,6 +38,84 @@ function Ticks({ items }: { items: string[] }) {
   );
 }
 
+/** The full write-up for one project; used by the dialog and the computer's Projects app. */
+export function ProjectDetails({ project, titleId }: { project: Project; titleId?: string }) {
+  const primary = project.links.find((l) => l.primary) ?? project.links[0];
+  return (
+    <>
+      <h2 id={titleId} className="font-brand text-[clamp(1.75rem,5vw,2.75rem)] leading-tight tracking-wide">
+        {project.title.toUpperCase()}
+      </h2>
+      <p className="lead mt-3">{project.tagline}</p>
+      <p className="mt-3 font-mono text-[12px] text-muted">
+        {project.role}
+        {project.period ? ` · ${project.period}` : ""}
+      </p>
+
+      {project.links.length > 0 && (
+        <div className="mt-6 flex flex-wrap gap-2">
+          {project.links.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={l === primary ? "btn-primary" : "btn-ghost"}
+            >
+              {l.kind === "website" || l.kind === "live" ? `${LINK_LABEL[l.kind]} ${hostOf(l.href)}` : LINK_LABEL[l.kind]}
+              <ArrowUpRight size={14} aria-hidden="true" />
+            </a>
+          ))}
+        </div>
+      )}
+      {primary?.note && <p className="mt-2 text-[12px] text-faint">{primary.note}</p>}
+
+      <div className="mt-8 space-y-7">
+        <Block title="Overview">
+          <p className="leading-relaxed text-ink-2">{project.overview}</p>
+        </Block>
+        {(project.problem || project.solution) && (
+          <div className="grid gap-7 sm:grid-cols-2">
+            {project.problem && (
+              <Block title="The problem">
+                <p className="text-[15px] leading-relaxed text-muted">{project.problem}</p>
+              </Block>
+            )}
+            {project.solution && (
+              <Block title="The solution">
+                <p className="text-[15px] leading-relaxed text-muted">{project.solution}</p>
+              </Block>
+            )}
+          </div>
+        )}
+        <Block title="What I did">
+          <Ticks items={project.contribution} />
+        </Block>
+        <Block title="Key features">
+          <ul className="flex flex-wrap gap-2">
+            {project.features.map((f) => (
+              <li key={f} className="rounded-lg border border-line bg-bg/50 px-3 py-1.5 text-[13px] text-ink-2">
+                {f}
+              </li>
+            ))}
+          </ul>
+        </Block>
+        <Block title="Tech">
+          <ul className="flex flex-wrap gap-1.5">
+            {project.tech.map((t) => (
+              <li key={t} className="chip">
+                {t}
+              </li>
+            ))}
+          </ul>
+          {project.techNote && <p className="mt-3 text-[13px] leading-relaxed text-faint">{project.techNote}</p>}
+        </Block>
+        {project.verifiedNote && <p className="text-[12px] text-faint">{project.verifiedNote}</p>}
+      </div>
+    </>
+  );
+}
+
 /**
  * Full project details, opened from a project card. Esc closes, ←/→ step
  * through the list, focus returns to the card that opened it.
@@ -58,7 +136,6 @@ export function ProjectDialog({
   useScrollLock(true);
   const closeRef = useRef<HTMLButtonElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
-  const primary = project.links.find((l) => l.primary) ?? project.links[0];
 
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null;
@@ -142,75 +219,7 @@ export function ProjectDialog({
 
         <div ref={bodyRef} className="scrollbar-thin overflow-y-auto overscroll-contain px-6 pb-8 pt-7 sm:px-8">
           <motion.div key={project.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
-            <h2 id="project-dialog-title" className="font-brand text-[clamp(1.75rem,5vw,2.75rem)] leading-tight tracking-wide">
-              {project.title.toUpperCase()}
-            </h2>
-            <p className="lead mt-3">{project.tagline}</p>
-            <p className="mt-3 font-mono text-[12px] text-muted">
-              {project.role}
-              {project.period ? ` · ${project.period}` : ""}
-            </p>
-
-            {project.links.length > 0 && (
-              <div className="mt-6 flex flex-wrap gap-2">
-                {project.links.map((l) => (
-                  <a
-                    key={l.href}
-                    href={l.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={l === primary ? "btn-primary" : "btn-ghost"}
-                  >
-                    {l.kind === "website" || l.kind === "live" ? `${LINK_LABEL[l.kind]} ${hostOf(l.href)}` : LINK_LABEL[l.kind]}
-                    <ArrowUpRight size={14} aria-hidden="true" />
-                  </a>
-                ))}
-              </div>
-            )}
-            {primary?.note && <p className="mt-2 text-[12px] text-faint">{primary.note}</p>}
-
-            <div className="mt-8 space-y-7">
-              <Block title="Overview">
-                <p className="leading-relaxed text-ink-2">{project.overview}</p>
-              </Block>
-              {(project.problem || project.solution) && (
-                <div className="grid gap-7 sm:grid-cols-2">
-                  {project.problem && (
-                    <Block title="The problem">
-                      <p className="text-[15px] leading-relaxed text-muted">{project.problem}</p>
-                    </Block>
-                  )}
-                  {project.solution && (
-                    <Block title="The solution">
-                      <p className="text-[15px] leading-relaxed text-muted">{project.solution}</p>
-                    </Block>
-                  )}
-                </div>
-              )}
-              <Block title="What I did">
-                <Ticks items={project.contribution} />
-              </Block>
-              <Block title="Key features">
-                <ul className="flex flex-wrap gap-2">
-                  {project.features.map((f) => (
-                    <li key={f} className="rounded-lg border border-line bg-bg/50 px-3 py-1.5 text-[13px] text-ink-2">
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </Block>
-              <Block title="Tech">
-                <ul className="flex flex-wrap gap-1.5">
-                  {project.tech.map((t) => (
-                    <li key={t} className="chip">
-                      {t}
-                    </li>
-                  ))}
-                </ul>
-                {project.techNote && <p className="mt-3 text-[13px] leading-relaxed text-faint">{project.techNote}</p>}
-              </Block>
-              {project.verifiedNote && <p className="text-[12px] text-faint">{project.verifiedNote}</p>}
-            </div>
+            <ProjectDetails project={project} titleId="project-dialog-title" />
           </motion.div>
         </div>
       </motion.div>

@@ -14,10 +14,10 @@
     "allowImportingTsExtensions": true,
     "noUnusedLocals": false,
     "noFallthroughCasesInSwitch": true,
-    "types": ["vite/client"],
+    "types": ["vite/client", "node"],
     "baseUrl": ".",
     "paths": { "@/*": ["src/*"] }
   },
-  "include": ["src", "vite.config.ts", "scripts"],
+  "include": ["src", "tests", "vite.config.ts", "scripts"],
   "exclude": ["node_modules", "build", "src/supabase", "src/components/ui"]
 }

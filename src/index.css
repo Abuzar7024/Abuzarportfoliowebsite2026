@@ -463,3 +463,220 @@
     transform: translateY(32rem);
   }
 }
+
+/* ───────────────────────── 3D room overlays ───────────────────────── */
+
+/* The computer interface sits on the monitor's projected rectangle (set by the
+   scene as --sx/--sy/--sw/--sh) or fills the viewport when that is too small. */
+.monitor-os {
+  position: fixed;
+  z-index: 40;
+  left: var(--sx, 10vw);
+  top: var(--sy, 10vh);
+  width: var(--sw, 80vw);
+  height: var(--sh, 80vh);
+  border-radius: 10px;
+  overflow: hidden;
+  color: var(--color-ink);
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(201, 207, 216, 0.06), transparent 60%),
+    linear-gradient(180deg, #17191d, #111215);
+  box-shadow:
+    0 0 0 1px rgba(200, 210, 225, 0.12),
+    0 0 60px -10px rgba(214, 221, 232, 0.18);
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.985);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease,
+    visibility 0s linear 0.35s;
+}
+.monitor-os[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+.monitor-os[data-full="true"] {
+  left: 8px;
+  top: 8px;
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
+  border-radius: 18px;
+}
+/* Hotspot pins: positioned every frame by the scene (transform), focusable. */
+.room-pin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 20;
+  transition: opacity 0.25s ease;
+}
+.room-pin[data-visible="false"] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.room-pin-dot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  translate: -50% -50%;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 80, 88, 0.6);
+  background: rgba(19, 20, 23, 0.6);
+  backdrop-filter: blur(6px);
+}
+.room-pin-dot::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--color-accent);
+  box-shadow: 0 0 12px rgba(227, 38, 46, 0.9);
+}
+.room-pin-dot::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 9999px;
+  border: 1px solid var(--color-accent);
+  animation: signal 2.2s ease-out infinite;
+}
+.room-pin-label {
+  position: absolute;
+  left: 0;
+  top: 22px;
+  translate: -50% 0;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+  pointer-events: none;
+}
+.room-pin:hover .room-pin-label,
+.room-pin:focus-visible .room-pin-label,
+.room-pin[data-hovered="true"] .room-pin-label,
+.room-pin[data-talking="true"] .room-pin-label {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .room-pin-dot::after {
+    animation: none;
+  }
+}
+
+/* ───────────────────────── AK-OS (the computer) ───────────────────────── */
+.os-wallpaper {
+  background:
+    radial-gradient(60% 70% at 78% 92%, rgba(227, 38, 46, 0.55), transparent 60%),
+    radial-gradient(50% 60% at 18% 8%, rgba(201, 207, 216, 0.16), transparent 60%),
+    conic-gradient(from 210deg at 70% 85%, rgba(227, 38, 46, 0.18), transparent 25%, rgba(201, 207, 216, 0.08) 45%, transparent 60%),
+    linear-gradient(160deg, #1d2025 0%, #121316 55%, #0c0d0f 100%);
+}
+.os-wallpaper::before {
+  /* Faint brand mark in the middle of the wallpaper. */
+  content: "AK";
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  translate: -50% -50%;
+  font-family: var(--font-brand);
+  font-size: clamp(5rem, 22cqw, 14rem);
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(201, 207, 216, 0.08);
+  pointer-events: none;
+}
+.monitor-os {
+  container-type: size;
+}
+.os-window {
+  background: rgba(24, 26, 30, 0.94);
+  border: 1px solid rgba(200, 210, 225, 0.14);
+  box-shadow: 0 24px 60px -18px rgba(0, 0, 0, 0.85);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+.os-window--focused {
+  border-color: rgba(200, 210, 225, 0.24);
+  box-shadow:
+    0 30px 80px -20px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(227, 38, 46, 0.15);
+}
+.os-winbtn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 100%;
+  color: var(--color-ink-2);
+  transition: background 0.15s;
+}
+.os-winbtn:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+.os-winbtn--close:hover {
+  background: #c42b1c;
+  color: #fff;
+}
+.os-iconbtn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  color: var(--color-ink-2);
+}
+.os-iconbtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--color-ink);
+}
+.os-iconbtn:disabled {
+  opacity: 0.35;
+}
+.os-file {
+  border: 1px solid transparent;
+}
+.os-file:hover {
+  background: rgba(201, 207, 216, 0.08);
+}
+.os-file:focus {
+  background: rgba(201, 207, 216, 0.14);
+  border-color: rgba(201, 207, 216, 0.25);
+  outline: none;
+}
+.os-taskbar {
+  background: rgba(18, 19, 22, 0.86);
+  border-top: 1px solid rgba(200, 210, 225, 0.1);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+.os-taskbtn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  grid-auto-flow: column;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.os-taskbtn:hover,
+.os-taskbtn--active {
+  background: rgba(255, 255, 255, 0.07);
+}
+.os-start {
+  background: rgba(26, 28, 32, 0.96);
+  border: 1px solid rgba(200, 210, 225, 0.14);
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.9);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+}
