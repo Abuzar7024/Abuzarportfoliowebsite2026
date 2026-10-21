@@ -1,5 +1,4 @@
 export type ProjectKind = "mobile" | "web" | "platform";
-export type DeviceKind = "phone" | "browser" | "dashboard";
 
 export interface ProjectLink {
   label: string;
@@ -7,15 +6,6 @@ export interface ProjectLink {
   kind: "live" | "playstore" | "appstore" | "github" | "website";
   primary?: boolean;
   note?: string;
-}
-
-export interface ScreenSpec {
-  /** Visual style painted onto the 3D device screen (procedural, illustrative). */
-  variant: "dashboard" | "landing" | "form" | "services" | "provider" | "health" | "portfolio" | "wardrobe" | "kiosk" | "social" | "signage";
-  accent: string;
-  accent2?: string;
-  title: string;
-  subtitle?: string;
 }
 
 export interface Project {
@@ -27,15 +17,9 @@ export interface Project {
   role: string;
   organization?: string;
   period?: string;
-  /** 1 = flagship (full-width immersive), 2 = large card, 3 = compact */
-  tier: 1 | 2 | 3;
-  /** Featured work leads the Selected Work section; the rest fall into the archive. */
-  featured?: boolean;
   /** Short label pair shown on the showcase slab, e.g. "Retail" / "Kiosk". */
   facets?: string[];
   accent: string;
-  device: DeviceKind;
-  screen: ScreenSpec;
   overview: string;
   problem?: string;
   solution?: string;

@@ -1,102 +1,142 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { WifiOff, AlertTriangle, RefreshCcw, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Loader2, RefreshCcw, Wifi, WifiOff, X } from "lucide-react";
+import { SignalRun } from "./SignalRun";
+import { useScrollLock } from "../hooks/useScrollLock";
 
-export const OfflineScreen = () => {
+interface OfflineScreenProps {
+  /** "offline": the connection dropped. "play": opened from the footer for fun. */
+  mode: "offline" | "play";
+  online: boolean;
+  onClose: () => void;
+}
+
+/**
+ * Shown over the site when the connection drops (and served by the service
+ * worker for cold offline loads). It keeps the page underneath intact, offers
+ * Signal Run while waiting, and announces when the connection is back without
+ * yanking the visitor out of a run.
+ */
+export function OfflineScreen({ mode, online, onClose }: OfflineScreenProps) {
+  const [checking, setChecking] = useState(false);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  useScrollLock(true);
+  const restored = mode === "offline" && online;
+
+  useEffect(() => {
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && (mode === "play" || online)) onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mode, online, onClose]);
+
+  const retry = async () => {
+    setChecking(true);
+    try {
+      // Bypass the service worker cache: only a real network response counts.
+      await fetch(`/favicon.svg?ping=${Date.now()}`, { cache: "no-store" });
+      window.location.reload();
+    } catch {
+      setTimeout(() => setChecking(false), 600);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center p-6 overflow-hidden">
-      {/* HUD Background Decorations */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
-           style={{ backgroundImage: `radial-gradient(circle at 1px 1px, #ff2d3f 1px, transparent 0)`, backgroundSize: '32px 32px' }} />
-      
-      {/* Glitch Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-red-950/10 via-transparent to-transparent opacity-20" />
-      
-      <div className="relative w-full max-w-lg">
-        {/* Animated HUD Corner Brackets */}
-        <div className="absolute -top-10 -left-10 w-20 h-20 border-t-2 border-l-2 border-accent/30 rounded-tl-3xl" />
-        <div className="absolute -bottom-10 -right-10 w-20 h-20 border-b-2 border-r-2 border-accent/30 rounded-br-3xl" />
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-[#050505] border border-accent/20 rounded-[2.5rem] p-10 md:p-16 backdrop-blur-3xl shadow-[0_0_100px_rgba(6,182,212,0.05)] relative overflow-hidden text-center"
-        >
-          {/* Scan Line Effect */}
-          <div className="absolute top-0 left-0 w-full h-1 bg-accent/20 blur-sm animate-scan" />
-
-          <div className="flex flex-col items-center">
-            <motion.div 
-              animate={{ 
-                rotate: [0, 5, -5, 0],
-                opacity: [1, 0.7, 1]
-              }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="relative mb-10"
-            >
-              <div className="absolute inset-0 bg-accent/20 blur-3xl rounded-full" />
-              <div className="relative w-24 h-24 rounded-full border-2 border-accent/40 flex items-center justify-center bg-red-950/20">
-                <WifiOff size={40} className="text-accent" />
-              </div>
-            </motion.div>
-
-            <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 bg-accent/5 border border-accent/20 rounded-full">
-              <ShieldAlert size={12} className="text-accent" />
-              <span className="text-[9px] font-black uppercase tracking-[0.3em] text-accent">System_Status: Offline</span>
-            </div>
-
-            <h1 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-white mb-6 leading-none">
-              Link <span className="text-accent">Severed</span>
-            </h1>
-
-            <p className="text-white/40 text-sm md:text-base mb-12 leading-relaxed font-medium italic">
-              "Environment synchronization failed. Your terminal has lost connection to the primary uplink. Re-establishing connection protocols automatically."
+    <motion.div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="offline-title"
+      className="fixed inset-0 z-[90] overflow-y-auto bg-bg"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      style={{
+        backgroundImage:
+          "radial-gradient(50rem 30rem at 80% -10%, rgba(201,207,216,0.1), transparent 60%), linear-gradient(180deg,#16181c,#131417)",
+      }}
+    >
+      <div className="shell flex min-h-full flex-col justify-center py-16">
+        <div className="mx-auto w-full max-w-3xl">
+          <div className="flex items-start justify-between gap-4">
+            <p className="eyebrow">
+              {mode === "play" ? (
+                <>Easter egg · works offline too</>
+              ) : restored ? (
+                <>
+                  <Wifi size={14} className="text-success" aria-hidden="true" />
+                  <span className="text-success">Connection restored</span>
+                </>
+              ) : (
+                <>
+                  <span className="signal-dot" aria-hidden="true" />
+                  <b>No connection</b>
+                </>
+              )}
             </p>
-
-            <div className="space-y-4 w-full">
-              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden relative">
-                <motion.div 
-                  initial={{ x: "-100%" }}
-                  animate={{ x: "100%" }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-0 w-1/3 bg-accent shadow-[0_0_10px_#ff2d3f]"
-                />
-              </div>
-              <div className="flex justify-between items-center text-[8px] font-mono text-accent/40 uppercase tracking-widest font-black">
-                <span>Attempting_Reconnect...</span>
-                <span>Node: 0x87-AZ</span>
-              </div>
-            </div>
-
-            {/* Manual Re-sync button as a fallback */}
-            <button 
-              onClick={() => window.location.reload()}
-              className="mt-12 flex items-center gap-3 px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[11px] font-black uppercase tracking-widest text-white/40 hover:text-accent hover:border-accent/30 transition-all active:scale-95 group cursor-pointer"
-            >
-              <RefreshCcw size={14} className="group-hover:rotate-180 transition-transform duration-700" />
-              Force Manual Re-Sync
-            </button>
+            {(mode === "play" || online) && (
+              <button
+                ref={closeRef}
+                type="button"
+                onClick={onClose}
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line-2 text-ink-2 transition-colors hover:text-ink"
+                aria-label="Close and return to the portfolio"
+              >
+                <X size={16} aria-hidden="true" />
+              </button>
+            )}
           </div>
-        </motion.div>
 
-        {/* HUD Data Streams */}
-        <div className="absolute top-1/2 -left-20 -translate-y-1/2 hidden lg:flex flex-col gap-4 opacity-10">
-            <div className="text-[11px] font-mono text-accent animate-pulse">ERROR_SIG_0404</div>
-            <div className="text-[11px] font-mono text-accent delay-100 animate-pulse">IP_UNREACHABLE</div>
-            <div className="text-[11px] font-mono text-accent delay-200 animate-pulse">GATEWAY_TIMEOUT</div>
+          <h1 id="offline-title" className="mt-5 text-[clamp(2.25rem,6vw,4rem)] leading-[1]">
+            {mode === "play" ? (
+              <>
+                Signal <span className="serif-accent text-silver">Run.</span>
+              </>
+            ) : (
+              <>
+                Signal lost. <span className="serif-accent text-silver">Systems still running.</span>
+              </>
+            )}
+          </h1>
+          <p className="lead mt-4 max-w-xl" aria-live="polite">
+            {mode === "play"
+              ? "The game that lives on my offline page. Hop the barriers, pylons and sentinel bots; collect the data shards."
+              : restored
+                ? "You're back online. Finish your run, then head back to the portfolio whenever you're ready."
+                : "Your connection dropped. The page will pick up where you left off once it's back — until then, take the pod for a run."}
+          </p>
+
+          <div className="frost mt-8 p-2">
+            <SignalRun />
+          </div>
+          <p className="mt-3 text-center font-mono text-[11px] uppercase tracking-[0.14em] text-faint">
+            Space / ↑ / tap to jump · hold for height · tap twice to double-jump
+          </p>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            {mode === "offline" && !online && (
+              <button type="button" onClick={retry} className="btn-ghost" disabled={checking}>
+                {checking ? <Loader2 size={15} className="animate-spin" aria-hidden="true" /> : <RefreshCcw size={15} aria-hidden="true" />}
+                {checking ? "Checking…" : "Try again"}
+              </button>
+            )}
+            {(mode === "play" || online) && (
+              <button type="button" onClick={onClose} className="btn-primary">
+                <ArrowLeft size={15} aria-hidden="true" />
+                Back to the portfolio
+              </button>
+            )}
+            {mode === "offline" && !online && (
+              <p className="flex items-center gap-2 text-sm text-muted">
+                <WifiOff size={14} aria-hidden="true" />
+                Reconnects automatically
+              </p>
+            )}
+          </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes scan {
-          0% { top: 0; opacity: 0; }
-          50% { opacity: 1; }
-          100% { top: 100%; opacity: 0; }
-        }
-        .animate-scan {
-          animation: scan 3s linear infinite;
-        }
-      `}</style>
-    </div>
+    </motion.div>
   );
-};
+}

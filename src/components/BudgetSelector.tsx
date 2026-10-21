@@ -24,11 +24,11 @@ export function BudgetSelector({
   currencyCode,
   onSelect,
   onCustomChange,
-  chipClassName = "service-modal-chip service-modal-chip--budget",
-  activeClassName = "service-modal-chip--active",
+  chipClassName = "seg w-full text-left",
+  activeClassName = "",
   activeStyle,
-  inputClassName = "service-modal-field",
-  gridClassName = "grid grid-cols-2 gap-2",
+  inputClassName = "input",
+  gridClassName = "grid grid-cols-2 gap-2 sm:grid-cols-3",
 }: BudgetSelectorProps) {
   const isCustom = value === CUSTOM_BUDGET_KEY;
 
@@ -40,6 +40,7 @@ export function BudgetSelector({
             key={b}
             type="button"
             onClick={() => onSelect(b)}
+            aria-pressed={value === b}
             className={`${chipClassName} ${value === b ? activeClassName : ""}`}
             style={value === b ? activeStyle : undefined}
           >
@@ -49,22 +50,24 @@ export function BudgetSelector({
         <button
           type="button"
           onClick={() => onSelect(CUSTOM_BUDGET_KEY)}
+          aria-pressed={isCustom}
           className={`${chipClassName} ${isCustom ? activeClassName : ""}`}
           style={isCustom ? activeStyle : undefined}
         >
-          + Add Budget
+          Other amount
         </button>
       </div>
 
       {isCustom && (
         <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-cyan-400 shrink-0">{currencySymbol}</span>
+          <span className="shrink-0 font-mono text-sm text-silver">{currencySymbol}</span>
           <input
             type="text"
             inputMode="numeric"
             value={customValue}
             onChange={(e) => onCustomChange(e.target.value)}
-            placeholder={`Enter amount in ${currencyCode}`}
+            placeholder={`Amount in ${currencyCode}`}
+            aria-label={`Budget amount in ${currencyCode}`}
             className={inputClassName}
             autoFocus
           />

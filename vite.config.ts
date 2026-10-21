@@ -39,10 +39,13 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 900,
       rollupOptions: {
         output: {
-          manualChunks: {
-            three: ['three'],
-            r3f: ['@react-three/fiber', '@react-three/drei'],
-            motion: ['motion'],
+          // React gets its own chunk so the page never waits on the lazy 3D code.
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return;
+            if (/node_modules\/three\//.test(id)) return 'three';
+            if (/@react-three|react-reconciler|its-fine|zustand|suspend-react/.test(id)) return 'r3f';
+            if (/node_modules\/(motion|framer-motion|motion-dom|motion-utils)\//.test(id)) return 'motion';
+            if (/node_modules\/(react|react-dom|scheduler)\//.test(id)) return 'react';
           },
         },
       },

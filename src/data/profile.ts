@@ -1,5 +1,3 @@
-import photo from "../assets/abuzar-khan.jpg";
-
 export const profile = {
   name: "Abuzar Khan",
   firstName: "Abuzar",
@@ -13,7 +11,6 @@ export const profile = {
   email: "abuzxarrr87@gmail.com",
   phoneDisplay: "+91 8770206120",
   whatsapp: "918770206120",
-  photo,
   links: {
     github: "https://github.com/Abuzar7024",
     githubUser: "Abuzar7024",

@@ -10,18 +10,8 @@ export const projects: Project[] = [
     role: "Flutter Developer @ Ebani Tech",
     organization: "Ebani Tech",
     period: "2026 - Present",
-    tier: 1,
-    featured: true,
     facets: ["Retail", "Kiosk", "AI"],
     accent: "#ff2d3f",
-    device: "dashboard",
-    screen: {
-      variant: "kiosk",
-      accent: "#ff2d3f",
-      accent2: "#ff8a6b",
-      title: "TryonRetail",
-      subtitle: "Try it on. In store.",
-    },
     overview:
       "TryonRetail is a retail and kiosk experience built at Ebani Tech. It runs on interactive in-store screens, guiding a shopper through onboarding and into an AI-assisted try-on flow, with separate paths for customers and for salespeople working alongside them on the floor.",
     problem:
@@ -53,23 +43,13 @@ export const projects: Project[] = [
     id: "digitopia",
     title: "Digitopia",
     tagline: "Smart advertising screens for malls and hotels — controlled from one dashboard, anywhere in the country.",
-    category: "Smart advertising screens",
+    category: "SaaS CMS · Digital signage",
     kind: "platform",
     role: "Flutter Developer @ Ebani Tech",
     organization: "Ebani Tech",
     period: "2026 — Present",
-    tier: 1,
     accent: "#ff2d3f",
-    featured: true,
     facets: ["Signage", "CMS", "AI"],
-    device: "dashboard",
-    screen: {
-      variant: "signage",
-      accent: "#ff2d3f",
-      accent2: "#ff8a6b",
-      title: "Digitopia CMS",
-      subtitle: "Screens - Playlists - Schedule",
-    },
     overview:
       "Digitopia is Ebani Tech's AI-powered digital signage and DOOH (digital out-of-home) platform. It lets businesses manage content on digital displays across multiple locations from a single cloud CMS, while AI viewer analytics — anonymous age and gender detection and dwell-time heatmaps — personalise what each screen shows and measure how audiences respond.",
     problem:
@@ -106,7 +86,7 @@ export const projects: Project[] = [
     techNote:
       "Flutter, Dart, Computer Vision, REST APIs and Firebase reflect my application-layer stack at Ebani Tech. React, Redux and MUI are observed in the live web CMS build (app.digitopia.live).",
     links: [
-      { label: "Open Digitopia", href: "https://app.digitopia.live/login", kind: "live", primary: true, note: "Customer login — product access is restricted." },
+      { label: "app.digitopia.live", href: "https://app.digitopia.live/", kind: "live", primary: true, note: "Customer login — product access is restricted." },
       { label: "digitopia.live", href: "https://digitopia.live/", kind: "website" },
     ],
     verifiedNote: "Product description verified against digitopia.live and app.digitopia.live on 26 Aug 2026.",
@@ -120,16 +100,7 @@ export const projects: Project[] = [
     role: "Flutter Developer @ Ebani Tech",
     organization: "Ebani Tech",
     period: "2026 — Present",
-    tier: 1,
     accent: "#ff6b57",
-    device: "browser",
-    screen: {
-      variant: "landing",
-      accent: "#ff6b57",
-      accent2: "#ffb347",
-      title: "Ebani Tech",
-      subtitle: "Turn any space into a digital experience",
-    },
     overview:
       "Ebani is the public product experience for Ebani Tech's digital screen network: digital totems, easel stands, table-top displays, LED walls and commercial TVs, all run from one cloud CMS — with hardware, software, installation, content and support delivered by a single team across India.",
     problem:
@@ -171,22 +142,12 @@ export const projects: Project[] = [
     id: "essonify",
     title: "Essonify",
     tagline: "A fashion app that remembers your whole wardrobe and suggests what to wear each day.",
-    category: "Fashion & lifestyle app",
+    category: "Fashion · iOS & Android",
     kind: "mobile",
     role: "Mobile App Developer",
     organization: "Essonify Group Inc.",
-    tier: 1,
-    featured: true,
     facets: ["Mobile", "Payments", "Vision"],
     accent: "#ff4f9a",
-    device: "phone",
-    screen: {
-      variant: "wardrobe",
-      accent: "#ff4f9a",
-      accent2: "#ffb347",
-      title: "Essonify",
-      subtitle: "Life is moments. Style them.",
-    },
     overview:
       "Essonify (\"Essonify: Style, Unified\") is a social style e-marketplace with an integrated virtual wardrobe. It connects identity, inspiration and execution in one place — turning style from something you scroll into something you create, personalise and live. Published on the App Store and Google Play by Essonify Group Inc.",
     problem:
@@ -223,9 +184,9 @@ export const projects: Project[] = [
     techNote:
       "Reflects my own work on the application: subscription and billing integration, camera and vision processing, and the Android build and release layer.",
     links: [
-      { label: "App Store", href: "https://apps.apple.com/us/app/essonify-style-unified/id6761996798", kind: "appstore", primary: true },
+      { label: "essonify.com", href: "https://www.essonify.com/", kind: "website", primary: true },
+      { label: "App Store", href: "https://apps.apple.com/us/app/essonify-style-unified/id6761996798", kind: "appstore" },
       { label: "Google Play", href: "https://play.google.com/store/apps/details?id=com.essonify.app&pcampaignid=web_share", kind: "playstore" },
-      { label: "essonify.com", href: "https://www.essonify.com/download", kind: "website" },
     ],
     verifiedNote: "Product description verified against essonify.com and the App Store listing on 26 Aug 2026.",
   },
@@ -236,18 +197,8 @@ export const projects: Project[] = [
     category: "Social application",
     kind: "mobile",
     role: "Flutter Developer",
-    tier: 2,
-    featured: true,
     facets: ["Social", "Chat", "Payments"],
     accent: "#8b5cf6",
-    device: "phone",
-    screen: {
-      variant: "social",
-      accent: "#8b5cf6",
-      accent2: "#ff2d3f",
-      title: "Spoto",
-      subtitle: "Spotlight - Chat - Coins",
-    },
     overview:
       "Spoto is a social application built in Flutter on a Firebase backend. It combines social interaction, real-time chat and a spotlight feature with a coin-based monetisation model handled through in-app purchases.",
     problem:
@@ -274,19 +225,10 @@ export const projects: Project[] = [
     id: "tajneed",
     title: "Tajneed",
     tagline: "The official app people use to apply to the U.A.E. Ministry of Defence.",
-    category: "Government app",
+    category: "Government · U.A.E. MoD",
     kind: "mobile",
     role: "Flutter Developer",
-    tier: 1,
     accent: "#f5b942",
-    device: "phone",
-    screen: {
-      variant: "form",
-      accent: "#f5b942",
-      accent2: "#ffe1a8",
-      title: "Tajneed",
-      subtitle: "Registration · Step 3 of 6",
-    },
     overview:
       "Tajneed is the official recruitment application of the Ministry of Defence, U.A.E. It guides applicants through multi-step dynamic forms for military registration and is published on both the App Store and Google Play.",
     problem:
@@ -309,9 +251,9 @@ export const projects: Project[] = [
     ],
     tech: ["Flutter", "GetX", "REST APIs", "JSON", "Security Tokens"],
     links: [
-      { label: "App Store", href: "https://apps.apple.com/ae/app/tajneed/id6517355120", kind: "appstore", primary: true },
+      { label: "tajneed.gov.ae", href: "https://tajneed.gov.ae/", kind: "website", primary: true },
+      { label: "App Store", href: "https://apps.apple.com/ae/app/tajneed/id6517355120", kind: "appstore" },
       { label: "Google Play", href: "https://play.google.com/store/apps/details?id=ae.mod.tajneed&pcampaignid=web_share", kind: "playstore" },
-      { label: "tajneed.gov.ae", href: "https://www.tajneed.gov.ae/", kind: "website" },
     ],
   },
   {
@@ -321,16 +263,7 @@ export const projects: Project[] = [
     category: "Home services app",
     kind: "mobile",
     role: "Lead Flutter Developer",
-    tier: 2,
     accent: "#ffb347",
-    device: "phone",
-    screen: {
-      variant: "services",
-      accent: "#ffb347",
-      accent2: "#ffd9a0",
-      title: "Sadeeq",
-      subtitle: "Your trusted home service partner",
-    },
     overview:
       "Sadeeq is a one-stop home-services app offering 50+ services delivered by background-verified professionals with pre-approved pricing. The user app covers discovery, booking, real-time tracking and payment.",
     problem:
@@ -364,16 +297,7 @@ export const projects: Project[] = [
     category: "App for service professionals",
     kind: "mobile",
     role: "Lead Flutter Developer",
-    tier: 2,
     accent: "#b388ff",
-    device: "phone",
-    screen: {
-      variant: "provider",
-      accent: "#b388ff",
-      accent2: "#ff5c8a",
-      title: "Sadeeq Provider",
-      subtitle: "Today · 6 jobs · earnings",
-    },
     overview:
       "The provider app empowers professionals inside the Sadeeq ecosystem to manage service requests, track earnings and communicate with customers in real time.",
     problem:
@@ -406,16 +330,7 @@ export const projects: Project[] = [
     category: "Healthcare app",
     kind: "mobile",
     role: "Flutter Developer",
-    tier: 2,
     accent: "#3ddc97",
-    device: "phone",
-    screen: {
-      variant: "health",
-      accent: "#3ddc97",
-      accent2: "#a8f0d0",
-      title: "Riayah",
-      subtitle: "Appointments · Patients · Reports",
-    },
     overview:
       "Riayah is a high-performance healthcare management application for patient tracking, appointment scheduling and clinical data management with robust state handling.",
     problem:
@@ -448,16 +363,7 @@ export const projects: Project[] = [
     category: "This website",
     kind: "web",
     role: "Designer & Developer",
-    tier: 3,
     accent: "#ff2d3f",
-    device: "browser",
-    screen: {
-      variant: "portfolio",
-      accent: "#ff2d3f",
-      accent2: "#ff8a6b",
-      title: "Abuzar Khan",
-      subtitle: "Building digital products that actually ship.",
-    },
     overview:
       "The site you are looking at. A React, TypeScript and Three.js portfolio with a scroll-driven 3D hero, procedural 3D product mockups, a vectorised resume, live GitHub data and a region-aware contact flow — with WebGL detection, reduced-motion support and mobile fallbacks.",
     contribution: [
@@ -484,18 +390,13 @@ export const projects: Project[] = [
 ];
 
 export const projectById = (id: string) => projects.find((p) => p.id === id);
-export const flagshipProjects = projects.filter((p) => p.tier === 1);
-export const largeProjects = projects.filter((p) => p.tier === 2);
-export const compactProjects = projects.filter((p) => p.tier === 3);
 
-/** The four projects that lead Selected Work, in narrative order. */
-export const FEATURED_ORDER = ["tryonretail", "essonify", "digitopia", "spoto"] as const;
+/** The three projects that lead the Work section, in order. */
+export const FEATURED_ORDER = ["digitopia", "tajneed", "essonify"] as const;
 
-export const featuredProjects: Project[] = FEATURED_ORDER.map(
-  (id) => projects.find((p) => p.id === id)!
-).filter(Boolean);
+export const featuredProjects: Project[] = FEATURED_ORDER.map((id) => projects.find((p) => p.id === id)!).filter(Boolean);
 
-/** Everything else - still verified work, shown under "More Selected Work". */
-export const archiveProjects: Project[] = projects.filter(
-  (p) => !(FEATURED_ORDER as readonly string[]).includes(p.id)
+/** Other shipped work, listed compactly under the featured three. Ebani and this site are left out on purpose. */
+export const otherProjects: Project[] = projects.filter(
+  (p) => !(FEATURED_ORDER as readonly string[]).includes(p.id) && p.id !== "ebani" && p.id !== "portfolio-2026"
 );
