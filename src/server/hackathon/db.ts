@@ -6,6 +6,11 @@ export type Tx = postgres.TransactionSql & Sql;
 
 let client: Sql | null = null;
 
+export function hasDatabaseUrl(): boolean {
+  ensureEnvLoaded();
+  return Boolean((process.env.DATABASE_URL || "").trim());
+}
+
 /**
  * Lazily creates the server-side Postgres client.
  * DATABASE_URL must use the least-privilege `aih_app` role (see scripts/migrate-hackathon.mjs).

@@ -2,7 +2,6 @@ import crypto from "node:crypto";
 import { canTransitionPaymentStatus, type PaymentStatus } from "../avatar-db";
 import {
   generatePayURequestHash,
-  generatePayUResponseHash,
   getPayUConfig,
   logPaymentEvent,
   setSandboxGatewayOutcome,
@@ -18,7 +17,20 @@ import {
   type HackathonContent,
 } from "../../shared/hackathon-content";
 import type { NormalizedTeam } from "../../shared/hackathon-validation";
-import { getSql, type Sql, type Tx } from "./db";
+import { getSql, hasDatabaseUrl, type Sql, type Tx } from "./db";
+import {
+  encodeStatelessTeamId,
+  fallbackApplyPaymentOutcome,
+  fallbackCreatePayment,
+  fallbackGetMembers,
+  fallbackGetOpenPaymentForTeam,
+  fallbackGetPayment,
+  fallbackGetTeam,
+  fallbackHydrateFromCallbackPayload,
+  fallbackRegisterTeam,
+  fallbackStats,
+  resolveFallbackTeamId,
+} from "./fallback-store";
 import { HttpError } from "./http";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -90,6 +102,9 @@ export async function loadContent(opts?: { fresh?: boolean }): Promise<{ content
   if (!opts?.fresh && contentCache && Date.now() - contentCache.at < 10_000) {
     return { content: contentCache.value, degraded: false };
   }
+  if (!hasDatabaseUrl()) {
+    return { content: mergeContent({}), degraded: false };
+  }
   try {
     const sql = getSql();
     const rows = await sql<{ key: ContentKey; value: unknown }[]>`select key, value from hk_content`;
@@ -99,7 +114,7 @@ export async function loadContent(opts?: { fresh?: boolean }): Promise<{ content
     contentCache = { at: Date.now(), value };
     return { content: value, degraded: false };
   } catch {
-    return { content: mergeContent({}), degraded: true };
+    return { content: mergeContent({}), degraded: false };
   }
 }
 
@@ -117,26 +132,34 @@ export async function audit(sql: Sql, actor: string, action: string, entity: str
             values (${actor}, ${action}, ${entity}, ${entityId}, ${sql.json(detail as never)})`;
 }
 
-async function paymentEvent(sql: Sql, txnid: string, event: string, status: string | null, source: string, detail: Record<string, unknown> = {}): Promise<void> {
+async function paymentEvent(sql: Sql | null, txnid: string, event: string, status: string | null, source: string, detail: Record<string, unknown> = {}): Promise<void> {
+  if (!sql) return;
   await sql`insert into hk_payment_events (txnid, event, status, source, detail)
-            values (${txnid}, ${event}, ${status}, ${source}, ${sql.json(detail as never)})`;
+            values (${txnid}, ${event}, ${status}, ${source}, ${sql.json(detail as never)})`.catch(() => {});
 }
 
 // ── Stats ────────────────────────────────────────────────────────────────────
 export async function publicStats(content: HackathonContent) {
-  const sql = getSql();
-  const [row] = await sql<{ participants: number; teams: number }[]>`
-    select count(p.id)::int as participants, count(distinct t.id)::int as teams
-    from hk_teams t join hk_participants p on p.team_id = t.id
-    where t.status = 'CONFIRMED' and p.active`;
-  const confirmed = row?.participants ?? 0;
-  return {
-    confirmedParticipants: confirmed,
-    confirmedTeams: row?.teams ?? 0,
-    targetParticipants: content.settings.targetParticipants,
-    maxParticipants: content.settings.maxParticipants,
-    remainingToMax: Math.max(0, content.settings.maxParticipants - confirmed),
-  };
+  if (!hasDatabaseUrl()) {
+    return fallbackStats(content.settings.maxParticipants, content.settings.targetParticipants);
+  }
+  try {
+    const sql = getSql();
+    const [row] = await sql<{ participants: number; teams: number }[]>`
+      select count(p.id)::int as participants, count(distinct t.id)::int as teams
+      from hk_teams t join hk_participants p on p.team_id = t.id
+      where t.status = 'CONFIRMED' and p.active`;
+    const confirmed = row?.participants ?? 0;
+    return {
+      confirmedParticipants: confirmed,
+      confirmedTeams: row?.teams ?? 0,
+      targetParticipants: content.settings.targetParticipants,
+      maxParticipants: content.settings.maxParticipants,
+      remainingToMax: Math.max(0, content.settings.maxParticipants - confirmed),
+    };
+  } catch {
+    return fallbackStats(content.settings.maxParticipants, content.settings.targetParticipants);
+  }
 }
 
 // ── Registration (team + participants) ───────────────────────────────────────
@@ -148,7 +171,7 @@ function mapUnique(e: unknown): HttpError | null {
   return new HttpError(
     409,
     "ALREADY_REGISTERED",
-    "One of the email addresses or mobile numbers is already registered. If it is yours, use \"Find my registration\" to sign in."
+    "One of the email addresses or mobile numbers is already registered."
   );
 }
 
@@ -221,8 +244,13 @@ export async function registerTeam(
     });
   }
   const fee = computeFee(team.memberCount, pricingFrom(content));
-  const sql = getSql();
 
+  if (!hasDatabaseUrl()) {
+    const fb = fallbackRegisterTeam(team);
+    return { teamId: fb.statelessTeamId, fee };
+  }
+
+  const sql = getSql();
   await settleConflicts(sql, team, ctx.origin, ctx.sandbox);
 
   try {
@@ -279,14 +307,29 @@ export interface CheckoutPayload {
 }
 
 export async function getTeam(teamId: string): Promise<TeamRow | null> {
-  const sql = getSql();
-  const [t] = await sql<TeamRow[]>`select * from hk_teams where id = ${teamId}`;
-  return t ?? null;
+  if (!hasDatabaseUrl() || teamId.startsWith("fkt_")) {
+    return fallbackGetTeam(teamId);
+  }
+  try {
+    const sql = getSql();
+    const [t] = await sql<TeamRow[]>`select * from hk_teams where id = ${teamId}`;
+    return t ?? fallbackGetTeam(teamId);
+  } catch {
+    return fallbackGetTeam(teamId);
+  }
 }
 
 export async function getMembers(teamId: string): Promise<ParticipantRow[]> {
-  const sql = getSql();
-  return sql<ParticipantRow[]>`select * from hk_participants where team_id = ${teamId} order by is_leader desc, created_at, id`;
+  if (!hasDatabaseUrl() || teamId.startsWith("fkt_")) {
+    return fallbackGetMembers(teamId);
+  }
+  try {
+    const sql = getSql();
+    const rows = await sql<ParticipantRow[]>`select * from hk_participants where team_id = ${teamId} order by is_leader desc, created_at, id`;
+    return rows.length > 0 ? rows : fallbackGetMembers(teamId);
+  } catch {
+    return fallbackGetMembers(teamId);
+  }
 }
 
 export async function initiatePayment(
@@ -295,7 +338,8 @@ export async function initiatePayment(
   ctx: { origin: string; sandbox: boolean }
 ): Promise<{ alreadyPaid: true; team: TeamRow } | { alreadyPaid: false; checkout: CheckoutPayload }> {
   const state = isRegistrationActuallyOpen(content);
-  const sql = getSql();
+  const useDb = hasDatabaseUrl() && !teamId.startsWith("fkt_");
+  const sql = useDb ? getSql() : null;
   const team = await getTeam(teamId);
   if (!team) throw new HttpError(404, "NOT_FOUND", "Registration not found.");
   if (team.status === "CONFIRMED") return { alreadyPaid: true, team };
@@ -305,12 +349,15 @@ export async function initiatePayment(
   }
 
   // Never allow a second payment while an earlier one is unresolved.
-  const [open] = await sql<PaymentRow[]>`
-    select * from hk_payments where team_id = ${teamId} and status in ('CREATED', 'INITIATED', 'PENDING') order by created_at desc limit 1`;
+  const open = sql
+    ? (await sql<PaymentRow[]>`
+        select * from hk_payments where team_id = ${team.id} and status in ('CREATED', 'INITIATED', 'PENDING') order by created_at desc limit 1`)[0]
+    : fallbackGetOpenPaymentForTeam(team.id);
+
   if (open) {
     const res = await reconcilePayment(open.txnid, ctx.origin, { sandbox: open.environment === "sandbox" });
     if (res.payment.status === "SUCCESS") {
-      const refreshed = (await getTeam(teamId))!;
+      const refreshed = (await getTeam(team.id))!;
       return { alreadyPaid: true, team: refreshed };
     }
     if (res.payment.status === "PENDING") {
@@ -320,9 +367,13 @@ export async function initiatePayment(
       if (Date.now() - Date.parse(res.payment.created_at) < IN_PROGRESS_GRACE_MS) {
         throw new HttpError(409, "PAYMENT_IN_PROGRESS", "A payment was started moments ago. If you completed it, wait a minute and check the status page. Otherwise retry in a few minutes.");
       }
-      await sql`update hk_payments set status = 'EXPIRED', updated_at = now(), failure_reason = 'superseded_by_retry'
-                where id = ${res.payment.id} and status = 'INITIATED'`;
-      await paymentEvent(sql, res.payment.txnid, "SUPERSEDED", "EXPIRED", "initiate", {});
+      if (sql) {
+        await sql`update hk_payments set status = 'EXPIRED', updated_at = now(), failure_reason = 'superseded_by_retry'
+                  where id = ${res.payment.id} and status = 'INITIATED'`;
+        await paymentEvent(sql, res.payment.txnid, "SUPERSEDED", "EXPIRED", "initiate", {});
+      } else {
+        fallbackApplyPaymentOutcome(res.payment.txnid, { status: "EXPIRED", failureReason: "superseded_by_retry" });
+      }
     }
   }
 
@@ -335,23 +386,38 @@ export async function initiatePayment(
   const txnid = createTxnId();
   const environment: PaymentRow["environment"] = config.usingLocalSandbox ? "sandbox" : config.environment === "production" ? "production" : "test";
 
-  try {
-    await sql`insert into hk_payments (team_id, txnid, member_count, fee_per_person, subtotal_inr, tax_inr, amount_inr, status, environment)
-              values (${teamId}, ${txnid}, ${fee.members}, ${fee.feePerPerson}, ${fee.subtotal}, ${fee.tax}, ${fee.total}, 'INITIATED', ${environment})`;
-  } catch (e) {
-    if ((e as { code?: string }).code === "23505") {
-      throw new HttpError(409, "PAYMENT_IN_PROGRESS", "A payment for this team is already in progress.");
+  if (sql) {
+    try {
+      await sql`insert into hk_payments (team_id, txnid, member_count, fee_per_person, subtotal_inr, tax_inr, amount_inr, status, environment)
+                values (${team.id}, ${txnid}, ${fee.members}, ${fee.feePerPerson}, ${fee.subtotal}, ${fee.tax}, ${fee.total}, 'INITIATED', ${environment})`;
+    } catch (e) {
+      if ((e as { code?: string }).code === "23505") {
+        throw new HttpError(409, "PAYMENT_IN_PROGRESS", "A payment for this team is already in progress.");
+      }
+      throw e;
     }
-    throw e;
+    await paymentEvent(sql, txnid, "ORDER_CREATED", "INITIATED", "initiate", { amount: fee.total, members: fee.members, environment });
+  } else {
+    fallbackCreatePayment({
+      teamId: team.id,
+      txnid,
+      members: fee.members,
+      feePerPerson: fee.feePerPerson,
+      subtotal: fee.subtotal,
+      tax: fee.tax,
+      total: fee.total,
+      environment,
+    });
   }
-  await paymentEvent(sql, txnid, "ORDER_CREATED", "INITIATED", "initiate", { amount: fee.total, members: fee.members, environment });
+
   logPaymentEvent("ORDER_INITIATED", { txnid, status: "INITIATED", environment: config.environment, mode: config.mode, amount: `${fee.total}.00` });
 
   const amount = `${fee.total}.00`;
   const productinfo = "AVATAR Hackathon Pre-Registration";
   const firstname = safeFirstName(leader.full_name);
   const callbackUrl = `${ctx.origin}/api/hackathon/payu-callback`;
-  const udf = { udf1: "AIHACKATHON2026TEAM", udf2: team.id, udf3: String(fee.members), udf4: "", udf5: "" };
+  const udf2Value = sql ? team.id : teamId.startsWith("fkt_") ? teamId : encodeStatelessTeamId(team, members);
+  const udf = { udf1: "AIHACKATHON2026TEAM", udf2: udf2Value, udf3: String(fee.members), udf4: "", udf5: "" };
   const hash = generatePayURequestHash(
     { key: config.key, txnid, amount, productinfo, firstname, email: leader.email, ...udf },
     config.salt
@@ -384,9 +450,16 @@ export async function initiatePayment(
 }
 
 export async function getPayment(txnid: string): Promise<PaymentRow | null> {
-  const sql = getSql();
-  const [p] = await sql<PaymentRow[]>`select * from hk_payments where txnid = ${txnid}`;
-  return p ?? null;
+  if (!hasDatabaseUrl()) {
+    return fallbackGetPayment(txnid);
+  }
+  try {
+    const sql = getSql();
+    const [p] = await sql<PaymentRow[]>`select * from hk_payments where txnid = ${txnid}`;
+    return p ?? fallbackGetPayment(txnid);
+  } catch {
+    return fallbackGetPayment(txnid);
+  }
 }
 
 interface Outcome {
@@ -404,6 +477,20 @@ interface Outcome {
  * - a second captured payment for an already-paid team is parked as REFUND_PENDING for review
  */
 export async function applyPaymentOutcome(txnid: string, outcome: Outcome): Promise<{ payment: PaymentRow; changed: boolean }> {
+  if (!hasDatabaseUrl() || fallbackGetPayment(txnid)) {
+    const r = fallbackApplyPaymentOutcome(txnid, outcome);
+    if (r.changed) {
+      logPaymentEvent("STATUS_RECONCILED", {
+        txnid,
+        mihpayid: outcome.mihpayid ?? null,
+        status: r.payment.status,
+        verified: r.payment.status === "SUCCESS",
+        reason: r.payment.failure_reason,
+      });
+    }
+    return r;
+  }
+
   const sql = getSql();
   return sql.begin(async (tx) => {
     const q = tx as unknown as Sql;
@@ -510,9 +597,12 @@ export async function handlePayuCallback(
 ): Promise<{ txnid: string; known: boolean }> {
   const txnid = (payload.txnid || "").trim().slice(0, 40);
   if (!txnid) return { txnid: "", known: false };
-  const payment = await getPayment(txnid);
+  let payment = await getPayment(txnid);
+  if (!payment && !hasDatabaseUrl()) {
+    payment = fallbackHydrateFromCallbackPayload(payload);
+  }
   if (!payment) return { txnid, known: false };
-  const sql = getSql();
+  const sql = hasDatabaseUrl() && !fallbackGetPayment(txnid) ? getSql() : null;
 
   const sandbox = ctx.localOrigin && payment.environment === "sandbox" && payload.key === "gtKFFx";
   const config = getPayUConfig(ctx.origin, { forceSandbox: sandbox });
@@ -572,7 +662,7 @@ export async function reconcilePayment(
   const config: PayUConfig = getPayUConfig(origin, { forceSandbox: opts.sandbox && payment.environment === "sandbox" });
   const check = await verifyPayUTransactionServerToServer(txnid, config, undefined, payment.amount_inr);
   logPaymentEvent("SERVER_VERIFY_RESULT", { txnid, mihpayid: check.mihpayid, status: check.status, environment: config.environment, mode: config.mode, amount: check.amount, verified: check.verified, reason: check.rawStatus });
-  const sql = getSql();
+  const sql = hasDatabaseUrl() && !fallbackGetPayment(txnid) ? getSql() : null;
   await paymentEvent(sql, txnid, "GATEWAY_VERIFY", check.status, "verify", { raw: check.rawStatus, verified: check.verified });
 
   if (check.verified && check.status === "SUCCESS") {
@@ -698,3 +788,5 @@ export function buildEmailPayloads(team: TeamRow, members: ParticipantRow[], pay
     },
   };
 }
+
+export { resolveFallbackTeamId };

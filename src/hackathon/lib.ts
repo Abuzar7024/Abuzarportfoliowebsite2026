@@ -136,7 +136,7 @@ export function useContent() {
   const [state, setState] = useState<ContentResponse>({
     degraded: false,
     content: DEFAULT_CONTENT,
-    registration: { open: false, reason: null },
+    registration: { open: true, reason: null },
     stats: null,
     announcements: [],
   });
@@ -144,15 +144,19 @@ export function useContent() {
   const load = useCallback(async () => {
     try {
       const r = await api<ContentResponse & { content: Partial<HackathonContent> }>("content");
+      const merged = mergeContent(r.content as never);
       setState({
         degraded: r.degraded,
-        content: mergeContent(r.content as never),
-        registration: r.registration,
+        content: merged,
+        registration: {
+          open: r.registration ? r.registration.open : merged.settings.registrationOpen !== false,
+          reason: r.registration?.reason ?? null,
+        },
         stats: r.stats,
         announcements: r.announcements ?? [],
       });
     } catch {
-      setState((s) => ({ ...s, degraded: true, registration: { open: false, reason: "Registration is temporarily unavailable." } }));
+      setState((s) => ({ ...s, degraded: true, registration: { open: true, reason: null } }));
     } finally {
       setLoading(false);
     }

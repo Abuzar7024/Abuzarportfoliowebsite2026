@@ -27,7 +27,8 @@ import {
   verifySupabaseAccessToken,
   type TokenVerifier,
 } from "./auth";
-import { getSql, type Sql } from "./db";
+import { getSql, hasDatabaseUrl, type Sql } from "./db";
+import { fallbackVerifyPass } from "./fallback-store";
 import {
   HttpError,
   isLocalOrigin,
@@ -61,7 +62,6 @@ import {
   teamView,
   type ParticipantRow,
   type PaymentRow,
-  type TeamRow,
 } from "./service";
 
 export interface HandlerDeps {
@@ -284,10 +284,9 @@ export function createHackathonHandler(deps: HandlerDeps = { verifyToken: verify
       if (route === "content" && method === "GET") {
         rateLimit(req, "content", 120, 60_000);
         const { content, degraded } = await loadContent();
-        let stats = null;
+        const stats = await publicStats(content).catch(() => null);
         let announcements: unknown[] = [];
-        if (!degraded) {
-          stats = await publicStats(content).catch(() => null);
+        if (hasDatabaseUrl()) {
           announcements = await getSql()`select id, title, body, created_at from hk_announcements where published order by created_at desc limit 10`.catch(() => []);
         }
         const open = isRegistrationActuallyOpen(content);
@@ -295,7 +294,7 @@ export function createHackathonHandler(deps: HandlerDeps = { verifyToken: verify
           ok: true,
           degraded,
           content: publicContent(content),
-          registration: { open: !degraded && open.open, reason: degraded ? "Registration is temporarily unavailable." : open.reason },
+          registration: { open: open.open, reason: open.reason },
           stats,
           announcements,
         });
@@ -320,8 +319,8 @@ export function createHackathonHandler(deps: HandlerDeps = { verifyToken: verify
           sendJson(res, 200, {
             ok: true,
             verified: true,
-            edition: "National Edition · Bhopal",
-            competition: "AI Hackathon",
+            edition: "DESIGN. BUILD. SELL. IN ONE DAY.",
+            competition: "AVATAR",
             participantId: code,
             participantName: demoNames[code],
             status: "VERIFIED",
@@ -329,50 +328,60 @@ export function createHackathonHandler(deps: HandlerDeps = { verifyToken: verify
           });
           return;
         }
-        const rows = await getSql()<{
-          registration_code: string;
-          full_name: string;
-          is_leader: boolean;
-          organisation: string | null;
-          course: string | null;
-          team_code: string;
-          team_name: string;
-          member_count: number;
-          confirmed_at: string | null;
-        }[]>`
-          select p.registration_code, p.full_name, p.is_leader, p.organisation, p.course,
-                 t.team_code, t.name as team_name, t.member_count, t.confirmed_at
-          from hk_participants p
-          join hk_teams t on t.id = p.team_id
-          where t.status = 'CONFIRMED' and p.active
-            and (p.registration_code = ${code} or (t.team_code = ${code} and p.is_leader))
-          limit 1`;
-        const hit = rows[0];
-        if (!hit) {
-          sendJson(res, 404, { ok: false, verified: false, participantId: code, error: "No confirmed AVATAR Pass matches this ID." });
+
+        if (hasDatabaseUrl()) {
+          const rows = await getSql()<{
+            registration_code: string;
+            full_name: string;
+            is_leader: boolean;
+            organisation: string | null;
+            course: string | null;
+            team_code: string;
+            team_name: string;
+            member_count: number;
+            confirmed_at: string | null;
+          }[]>`
+            select p.registration_code, p.full_name, p.is_leader, p.organisation, p.course,
+                   t.team_code, t.name as team_name, t.member_count, t.confirmed_at
+            from hk_participants p
+            join hk_teams t on t.id = p.team_id
+            where t.status = 'CONFIRMED' and p.active
+              and (p.registration_code = ${code} or (t.team_code = ${code} and p.is_leader))
+            limit 1`.catch(() => []);
+          const hit = rows[0];
+          if (hit) {
+            sendJson(res, 200, {
+              ok: true,
+              verified: true,
+              edition: "DESIGN. BUILD. SELL. IN ONE DAY.",
+              competition: "AVATAR",
+              participantId: hit.registration_code,
+              participantName: `${hit.full_name} (${hit.is_leader ? "Team Leader" : "Team Member"} · ${hit.team_name} · ${hit.team_code})`,
+              status: "VERIFIED",
+              registeredAt: hit.confirmed_at,
+              pass: {
+                registrationCode: hit.registration_code,
+                teamCode: hit.team_code,
+                teamName: hit.team_name,
+                fullName: hit.full_name,
+                role: hit.is_leader ? "Team Leader" : "Team Member",
+                organisation: hit.organisation,
+                course: hit.course,
+                memberCount: hit.member_count,
+                verifiedAt: hit.confirmed_at,
+              },
+            });
+            return;
+          }
+        }
+
+        const fbHit = fallbackVerifyPass(code);
+        if (fbHit) {
+          sendJson(res, 200, fbHit);
           return;
         }
-        sendJson(res, 200, {
-          ok: true,
-          verified: true,
-          edition: "DESIGN. BUILD. SELL. IN ONE DAY.",
-          competition: "AVATAR",
-          participantId: hit.registration_code,
-          participantName: `${hit.full_name} (${hit.is_leader ? "Team Leader" : "Team Member"} · ${hit.team_name} · ${hit.team_code})`,
-          status: "VERIFIED",
-          registeredAt: hit.confirmed_at,
-          pass: {
-            registrationCode: hit.registration_code,
-            teamCode: hit.team_code,
-            teamName: hit.team_name,
-            fullName: hit.full_name,
-            role: hit.is_leader ? "Team Leader" : "Team Member",
-            organisation: hit.organisation,
-            course: hit.course,
-            memberCount: hit.member_count,
-            verifiedAt: hit.confirmed_at,
-          },
-        });
+
+        sendJson(res, 404, { ok: false, verified: false, participantId: code, error: "No confirmed AVATAR Pass matches this ID." });
         return;
       }
 
@@ -406,7 +415,10 @@ export function createHackathonHandler(deps: HandlerDeps = { verifyToken: verify
         const sandbox = local && body.sandbox === true;
         const result = await initiatePayment(teamId, content, { origin, sandbox });
         if (result.alreadyPaid) {
-          const payment = (await getSql()<PaymentRow[]>`select * from hk_payments where team_id = ${teamId} and status = 'SUCCESS' limit 1`)[0];
+          let payment: PaymentRow | undefined;
+          if (hasDatabaseUrl() && !teamId.startsWith("fkt_")) {
+            payment = (await getSql()<PaymentRow[]>`select * from hk_payments where team_id = ${result.team.id} and status = 'SUCCESS' limit 1`.catch(() => []))[0];
+          }
           sendJson(res, 200, {
             ok: true,
             alreadyPaid: true,
@@ -484,7 +496,9 @@ export function createHackathonHandler(deps: HandlerDeps = { verifyToken: verify
         if (!txn || subject !== txn) throw new HttpError(401, "INVALID_TOKEN", "Invalid token.");
         const payment = await getPayment(txn);
         if (!payment || payment.status !== "SUCCESS") throw new HttpError(409, "NOT_CONFIRMED", "Payment is not confirmed.");
-        await getSql()`update hk_teams set emails_sent_at = now() where id = ${payment.team_id} and emails_sent_at is null`;
+        if (hasDatabaseUrl()) {
+          await getSql()`update hk_teams set emails_sent_at = now() where id = ${payment.team_id} and emails_sent_at is null`.catch(() => {});
+        }
         sendJson(res, 200, { ok: true });
         return;
       }
@@ -495,20 +509,22 @@ export function createHackathonHandler(deps: HandlerDeps = { verifyToken: verify
         const body = await readJson(req);
         const email = normalizeEmail(typeof body.email === "string" ? body.email : "");
         if (!EMAIL_RE.test(email)) throw new HttpError(400, "VALIDATION", "Enter a valid email address.");
-        const sql = getSql();
-        const known =
-          (await sql`select 1 from hk_participants where email_norm = ${email} and active limit 1`).length > 0 ||
-          (await adminRoleFor(email)) !== null;
-        if (known) {
-          const base = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
-          const key = (process.env.SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "").trim();
-          if (base && key) {
-            await fetch(`${base}/auth/v1/otp?redirect_to=${encodeURIComponent(`${origin}/competition/dashboard`)}`, {
-              method: "POST",
-              headers: { apikey: key, "Content-Type": "application/json" },
-              body: JSON.stringify({ email, create_user: true }),
-              signal: AbortSignal.timeout(10_000),
-            }).catch(() => undefined);
+        if (hasDatabaseUrl()) {
+          const sql = getSql();
+          const known =
+            (await sql`select 1 from hk_participants where email_norm = ${email} and active limit 1`.catch(() => [])).length > 0 ||
+            (await adminRoleFor(email)) !== null;
+          if (known) {
+            const base = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
+            const key = (process.env.SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "").trim();
+            if (base && key) {
+              await fetch(`${base}/auth/v1/otp?redirect_to=${encodeURIComponent(`${origin}/competition/dashboard`)}`, {
+                method: "POST",
+                headers: { apikey: key, "Content-Type": "application/json" },
+                body: JSON.stringify({ email, create_user: true }),
+                signal: AbortSignal.timeout(10_000),
+              }).catch(() => undefined);
+            }
           }
         }
         sendJson(res, 200, { ok: true, message: "If this email is registered, a sign-in link has been sent." });
