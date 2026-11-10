@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import type { RenderProfile } from "../hooks/useDeviceTier";
@@ -10,6 +10,7 @@ import { ComputerMonitor } from "./scene/ComputerMonitor";
 import { Keyboard } from "./scene/Keyboard";
 import { Chair } from "./scene/Chair";
 import { RobotCharacter } from "./scene/RobotCharacter";
+import { AvatarTrophy } from "./scene/AvatarTrophy";
 import { SleepingCat } from "./scene/SleepingCat";
 import { ProjectPosters } from "./scene/ProjectPosters";
 import { Shelf } from "./scene/Shelf";
@@ -22,7 +23,7 @@ import { attachGesture } from "./scene/gesture";
 import { disposeMaterials } from "./scene/materials";
 import { disposeGeometries } from "./scene/geometry";
 import { disposeTextures } from "./scene/textures";
-import { setState, subscribe } from "./store";
+import { setState, subscribe, useRoom } from "./store";
 
 export type LoadStage = "engine" | "building" | "lighting" | "ready";
 
@@ -34,21 +35,28 @@ function FirstFrames({ onReady }: { onReady: () => void }) {
   useFrame(() => {
     if (done.current) return;
     n.current++;
-    if (n.current === 4) {
+    if (n.current >= 1) {
       done.current = true;
       onReady();
     } else {
-      // Keeps frames coming in on-demand mode (reduced motion) until we are ready.
       invalidate();
     }
   });
   return null;
 }
 
-/** On-demand rendering (reduced motion): redraw whenever room state changes. */
+/** On-demand rendering: redraw a few frames whenever room state or viewport size changes. */
 function DemandInvalidate() {
   const { invalidate } = useThree();
-  useEffect(() => subscribe(() => invalidate(4)), [invalidate]);
+  useEffect(() => {
+    const unsub = subscribe(() => invalidate(4));
+    const onResize = () => invalidate(4);
+    window.addEventListener("resize", onResize);
+    return () => {
+      unsub();
+      window.removeEventListener("resize", onResize);
+    };
+  }, [invalidate]);
   return null;
 }
 
@@ -62,7 +70,12 @@ export interface RoomCanvasProps {
 /** The whole 3D room. Lazy-loaded; frees every GPU resource on unmount. */
 export default function RoomCanvas({ profile, active, fallback, onStage }: RoomCanvasProps) {
   const wrap = useRef<HTMLDivElement>(null);
-  const shadows = profile.tier === "high";
+  const [lowFps, setLowFps] = useState(false);
+  const shadows = profile.tier === "high" && !lowFps;
+  const lite = profile.tier === "low" || lowFps;
+  const overlayIdle = useRoom(
+    (s) => (s.view === "monitor" && s.arrived) || s.posterProject !== null || (s.competitionOpen && s.arrived)
+  );
 
   useEffect(() => {
     onStage("building");
@@ -78,15 +91,27 @@ export default function RoomCanvas({ profile, active, fallback, onStage }: RoomC
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleLowFps = useCallback(() => setLowFps(true), []);
+  const frameloop = !active
+    ? "never"
+    : profile.reducedMotion || overlayIdle
+      ? "demand"
+      : "always";
+
   return (
     <div ref={wrap} className="absolute inset-0 touch-pan-y">
       <SceneErrorBoundary fallback={fallback}>
         <Canvas
           dpr={profile.dpr}
-          frameloop={active ? (profile.reducedMotion ? "demand" : "always") : "never"}
+          frameloop={frameloop}
           shadows={shadows ? { type: THREE.PCFSoftShadowMap } : false}
           camera={{ position: [-0.15, 1.75, 3.9], fov: 50, near: 0.05, far: 160 }}
-          gl={{ antialias: profile.antialias, powerPreference: "high-performance", stencil: false }}
+          gl={{
+            antialias: profile.antialias && !lowFps,
+            powerPreference: profile.tier === "low" ? "default" : "high-performance",
+            stencil: false,
+            depth: true,
+          }}
           onCreated={({ gl }) => {
             gl.toneMapping = THREE.ACESFilmicToneMapping;
             gl.toneMappingExposure = 1.3;
@@ -98,24 +123,25 @@ export default function RoomCanvas({ profile, active, fallback, onStage }: RoomC
           <fog attach="fog" args={["#101216", 30, 110]} />
           <CameraRig reduced={profile.reducedMotion} />
           <LightingRig shadows={shadows} />
-          <CitySkyline count={profile.tier === "high" ? 170 : profile.tier === "medium" ? 120 : 70} />
-          <Room />
-          <Desk />
+          <CitySkyline count={profile.tier === "high" && !lowFps ? 160 : profile.tier === "medium" && !lowFps ? 100 : 56} />
+          <Room lite={lite} />
+          <Desk shadows={shadows} />
           <ComputerMonitor />
           <Keyboard />
           <Chair />
           <SleepingCat />
           <RobotCharacter />
+          <AvatarTrophy reduced={profile.reducedMotion} lite={lite} />
           <ProjectPosters />
           <Shelf />
-          <Hologram reduced={profile.reducedMotion} />
-          <WindowRain reduced={profile.reducedMotion} />
-          <LedStrips />
-          {profile.tier !== "low" && <Bloom />}
+          <Hologram reduced={profile.reducedMotion} lite={lite} />
+          {!lite && <WindowRain reduced={profile.reducedMotion} />}
+          <LedStrips lite={lite} />
+          {profile.tier === "high" && !lowFps && <Bloom />}
           <Projector />
-          <AdaptiveQuality max={profile.dpr[1]} />
+          <AdaptiveQuality max={profile.dpr[1]} onLowFps={handleLowFps} />
           <FirstFrames onReady={() => onStage("ready")} />
-          {profile.reducedMotion && <DemandInvalidate />}
+          <DemandInvalidate />
         </Canvas>
       </SceneErrorBoundary>
     </div>

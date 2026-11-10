@@ -89,6 +89,7 @@ export function UserSessionProvider({ children }: { children: React.ReactNode })
           ...prev.contact,
           fullName: "",
           email: "",
+          phoneNumber: "",
           message: "",
           companyName: "",
           budget: "",

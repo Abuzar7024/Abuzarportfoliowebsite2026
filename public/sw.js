@@ -1,15 +1,14 @@
 /*
- * Offline support for the portfolio.
+ * Offline & low-bandwidth support for the portfolio.
  *
- * - Pages: network first, falling back to the cached app shell, so a visitor who
- *   loses their connection still gets the site (which then shows the offline
- *   screen with Sled Run).
+ * - Pages: network first with a fast timeout fallback to the cached app shell,
+ *   so a visitor on a flaky or lost connection still gets the site quickly.
  * - Hashed build assets (/assets/*): cache first; their names change on every
  *   deploy, so a cached copy is never stale.
  * - Everything else same-origin, plus Google Fonts: stale-while-revalidate.
  * - Third-party APIs (EmailJS, region lookup) are never cached.
  */
-const VERSION = "v1";
+const VERSION = "v2";
 const SHELL = `shell-${VERSION}`;
 const RUNTIME = `runtime-${VERSION}`;
 const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
@@ -17,13 +16,18 @@ const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
-      const cache = await caches.open(SHELL);
-      const res = await fetch("/", { cache: "no-store" });
-      await cache.put("/", res.clone());
-      // Precache the entry script and stylesheet the shell references.
-      const html = await res.text();
-      const assets = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)].map((m) => m[1]);
-      await cache.addAll([...new Set([...assets, "/favicon.svg", "/site.webmanifest"])]);
+      try {
+        const cache = await caches.open(SHELL);
+        const res = await fetch("/", { cache: "default" });
+        if (res.ok) {
+          await cache.put("/", res.clone());
+          const html = await res.text();
+          const assets = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)].map((m) => m[1]);
+          await cache.addAll([...new Set([...assets, "/favicon.svg", "/site.webmanifest"])]);
+        }
+      } catch {
+        // Ignore install precache errors on flaky connections; runtime cache will populate on demand.
+      }
       await self.skipWaiting();
     })()
   );
@@ -59,15 +63,19 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") {
     event.respondWith(
       (async () => {
+        const cachedShell = await caches.match("/");
         try {
-          const res = await fetch(request);
+          const ctrl = new AbortController();
+          const timer = cachedShell ? setTimeout(() => ctrl.abort(), 3500) : null;
+          const res = await fetch(request, { signal: ctrl.signal });
+          if (timer) clearTimeout(timer);
           if (res.ok && url.origin === self.location.origin) {
             const cache = await caches.open(SHELL);
             cache.put("/", res.clone());
           }
           return res;
         } catch {
-          return (await caches.match("/")) || Response.error();
+          return cachedShell || Response.error();
         }
       })()
     );

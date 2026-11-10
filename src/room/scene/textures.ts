@@ -15,6 +15,25 @@ export function mulberry32(seed: number) {
   };
 }
 
+/** Scale down procedural texture sizes on low-memory / mobile devices to save RAM & CPU. */
+function getTexScale(): number {
+  if (typeof window === "undefined") return 0.65;
+  const nav = navigator as Navigator & {
+    deviceMemory?: number;
+    connection?: { saveData?: boolean; effectiveType?: string };
+  };
+  const mem = nav.deviceMemory ?? 4;
+  const cores = nav.hardwareConcurrency ?? 4;
+  const eff = nav.connection?.effectiveType ?? "";
+  if (nav.connection?.saveData || eff === "slow-2g" || eff === "2g" || mem <= 2 || cores <= 2) {
+    return 0.4;
+  }
+  if (window.matchMedia?.("(max-width: 767px)").matches || mem <= 4) {
+    return 0.5;
+  }
+  return 0.65;
+}
+
 function canvas(w: number, h: number) {
   const c = document.createElement("canvas");
   c.width = w;
@@ -27,7 +46,7 @@ function toTexture(c: HTMLCanvasElement, repeat: [number, number] = [1, 1], colo
   if (color) t.colorSpace = THREE.SRGBColorSpace;
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.repeat.set(repeat[0], repeat[1]);
-  t.anisotropy = 4;
+  t.anisotropy = getTexScale() < 1 ? 2 : 4;
   return t;
 }
 
@@ -41,39 +60,76 @@ export function cached(key: string, make: () => THREE.Texture) {
   }
   return t;
 }
+
+const noiseTileCache = new Map<string, HTMLCanvasElement>();
+
 export function disposeTextures() {
   cache.forEach((t) => t.dispose());
   cache.clear();
+  noiseTileCache.clear();
 }
 
-/** Speckle noise: thousands of faint dots, the base of "surface imperfection". */
+/**
+ * Fast speckle noise: generates a small 128x128 ImageData tile once per seed/alpha
+ * and tiles it across the target canvas in a single pattern fill instead of
+ * thousands of individual fillRect() calls on the main thread.
+ */
 function speckle(ctx: CanvasRenderingContext2D, w: number, h: number, count: number, alpha: number, seed: number) {
-  const rand = mulberry32(seed);
-  for (let i = 0; i < count; i++) {
-    const v = rand() > 0.5 ? 255 : 0;
-    ctx.fillStyle = `rgba(${v},${v},${v},${rand() * alpha})`;
-    ctx.fillRect(rand() * w, rand() * h, 1 + rand() * 1.5, 1 + rand() * 1.5);
+  const key = `${seed}:${alpha.toFixed(3)}`;
+  let tile = noiseTileCache.get(key);
+  if (!tile) {
+    const T = 128;
+    tile = document.createElement("canvas");
+    tile.width = T;
+    tile.height = T;
+    const tctx = tile.getContext("2d")!;
+    const img = tctx.createImageData(T, T);
+    const data = img.data;
+    const rand = mulberry32(seed);
+    const density = Math.min(0.45, count / (512 * 512));
+    const totalPixels = T * T;
+    const dots = Math.max(250, Math.round(totalPixels * density));
+    for (let i = 0; i < dots; i++) {
+      const idx = Math.floor(rand() * totalPixels) * 4;
+      const v = rand() > 0.5 ? 255 : 0;
+      const a = Math.round(rand() * alpha * 255);
+      data[idx] = v;
+      data[idx + 1] = v;
+      data[idx + 2] = v;
+      data[idx + 3] = a;
+    }
+    tctx.putImageData(img, 0, 0);
+    noiseTileCache.set(key, tile);
+  }
+  const pat = ctx.createPattern(tile, "repeat");
+  if (pat) {
+    ctx.save();
+    ctx.fillStyle = pat;
+    ctx.fillRect(0, 0, w, h);
+    ctx.restore();
   }
 }
 
 /** Dark walnut with flowing grain lines and a few knots. */
 export function woodTexture() {
   return cached("wood", () => {
-    const W = 1024;
-    const H = 512;
+    const scale = getTexScale();
+    const W = Math.round(1024 * scale);
+    const H = Math.round(512 * scale);
     const { c, ctx } = canvas(W, H);
     const rand = mulberry32(3);
     ctx.fillStyle = "#3a2a20";
     ctx.fillRect(0, 0, W, H);
-    for (let i = 0; i < 140; i++) {
+    const lines = Math.round(110 * scale + 30);
+    for (let i = 0; i < lines; i++) {
       const y0 = rand() * H;
-      const amp = 2 + rand() * 7;
-      const freq = 0.004 + rand() * 0.008;
+      const amp = (2 + rand() * 7) * scale;
+      const freq = (0.004 + rand() * 0.008) / scale;
       const phase = rand() * 10;
       ctx.strokeStyle = rand() > 0.5 ? `rgba(20,12,8,${0.15 + rand() * 0.3})` : `rgba(120,88,62,${0.08 + rand() * 0.18})`;
-      ctx.lineWidth = 0.6 + rand() * 2.2;
+      ctx.lineWidth = (0.6 + rand() * 2.2) * scale;
       ctx.beginPath();
-      for (let x = 0; x <= W; x += 8) {
+      for (let x = 0; x <= W; x += 12) {
         const y = y0 + Math.sin(x * freq + phase) * amp + Math.sin(x * freq * 3.1 + phase) * amp * 0.3;
         if (x === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
@@ -86,7 +142,7 @@ export function woodTexture() {
       for (let r = 2; r < 18; r += 3) {
         ctx.strokeStyle = `rgba(25,15,10,${0.35 - r / 60})`;
         ctx.beginPath();
-        ctx.ellipse(kx, ky, r * 2.2, r * 0.8, 0, 0, Math.PI * 2);
+        ctx.ellipse(kx, ky, r * 2.2 * scale, r * 0.8 * scale, 0, 0, Math.PI * 2);
         ctx.stroke();
       }
     }
@@ -98,20 +154,21 @@ export function woodTexture() {
 /** Charcoal-stained oak planks for the floor. */
 export function floorTexture() {
   return cached("floor", () => {
-    const W = 1024;
-    const H = 1024;
+    const scale = getTexScale();
+    const W = Math.round(1024 * scale);
+    const H = Math.round(1024 * scale);
     const { c, ctx } = canvas(W, H);
     const rand = mulberry32(8);
     const rows = 8;
     const ph = H / rows;
     for (let r = 0; r < rows; r++) {
-      let x = -rand() * 300;
+      let x = -rand() * 300 * scale;
       while (x < W) {
-        const len = 260 + rand() * 340;
+        const len = (260 + rand() * 340) * scale;
         const shade = 34 + Math.floor(rand() * 12);
         ctx.fillStyle = `rgb(${shade},${shade - 2},${shade - 4})`;
         ctx.fillRect(x, r * ph, len, ph);
-        for (let g = 0; g < 10; g++) {
+        for (let g = 0; g < 8; g++) {
           ctx.strokeStyle = `rgba(0,0,0,${0.05 + rand() * 0.1})`;
           ctx.lineWidth = 1;
           const gy = r * ph + rand() * ph;
@@ -135,18 +192,24 @@ export function floorTexture() {
 /** Slightly mottled plaster for the walls. */
 export function plasterTexture() {
   return cached("plaster", () => {
-    const S = 512;
+    const scale = getTexScale();
+    const S = Math.round(512 * scale);
     const { c, ctx } = canvas(S, S);
     ctx.fillStyle = "#2a2d32";
     ctx.fillRect(0, 0, S, S);
     const rand = mulberry32(12);
-    for (let i = 0; i < 260; i++) {
-      const g = ctx.createRadialGradient(rand() * S, rand() * S, 0, rand() * S, rand() * S, 20 + rand() * 60);
+    const blotches = Math.round(120 * scale + 40);
+    for (let i = 0; i < blotches; i++) {
+      const cx = rand() * S;
+      const cy = rand() * S;
+      const rad = (20 + rand() * 60) * scale;
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
       const v = rand() > 0.5 ? "255,255,255" : "0,0,0";
       g.addColorStop(0, `rgba(${v},${0.02 + rand() * 0.025})`);
       g.addColorStop(1, `rgba(${v},0)`);
       ctx.fillStyle = g;
-      ctx.fillRect(0, 0, S, S);
+      // Only fill the gradient's bounding box instead of the entire canvas!
+      ctx.fillRect(cx - rad, cy - rad, rad * 2, rad * 2);
     }
     speckle(ctx, S, S, 14000, 0.05, 13);
     return toTexture(c, [4, 2]);
@@ -200,7 +263,7 @@ export function brushedTexture() {
     ctx.fillStyle = "#808080";
     ctx.fillRect(0, 0, S, S);
     const rand = mulberry32(41);
-    for (let i = 0; i < 600; i++) {
+    for (let i = 0; i < 450; i++) {
       const v = Math.floor(100 + rand() * 60);
       ctx.fillStyle = `rgba(${v},${v},${v},0.35)`;
       ctx.fillRect(0, rand() * S, S, 1);
@@ -210,11 +273,13 @@ export function brushedTexture() {
 }
 
 /** Waits for a web font so canvas text renders in it rather than the fallback. */
-export async function fontsReady(fonts: string[]) {
+export async function fontsReady(fonts: string[]): Promise<boolean> {
   try {
+    if (fonts.every((f) => document.fonts.check(f))) return false;
     await Promise.all(fonts.map((f) => document.fonts.load(f)));
+    return true;
   } catch {
-    // canvas falls back to the next font in the stack
+    return false;
   }
 }
 
@@ -280,7 +345,9 @@ export function posterTexture(id: string, index: number, title: string, category
       tex.needsUpdate = true;
     };
     draw();
-    fontsReady(['64px "Michroma"', '22px "JetBrains Mono"']).then(draw);
+    fontsReady(['64px "Michroma"', '22px "JetBrains Mono"']).then((loadedLater) => {
+      if (loadedLater) draw();
+    });
     return tex;
   });
 }
@@ -330,7 +397,9 @@ export function certificateTexture(id: string, lines: { title: string; school: s
       tex.needsUpdate = true;
     };
     draw();
-    fontsReady(['30px "Michroma"', '24px "Inter"']).then(draw);
+    fontsReady(['30px "Michroma"', '24px "Inter"']).then((loadedLater) => {
+      if (loadedLater) draw();
+    });
     return tex;
   });
 }

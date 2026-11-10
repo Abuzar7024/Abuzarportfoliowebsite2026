@@ -57,7 +57,7 @@ function WindowFrame() {
 }
 
 /** "AK" in red neon tubes on the back wall, with a dark mounting plate. */
-function NeonSign() {
+function NeonSign({ lite = false }: { lite?: boolean }) {
   const m = getMaterials();
   const text = useMemo(() => {
     const g = new TextGeometry("AK", { font: brandFont, size: 0.34, depth: 0.025, curveSegments: 4 });
@@ -72,12 +72,12 @@ function NeonSign() {
       <mesh geometry={geo.rbox(1.1, 0.72, 0.03, 0.012)} material={m.plasticDark} />
       <mesh geometry={text} material={m.neon} position={[0, 0.07, 0.03]} />
       <mesh geometry={geo.box(0.74, 0.018, 0.018)} material={m.neon} position={[0, -0.2, 0.04]} />
-      <pointLight color="#ff3b44" intensity={1.1} distance={2.4} decay={2} position={[0, 0, 0.4]} />
+      {!lite && <pointLight color="#ff3b44" intensity={1.1} distance={2.4} decay={2} position={[0, 0, 0.4]} />}
     </group>
   );
 }
 
-export function Room() {
+export function Room({ lite = false }: { lite?: boolean }) {
   const m = getMaterials();
   const { halfW, back, front, height, window: win } = ROOM;
   const depth = front - back;
@@ -101,7 +101,7 @@ export function Room() {
 
       {/* Skirting boards */}
       <mesh geometry={geo.box(halfW * 2, 0.09, 0.02)} material={m.trim} position={[0, 0.045, back + 0.01]} />
-      <mesh geometry={geo.box(0.02, 0.09, depth)} material={m.trim} position={[-halfW + 0.01, 0.045, zc]} />
+      <mesh geometry={geo.box(0.02, 0.09, depth)} material={m.trim} position={[-halfW + 0.01, height === 3.4 ? 0.045 : 0.045, zc]} />
       <mesh geometry={geo.box(0.02, 0.09, depth)} material={m.trim} position={[halfW - 0.01, 0.045, zc]} />
 
       {/* Red neon cove line under the ceiling, back and sides */}
@@ -116,7 +116,7 @@ export function Room() {
       </mesh>
 
       <WindowFrame />
-      <NeonSign />
+      <NeonSign lite={lite} />
 
       {/* Rug under the desk and chair */}
       <mesh geometry={geo.plane(3.3, 2.4)} material={m.rug} rotation={[-Math.PI / 2, 0, 0]} position={[0.25, 0.006, -1.55]} receiveShadow />

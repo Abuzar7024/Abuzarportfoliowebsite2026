@@ -30,6 +30,7 @@ function Poster({ index }: { index: number }) {
     if (!g) return;
     const hovered = getState().hovered === id;
     const target = hovered ? 0.06 : 0;
+    if (Math.abs(g.position.x - target) < 0.0005) return;
     g.position.x = THREE.MathUtils.damp(g.position.x, target, 10, Math.min(delta, 0.05));
   });
 
@@ -38,21 +39,32 @@ function Poster({ index }: { index: number }) {
     <group
       ref={group}
       position={[0, 0, POSTER_Z[index]]}
-      onPointerOver={(e) => {
-        if (!active) return;
-        e.stopPropagation();
-        setState({ hovered: id });
-        document.body.style.cursor = "pointer";
-      }}
-      onPointerOut={() => {
-        if (getState().hovered === id) setState({ hovered: null });
-        document.body.style.cursor = "";
-      }}
-      onClick={(e) => {
-        if (!active || pointerGesture.dragged) return;
-        e.stopPropagation();
-        actions.openPoster(p.id);
-      }}
+      onPointerOver={
+        active
+          ? (e) => {
+              e.stopPropagation();
+              setState({ hovered: id });
+              document.body.style.cursor = "pointer";
+            }
+          : undefined
+      }
+      onPointerOut={
+        active
+          ? () => {
+              if (getState().hovered === id) setState({ hovered: null });
+              document.body.style.cursor = "";
+            }
+          : undefined
+      }
+      onClick={
+        active
+          ? (e) => {
+              if (pointerGesture.dragged) return;
+              e.stopPropagation();
+              actions.openPoster(p.id);
+            }
+          : undefined
+      }
     >
       <mesh geometry={geo.box(0.03, POSTER.h + 0.06, POSTER.w + 0.06)} material={m.trim} castShadow />
       <mesh geometry={geo.plane(POSTER.w, POSTER.h)} position={[0.017, 0, 0]} rotation={[0, Math.PI / 2, 0]}>

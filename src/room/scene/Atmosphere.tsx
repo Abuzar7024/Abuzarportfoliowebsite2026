@@ -12,23 +12,27 @@ import { ROOM } from "./Room";
  */
 
 /** A pedestal projecting a slowly turning wireframe globe with orbit rings. */
-export function Hologram({ position = [1.35, 0, -2.5] as [number, number, number], reduced = false }) {
+export function Hologram({
+  position = [1.35, 0, -2.5] as [number, number, number],
+  reduced = false,
+  lite = false,
+}) {
   const m = getMaterials();
   const globe = useRef<THREE.Group>(null);
   const rings = useRef<THREE.Group>(null);
   const beam = useRef<THREE.MeshBasicMaterial>(null);
 
   const wire = useMemo(() => {
-    const base = new THREE.IcosahedronGeometry(0.26, 2);
+    const base = new THREE.IcosahedronGeometry(0.26, lite ? 1 : 2);
     const w = new THREE.WireframeGeometry(base);
     base.dispose();
     return w;
-  }, []);
+  }, [lite]);
   const lineMat = useMemo(
     () => new THREE.LineBasicMaterial({ color: new THREE.Color("#d6dde8").multiplyScalar(1.4), transparent: true, opacity: 0.75, toneMapped: false }),
     []
   );
-  const beamGeo = useMemo(() => new THREE.CylinderGeometry(0.3, 0.12, 0.9, 32, 1, true), []);
+  const beamGeo = useMemo(() => new THREE.CylinderGeometry(0.3, 0.12, 0.9, lite ? 16 : 32, 1, true), [lite]);
   useEffect(() => () => [wire, lineMat, beamGeo].forEach((x) => x.dispose()), [wire, lineMat, beamGeo]);
 
   useFrame(({ clock }, delta) => {
@@ -66,7 +70,7 @@ export function Hologram({ position = [1.35, 0, -2.5] as [number, number, number
           <meshBasicMaterial color="#e6ebf2" toneMapped={false} transparent opacity={0.6} />
         </mesh>
       </group>
-      <pointLight color="#ff3b44" intensity={2} distance={2.2} decay={2} position={[0, 1.3, 0]} />
+      {!lite && <pointLight color="#ff3b44" intensity={2} distance={2.2} decay={2} position={[0, 1.3, 0]} />}
     </group>
   );
 }
@@ -113,12 +117,12 @@ export function WindowRain({ reduced = false }) {
 }
 
 /** Red LED strip under the desk's front edge. */
-export function LedStrips() {
+export function LedStrips({ lite = false }: { lite?: boolean }) {
   const m = getMaterials();
   return (
     <group>
       <mesh geometry={geo.box(DESK.w - 0.12, 0.008, 0.008)} material={m.neon} position={[DESK.x, DESK.top - 0.056, DESK.z + DESK.d / 2 - 0.03]} />
-      <pointLight color="#ff3b44" intensity={1.2} distance={1.6} decay={2} position={[DESK.x, DESK.top - 0.25, DESK.z + DESK.d / 2]} />
+      {!lite && <pointLight color="#ff3b44" intensity={1.2} distance={1.6} decay={2} position={[DESK.x, DESK.top - 0.25, DESK.z + DESK.d / 2]} />}
     </group>
   );
 }

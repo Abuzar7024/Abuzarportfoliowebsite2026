@@ -1,15 +1,32 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { ArrowLeft, ArrowUp, ChevronRight, Download, ExternalLink, HardDrive } from "lucide-react";
 import { profile } from "../../data/profile";
 import { featuredProjects, otherProjects } from "../../data/projects";
 import { ProjectDetails } from "../../components/ProjectDialog";
-import { ResumeDocument } from "../../components/ResumeDocument";
-import { ContactForm } from "../../components/ContactForm";
-import { SkillsExplorer } from "../../components/SkillsExplorer";
-import { SignalRun } from "../../components/SignalRun";
 import { BotChat } from "../bot/BotChat";
 import { documentText, findPath, ROOT, type FsNode, type WinSpec } from "./fs";
 import { OsIcon } from "./OsIcon";
+
+const ResumeDocument = lazy(() =>
+  import("../../components/ResumeDocument").then((m) => ({ default: m.ResumeDocument }))
+);
+const ContactForm = lazy(() =>
+  import("../../components/ContactForm").then((m) => ({ default: m.ContactForm }))
+);
+const SkillsExplorer = lazy(() =>
+  import("../../components/SkillsExplorer").then((m) => ({ default: m.SkillsExplorer }))
+);
+const SignalRun = lazy(() =>
+  import("../../components/SignalRun").then((m) => ({ default: m.SignalRun }))
+);
+
+function AppFallback() {
+  return (
+    <div className="flex h-48 items-center justify-center font-mono text-[12px] text-muted">
+      Loading module…
+    </div>
+  );
+}
 
 type Open = (spec: WinSpec) => void;
 
@@ -159,7 +176,9 @@ export function ResumeViewer() {
       </div>
       <div className="p-4 sm:p-6">
         <div className="mx-auto max-w-[820px] overflow-hidden rounded bg-white shadow-2xl">
-          <ResumeDocument />
+          <Suspense fallback={<AppFallback />}>
+            <ResumeDocument />
+          </Suspense>
         </div>
       </div>
     </div>
@@ -172,7 +191,9 @@ export function MailApp() {
       <p className="mb-4 text-[13px] text-muted">
         To: <span className="text-ink">{profile.name}</span> &lt;{profile.email}&gt;
       </p>
-      <ContactForm />
+      <Suspense fallback={<AppFallback />}>
+        <ContactForm />
+      </Suspense>
     </div>
   );
 }
@@ -180,7 +201,9 @@ export function MailApp() {
 export function SkillsApp() {
   return (
     <div className="p-4 sm:p-6">
-      <SkillsExplorer compact />
+      <Suspense fallback={<AppFallback />}>
+        <SkillsExplorer compact />
+      </Suspense>
     </div>
   );
 }
@@ -192,7 +215,9 @@ export function BotApp() {
 export function GameApp() {
   return (
     <div className="flex min-h-full flex-col justify-center bg-[#131417] p-3">
-      <SignalRun />
+      <Suspense fallback={<AppFallback />}>
+        <SignalRun />
+      </Suspense>
       <p className="mt-2 text-center font-mono text-[11px] text-faint">Space / ↑ / tap to jump · hold for height · double-jump in the air</p>
     </div>
   );

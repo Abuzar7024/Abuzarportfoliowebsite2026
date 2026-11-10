@@ -7,7 +7,7 @@ import type * as THREE from "three";
  * reconcilers and cannot share context.
  */
 
-export type View = "room" | "monitor" | "posters" | "shelf";
+export type View = "room" | "monitor" | "posters" | "shelf" | "trophy";
 export type AppId = "about" | "projects" | "experience" | "skills" | "resume" | "contact" | "assistant";
 
 export interface RoomState {
@@ -21,24 +21,33 @@ export interface RoomState {
   robotChat: boolean;
   /** Project opened from a wall poster (shown in a dialog over the room). */
   posterProject: string | null;
+  /** Whether the AI Hackathon experience (/competition) is open. */
+  competitionOpen: boolean;
   hovered: string | null;
   lampOn: boolean;
-  /** Incremented to make the robot wave / the cat stir. */
+  /** Incremented to make the robot wave / the cat stir / the trophy pulse. */
   robotPing: number;
   catPing: number;
+  trophyPing: number;
 }
 
+const initialCompetitionOpen =
+  typeof window !== "undefined" &&
+  /^\/competition(\/|$)/i.test(window.location.pathname);
+
 let state: RoomState = {
-  view: "room",
+  view: initialCompetitionOpen ? "trophy" : "room",
   arrived: true,
   app: "about",
   appNonce: 0,
   robotChat: false,
   posterProject: null,
+  competitionOpen: initialCompetitionOpen,
   hovered: null,
   lampOn: true,
   robotPing: 0,
   catPing: 0,
+  trophyPing: 0,
 };
 
 const listeners = new Set<() => void>();
@@ -73,6 +82,9 @@ export function useRoom<T>(select: (s: RoomState) => T): T {
 
 export const actions = {
   openApp(app: AppId) {
+    if (typeof window !== "undefined" && window.location.pathname !== "/") {
+      window.history.pushState({}, "", "/");
+    }
     setState({
       view: "monitor",
       app,
@@ -80,13 +92,23 @@ export const actions = {
       arrived: state.view === "monitor" ? state.arrived : false,
       posterProject: null,
       robotChat: false,
+      competitionOpen: false,
     });
   },
   backToRoom() {
-    setState({ view: "room", arrived: false, posterProject: null, hovered: null });
+    if (typeof window !== "undefined" && window.location.pathname !== "/") {
+      window.history.pushState({}, "", "/");
+    }
+    setState({
+      view: "room",
+      arrived: false,
+      posterProject: null,
+      hovered: null,
+      competitionOpen: false,
+    });
   },
   openRobotChat() {
-    setState({ robotChat: true, view: "room", posterProject: null });
+    setState({ robotChat: true, view: "room", posterProject: null, competitionOpen: false });
   },
   closeRobotChat() {
     setState({ robotChat: false });
@@ -95,7 +117,32 @@ export const actions = {
     if (state.view !== view) setState({ view, arrived: false });
   },
   openPoster(id: string) {
-    setState({ view: "posters", arrived: state.view === "posters" ? state.arrived : false, posterProject: id });
+    setState({ view: "posters", arrived: state.view === "posters" ? state.arrived : false, posterProject: id, competitionOpen: false });
+  },
+  openCompetition(path = "/competition") {
+    if (typeof window !== "undefined" && window.location.pathname !== path) {
+      window.history.pushState({}, "", path);
+    }
+    setState((s) => ({
+      view: "trophy",
+      arrived: s.view === "trophy" ? s.arrived : false,
+      competitionOpen: true,
+      posterProject: null,
+      robotChat: false,
+      hovered: null,
+      trophyPing: s.trophyPing + 1,
+    }));
+  },
+  closeCompetition() {
+    if (typeof window !== "undefined" && window.location.pathname !== "/") {
+      window.history.pushState({}, "", "/");
+    }
+    setState({
+      view: "room",
+      arrived: false,
+      competitionOpen: false,
+      hovered: null,
+    });
   },
   toggleLamp() {
     setState((s) => ({ lampOn: !s.lampOn }));
@@ -125,6 +172,12 @@ export interface HotspotDef {
 export const HOTSPOTS: HotspotDef[] = [
   { id: "monitor", label: "Computer", hint: "Open the computer", activate: () => actions.openApp(getState().app) },
   { id: "posters", label: "Project wall", hint: "View project posters", activate: () => actions.focus("posters") },
+  {
+    id: "trophy",
+    label: "AVATAR",
+    hint: "DESIGN. BUILD. SELL. IN ONE DAY.",
+    activate: () => actions.openCompetition("/competition"),
+  },
   {
     id: "robot",
     label: "Robot assistant",

@@ -5,8 +5,11 @@
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
     "@react-three/fiber": "^9.7.0",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.0",
     "lucide-react": "^0.487.0",
     "motion": "*",
+    "postgres": "^4.0.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "sonner": "^2.0.3",

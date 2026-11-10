@@ -23,7 +23,8 @@ export function Bloom({ strength = 0.6, radius = 0.55, threshold = 0.82 }: { str
   }, [gl, scene, camera, strength, radius, threshold]);
 
   useEffect(() => {
-    composer.setPixelRatio(viewport.dpr);
+    // Cap post-processing DPR at 1.25 to save GPU fill-rate on high-DPI screens.
+    composer.setPixelRatio(Math.min(viewport.dpr, 1.25));
     composer.setSize(size.width, size.height);
   }, [composer, size, viewport.dpr]);
 

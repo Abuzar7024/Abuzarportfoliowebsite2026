@@ -1,6 +1,6 @@
 import React, { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { FileText, Monitor, MousePointerClick } from "lucide-react";
+import { ArrowRight, FileText, MousePointerClick, Trophy, Zap } from "lucide-react";
 import { Toaster } from "sonner";
 import type { RenderProfile } from "../hooks/useDeviceTier";
 import { profile } from "../data/profile";
@@ -16,6 +16,26 @@ import { RobotChatPanel } from "./ui/RobotChatPanel";
 import { Desktop } from "./os/Desktop";
 
 const RoomCanvas = lazy(() => import("./RoomCanvas"));
+const HackathonApp = lazy(() =>
+  import("../hackathon/HackathonApp").then((m) => ({ default: m.HackathonApp }))
+);
+const BadgeVerifyPage = lazy(() =>
+  import("../competition/BadgeVerifyPage").then((m) => ({ default: m.BadgeVerifyPage }))
+);
+
+function parseRoute(pathname: string): {
+  mode: "room" | "competition" | "verify";
+  verifyId: string;
+} {
+  const verifyMatch = pathname.match(/^\/competition\/verify\/([^/?#]+)/i);
+  if (verifyMatch) {
+    return { mode: "verify", verifyId: decodeURIComponent(verifyMatch[1]).toUpperCase() };
+  }
+  if (/^\/competition(\/|$)/i.test(pathname)) {
+    return { mode: "competition", verifyId: "" };
+  }
+  return { mode: "room", verifyId: "" };
+}
 
 /** Rendered by the scene's error boundary: if WebGL fails, fall back to the computer alone. */
 function OnSceneFailure({ onFail }: { onFail: () => void }) {
@@ -27,7 +47,7 @@ function OnSceneFailure({ onFail }: { onFail: () => void }) {
 
 /** A one-time hint until the visitor first interacts. */
 function FirstHint() {
-  const touched = useRoom((s) => s.hovered !== null || s.view !== "room" || s.robotChat);
+  const touched = useRoom((s) => s.hovered !== null || s.view !== "room" || s.robotChat || s.competitionOpen);
   const [seen, setSeen] = useState(false);
   useEffect(() => {
     if (touched) setSeen(true);
@@ -38,7 +58,7 @@ function FirstHint() {
     <AnimatePresence>
       {!seen && (
         <motion.p
-          className="pointer-events-none fixed inset-x-0 bottom-24 z-30 flex justify-center px-4"
+          className="pointer-events-none fixed inset-x-0 bottom-20 z-30 flex justify-center px-3 sm:bottom-24 sm:px-4"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
@@ -66,24 +86,58 @@ function FirstHint() {
 }
 
 /**
- * The portfolio: a 3D room whose computer runs AK-OS. Without WebGL (or if
- * the scene fails), AK-OS runs full-screen on its own so every page of
- * content stays reachable.
+ * The portfolio: a 3D room whose computer runs AK-OS, plus the AI Hackathon
+ * experience (/competition & /competition/verify/:id). Without WebGL,
+ * on very slow connections, or when Lite Mode is chosen, AK-OS runs full-screen
+ * on its own so every page of content stays fast and reachable.
  */
 export function RoomExperience({ render, active }: { render: RenderProfile; active: boolean }) {
   const [flat, setFlat] = useState(!render.use3D);
   const [stage, setStage] = useState<LoadStage>(flat ? "ready" : "engine");
+  const [route, setRoute] = useState(() =>
+    typeof window !== "undefined" ? parseRoute(window.location.pathname) : { mode: "room" as const, verifyId: "" }
+  );
+
   const posterProject = useRoom((s) => s.posterProject);
   const view = useRoom((s) => s.view);
+  const competitionOpen = useRoom((s) => s.competitionOpen);
   const posterIndex = featuredProjects.findIndex((p) => p.id === posterProject);
   const inComputer = view === "monitor";
+
+  // Sync browser URL changes (popstate) and store competitionOpen state
+  useEffect(() => {
+    const syncFromLocation = () => {
+      const parsed = parseRoute(window.location.pathname);
+      setRoute(parsed);
+      if (parsed.mode === "competition" || parsed.mode === "verify") {
+        setState({ competitionOpen: true, view: "trophy", arrived: true });
+      } else {
+        setState({ competitionOpen: false, view: getState().view === "trophy" ? "room" : getState().view });
+      }
+    };
+    window.addEventListener("popstate", syncFromLocation);
+    return () => window.removeEventListener("popstate", syncFromLocation);
+  }, []);
+
+  useEffect(() => {
+    if (competitionOpen && route.mode === "room") {
+      setRoute(parseRoute(window.location.pathname));
+    } else if (!competitionOpen && route.mode !== "room") {
+      setRoute({ mode: "room", verifyId: "" });
+    }
+  }, [competitionOpen, route.mode]);
 
   useEffect(() => {
     if (flat) {
       setStage("ready");
-      setState({ view: "monitor", arrived: true, posterProject: null, robotChat: false, appNonce: getState().appNonce + 1 });
+      if (!getState().competitionOpen) {
+        setState({ view: "monitor", arrived: true, posterProject: null, robotChat: false, appNonce: getState().appNonce + 1 });
+      }
     } else {
-      setState({ view: "room", arrived: true, posterProject: null, hovered: null });
+      setStage("engine");
+      if (!getState().competitionOpen) {
+        setState({ view: "room", arrived: true, posterProject: null, hovered: null });
+      }
     }
   }, [flat]);
 
@@ -93,6 +147,10 @@ export function RoomExperience({ render, active }: { render: RenderProfile; acti
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       const s = getState();
+      if (s.competitionOpen) {
+        actions.closeCompetition();
+        return;
+      }
       if (s.posterProject || s.robotChat) return; // those dialogs close themselves
       if (s.view !== "room") actions.backToRoom();
     };
@@ -106,57 +164,154 @@ export function RoomExperience({ render, active }: { render: RenderProfile; acti
   }, []);
   const closePoster = useCallback(() => setState({ posterProject: null }), []);
   const onFail = useCallback(() => setFlat(true), []);
+  const enterLite = useCallback(() => setFlat(true), []);
+  const enter3D = useCallback(() => {
+    if (render.webgl) setFlat(false);
+  }, [render.webgl]);
+
+  const openCompetitionPage = useCallback(() => {
+    actions.openCompetition("/competition");
+    setRoute({ mode: "competition", verifyId: "" });
+  }, []);
+
+  const closeCompetitionToRoom = useCallback(() => {
+    actions.closeCompetition();
+    setRoute({ mode: "room", verifyId: "" });
+  }, []);
+
+  const showCompetitionOverlay = competitionOpen || route.mode !== "room";
+  const [hasEnteredRoom, setHasEnteredRoom] = useState(() => !showCompetitionOverlay);
+
+  useEffect(() => {
+    if (!showCompetitionOverlay) {
+      setHasEnteredRoom(true);
+    }
+  }, [showCompetitionOverlay]);
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#101216]">
       <h1 className="sr-only">
-        {profile.name}, {profile.roleLine}. An interactive 3D room: open the computer for projects, experience and contact.
+        {profile.name}, {profile.roleLine}. An interactive 3D room: open the computer for projects, experience and contact, or click the gold trophy for the AI Hackathon.
       </h1>
 
-      {!flat && (
+      {!flat && hasEnteredRoom && (
         <Suspense fallback={null}>
-          <RoomCanvas profile={render} active={active} fallback={<OnSceneFailure onFail={onFail} />} onStage={setStage} />
+          <RoomCanvas profile={render} active={active && !showCompetitionOverlay} fallback={<OnSceneFailure onFail={onFail} />} onStage={setStage} />
         </Suspense>
       )}
 
-      {!flat && !inComputer && (
-        <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex items-start justify-between gap-3 p-3 sm:p-5">
-          <div className="pointer-events-auto flex items-center gap-3 rounded-2xl border border-line-2 bg-[#131417]/80 py-2 pl-2 pr-4 backdrop-blur-xl">
-            <span className="grid h-9 w-9 place-items-center rounded-xl border border-line-2 bg-bg-2 font-brand text-[11px] text-silver">AK</span>
-            <span className="leading-tight">
-              <span className="block font-display text-[15px] font-semibold tracking-tight">
+      {!flat && !inComputer && !showCompetitionOverlay && (
+        <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex items-center justify-between gap-2 p-2.5 sm:p-5">
+          <div className="pointer-events-auto flex min-w-0 items-center gap-2.5 rounded-2xl border border-line-2 bg-[#131417]/85 py-1.5 pl-1.5 pr-3 backdrop-blur-md sm:gap-3 sm:py-2 sm:pl-2 sm:pr-4">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-line-2 bg-bg-2 font-brand text-[10px] text-silver sm:h-9 sm:w-9 sm:text-[11px]">
+              AK
+            </span>
+            <span className="min-w-0 leading-tight">
+              <span className="block truncate font-display text-[13.5px] font-semibold tracking-tight sm:text-[15px]">
                 {profile.name}
                 <span className="text-accent">.</span>
               </span>
-              <span className="flex items-center gap-1.5 text-[11.5px] text-muted">
-                <span className="signal-dot !h-1.5 !w-1.5" aria-hidden="true" />
-                <span className="hidden sm:inline">{profile.availability}</span>
-                <span className="sm:hidden">Open to roles</span>
+              <span className="flex items-center gap-1.5 text-[11px] text-muted sm:text-[11.5px]">
+                <span className="signal-dot !h-1.5 !w-1.5 shrink-0" aria-hidden="true" />
+                <span className="hidden md:inline">{profile.availability}</span>
+                <span className=" truncate md:hidden">Open to roles</span>
               </span>
             </span>
           </div>
-          <a href={profile.links.resumePdf} target="_blank" rel="noopener noreferrer" className="btn-ghost pointer-events-auto !bg-[#131417]/80 !px-4 !py-2 backdrop-blur-xl">
-            <FileText size={14} aria-hidden="true" />
-            Resume
-          </a>
+          <div className="pointer-events-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              onClick={openCompetitionPage}
+              title="AVATAR — DESIGN. BUILD. SELL. IN ONE DAY. (PRE-REGISTRATIONS ARE NOW OPEN!)"
+              className="btn-ghost !border-[#f5c451]/50 !bg-[#131417]/90 !px-2.5 !py-1.5 text-[12px] font-semibold !text-[#ffe28a] backdrop-blur-md hover:!border-[#f5c451] sm:!px-3.5 sm:!py-2 sm:text-[13px]"
+            >
+              <Trophy size={13} className="shrink-0 text-[#f5c451]" aria-hidden="true" />
+              <span>AVATAR</span>
+            </button>
+            <button
+              type="button"
+              onClick={enterLite}
+              title="Switch to fast Lite Mode (no 3D)"
+              aria-label="Lite Mode"
+              className="btn-ghost !bg-[#131417]/85 !px-2.5 !py-1.5 text-[12px] backdrop-blur-md sm:!px-3.5 sm:!py-2 sm:text-[13px]"
+            >
+              <Zap size={13} className="text-accent-ink" aria-hidden="true" />
+              <span className="hidden sm:inline">Lite</span>
+            </button>
+            <a
+              href={profile.links.resumePdf}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Download Resume PDF"
+              aria-label="Resume PDF"
+              className="btn-ghost !bg-[#131417]/85 !px-2.5 !py-1.5 text-[12px] backdrop-blur-md sm:!px-4 sm:!py-2 sm:text-[13px]"
+            >
+              <FileText size={13} aria-hidden="true" />
+              <span className="hidden md:inline">Resume</span>
+            </a>
+          </div>
         </header>
       )}
 
-      {!flat && !inComputer && (
-        <aside className="pointer-events-none fixed inset-x-0 top-[4.75rem] z-40 flex justify-center px-3 lg:hidden">
-          <span className="flex max-w-full items-center gap-2 rounded-full border border-line-2 bg-[#131417]/85 px-3 py-2 text-center text-[11px] leading-tight text-ink-2 shadow-lg backdrop-blur-xl sm:px-4 sm:text-[12px]">
-            <Monitor size={14} className="shrink-0 text-accent-ink" aria-hidden="true" />
-            <span>For the best view, open this site on a computer</span>
-          </span>
+      {/* Homepage Promotional Announcement Pill for AVATAR Pre-Registration */}
+      {!flat && !inComputer && !showCompetitionOverlay && (
+        <aside
+          aria-label="AVATAR Hackathon Announcement"
+          className="pointer-events-none fixed inset-x-0 top-[3.9rem] z-40 flex justify-center px-2.5 sm:top-[4.85rem] sm:px-4"
+        >
+          <button
+            type="button"
+            onClick={openCompetitionPage}
+            className="pointer-events-auto group flex max-w-full items-center gap-2 rounded-full border border-[#f5c451]/45 bg-[#13151a]/92 px-3 py-1.5 text-left text-[11.5px] text-ink shadow-[0_14px_34px_-12px_rgba(0,0,0,0.85)] backdrop-blur-xl transition-all hover:border-[#f5c451] hover:bg-[#181b22] sm:gap-2.5 sm:px-4 sm:py-2 sm:text-[12.5px]"
+          >
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#e3262e]/20 px-2 py-0.5 font-mono text-[9.5px] font-semibold uppercase tracking-wider text-[#ff6b72] border border-[#e3262e]/40 sm:text-[10px]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#ff5058]" aria-hidden="true" />
+              PRE-REGISTRATIONS ARE NOW OPEN!
+            </span>
+            <span className="truncate font-medium text-[#eef1f5]">
+              <strong className="font-semibold text-[#ffe28a]">AVATAR</strong>
+              <span className="hidden xs:inline"> · DESIGN. BUILD. SELL. IN ONE DAY.</span>
+            </span>
+            <span className="inline-flex shrink-0 items-center gap-1 font-mono text-[10.5px] font-semibold uppercase tracking-wider text-[#f5c451] group-hover:translate-x-0.5 transition-transform">
+              Join
+              <ArrowRight size={12} aria-hidden="true" />
+            </span>
+          </button>
         </aside>
       )}
 
-      {!flat && <HotspotPins />}
-      {!flat && <ViewPanels />}
-      {!flat && <RobotChatPanel />}
-      <Desktop flat={flat} />
-      {!flat && view === "room" && stage === "ready" && <FirstHint />}
-      {!flat && !inComputer && <PortfolioNavigation />}
+      {!flat && !showCompetitionOverlay && <HotspotPins />}
+      {!flat && !showCompetitionOverlay && <ViewPanels />}
+      {!flat && !showCompetitionOverlay && <RobotChatPanel />}
+      <Desktop flat={flat} canUse3D={render.webgl} onEnter3D={enter3D} />
+      {!flat && view === "room" && stage === "ready" && !showCompetitionOverlay && <FirstHint />}
+      {!flat && !inComputer && !showCompetitionOverlay && <PortfolioNavigation />}
+
+      {/* AI Hackathon and Public QR Verification Experience */}
+      <AnimatePresence>
+        {showCompetitionOverlay && (
+          <motion.div
+            key={route.mode === "verify" ? `verify-${route.verifyId}` : "competition"}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-[65]"
+          >
+            <Suspense fallback={null}>
+              {route.mode === "verify" ? (
+                <BadgeVerifyPage
+                  participantId={route.verifyId}
+                  onNavigateCompetition={openCompetitionPage}
+                  onBackToRoom={closeCompetitionToRoom}
+                />
+              ) : (
+                <HackathonApp onBackToRoom={closeCompetitionToRoom} />
+              )}
+            </Suspense>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {posterProject && posterIndex >= 0 && (
@@ -173,7 +328,11 @@ export function RoomExperience({ render, active }: { render: RenderProfile; acti
 
       <Toaster position="top-center" theme="dark" toastOptions={{ className: "!bg-bg-3 !border-line-2 !text-ink !rounded-2xl" }} />
 
-      <AnimatePresence>{stage !== "ready" && <LoadingScreen key="loading" stage={stage} />}</AnimatePresence>
+      <AnimatePresence>
+        {stage !== "ready" && !showCompetitionOverlay && (
+          <LoadingScreen key="loading" stage={stage} slowNetwork={render.slowNetwork} onSkipToLite={enterLite} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

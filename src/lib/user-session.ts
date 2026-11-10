@@ -324,7 +324,38 @@ function regionFromCountryCode(countryCode: string, countryName?: string): Regio
   };
 }
 
+const TZ_COUNTRY: Record<string, [string, string]> = {
+  "Asia/Kolkata": ["IN", "India"],
+  "Asia/Calcutta": ["IN", "India"],
+  "Asia/Dubai": ["AE", "United Arab Emirates"],
+  "Asia/Muscat": ["AE", "United Arab Emirates"],
+  "Asia/Riyadh": ["SA", "Saudi Arabia"],
+  "Asia/Singapore": ["SG", "Singapore"],
+  "Asia/Kuala_Lumpur": ["MY", "Malaysia"],
+  "Asia/Tokyo": ["JP", "Japan"],
+  "Asia/Shanghai": ["CN", "China"],
+  "Europe/London": ["GB", "United Kingdom"],
+  "Europe/Zurich": ["CH", "Switzerland"],
+  "Australia/Sydney": ["AU", "Australia"],
+  "Australia/Melbourne": ["AU", "Australia"],
+  "Pacific/Auckland": ["NZ", "New Zealand"],
+  "America/Toronto": ["CA", "Canada"],
+  "America/Vancouver": ["CA", "Canada"],
+};
+
 function detectFromLocale(): RegionInfo | null {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz && TZ_COUNTRY[tz]) {
+      const [code, name] = TZ_COUNTRY[tz];
+      return regionFromCountryCode(code, name);
+    }
+    if (tz?.startsWith("America/")) return regionFromCountryCode("US", "United States");
+    if (tz?.startsWith("Europe/")) return regionFromCountryCode("DE", "Europe");
+  } catch {
+    // ignore
+  }
+
   const locales = navigator.languages?.length
     ? navigator.languages
     : [navigator.language];
@@ -347,20 +378,9 @@ export async function detectRegion(): Promise<RegionInfo> {
     return cached.region;
   }
 
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4000);
-    const res = await fetch("https://ipapi.co/json/", { signal: controller.signal });
-    clearTimeout(timeout);
-    if (res.ok) {
-      const data = (await res.json()) as { country_code?: string; country_name?: string };
-      if (data.country_code) {
-        return regionFromCountryCode(data.country_code, data.country_name);
-      }
-    }
-  } catch {
-    // fall through to locale / default
-  }
+  // Zero-network instant detection from timezone / browser locale:
+  const local = detectFromLocale();
+  if (local) return local;
 
-  return detectFromLocale() ?? regionFromCountryCode("IN", "India");
+  return regionFromCountryCode("IN", "India");
 }

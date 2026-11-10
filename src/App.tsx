@@ -1,10 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import { AnimatePresence } from "motion/react";
 import { UserSessionProvider } from "./context/UserSessionContext";
-import { OfflineScreen } from "./components/OfflineScreen";
-import { ResumeDocument } from "./components/ResumeDocument";
 import { useRenderProfile } from "./hooks/useDeviceTier";
 import { RoomExperience } from "./room/RoomExperience";
+
+const OfflineScreen = lazy(() =>
+  import("./components/OfflineScreen").then((m) => ({ default: m.OfflineScreen }))
+);
+const ResumeDocument = lazy(() =>
+  import("./components/ResumeDocument").then((m) => ({ default: m.ResumeDocument }))
+);
 
 const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
 const isPrintMode = params.get("print") === "resume";
@@ -21,7 +26,9 @@ function PrintResume() {
   }, []);
   return (
     <div id="resume-print-root" className="bg-white">
-      <ResumeDocument siteUrl={(import.meta.env.VITE_SITE_URL as string | undefined) || undefined} />
+      <Suspense fallback={null}>
+        <ResumeDocument siteUrl={(import.meta.env.VITE_SITE_URL as string | undefined) || undefined} />
+      </Suspense>
     </div>
   );
 }
@@ -63,7 +70,9 @@ function Portfolio() {
       <RoomExperience render={render} active={visible && !offlineOpen} />
       <AnimatePresence>
         {offlineOpen && (
-          <OfflineScreen key="offline" mode="offline" online={online && !previewOffline} onClose={() => setOfflineOpen(false)} />
+          <Suspense fallback={null}>
+            <OfflineScreen key="offline" mode="offline" online={online && !previewOffline} onClose={() => setOfflineOpen(false)} />
+          </Suspense>
         )}
       </AnimatePresence>
     </>

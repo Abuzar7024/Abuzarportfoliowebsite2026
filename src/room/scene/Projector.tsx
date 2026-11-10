@@ -26,6 +26,7 @@ export function Projector() {
     []
   );
   const lastRect = useRef("");
+  const lastPins = useRef(new Map<string, { vis: string; tx: number; ty: number }>());
 
   useFrame(() => {
     const s = getState();
@@ -33,16 +34,36 @@ export function Projector() {
 
     pinElements.forEach((el, id) => {
       const anchor = anchors.get(id);
+      let prev = lastPins.current.get(id);
+      if (!prev) {
+        prev = { vis: "", tx: -9999, ty: -9999 };
+        lastPins.current.set(id, prev);
+      }
+
       if (!anchor || !showPins) {
-        el.dataset.visible = "false";
+        if (prev.vis !== "false") {
+          prev.vis = "false";
+          el.dataset.visible = "false";
+        }
         return;
       }
+
       anchor.getWorldPosition(v);
       v.project(camera);
       const onScreen = v.z < 1 && Math.abs(v.x) < 1.05 && Math.abs(v.y) < 1.05;
-      el.dataset.visible = onScreen ? "true" : "false";
+      const visStr = onScreen ? "true" : "false";
+      if (prev.vis !== visStr) {
+        prev.vis = visStr;
+        el.dataset.visible = visStr;
+      }
       if (onScreen) {
-        el.style.transform = `translate3d(${((v.x + 1) / 2) * size.width}px, ${((1 - v.y) / 2) * size.height}px, 0)`;
+        const tx = Math.round(((v.x + 1) / 2) * size.width * 2) / 2;
+        const ty = Math.round(((1 - v.y) / 2) * size.height * 2) / 2;
+        if (tx !== prev.tx || ty !== prev.ty) {
+          prev.tx = tx;
+          prev.ty = ty;
+          el.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
+        }
       }
     });
 
@@ -82,29 +103,49 @@ export function Projector() {
 
 /**
  * Adaptive resolution: measures the real frame rate and steps the pixel ratio
- * down when it drops (or back up when there is headroom). The measured rate is
- * exposed on `window.__roomFps` for testing.
+ * down when it drops (or back up when there is headroom). Also sheds heavy
+ * effects if FPS stays low. The measured rate is exposed on `window.__roomFps`.
  */
-export function AdaptiveQuality({ min = 0.75, max }: { min?: number; max: number }) {
+export function AdaptiveQuality({
+  min = 0.7,
+  max,
+  onLowFps,
+}: {
+  min?: number;
+  max: number;
+  onLowFps?: () => void;
+}) {
   const { setDpr } = useThree();
   const dpr = useRef(max);
   const frames = useRef(0);
   const since = useRef(performance.now());
+  const droppedEffects = useRef(false);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
+    // Ignore pauses caused by on-demand rendering (e.g. inside AK-OS) or background tabs.
+    if (delta > 0.25 || document.hidden) {
+      frames.current = 0;
+      since.current = performance.now();
+      return;
+    }
     frames.current++;
     const now = performance.now();
     const elapsed = now - since.current;
-    if (elapsed < 2000) return;
+    if (elapsed < 1200) return;
     const fps = (frames.current * 1000) / elapsed;
     (window as unknown as { __roomFps?: number }).__roomFps = Math.round(fps);
     frames.current = 0;
     since.current = now;
-    if (fps < 42 && dpr.current > min) {
-      dpr.current = Math.max(min, dpr.current - 0.25);
-      setDpr(dpr.current);
-    } else if (fps > 58 && dpr.current < max) {
-      dpr.current = Math.min(max, dpr.current + 0.25);
+    if (fps < 45) {
+      if (!droppedEffects.current && onLowFps) {
+        droppedEffects.current = true;
+        onLowFps();
+      } else if (dpr.current > min) {
+        dpr.current = Math.max(min, dpr.current - 0.2);
+        setDpr(dpr.current);
+      }
+    } else if (fps > 58 && dpr.current < max && !droppedEffects.current) {
+      dpr.current = Math.min(max, dpr.current + 0.15);
       setDpr(dpr.current);
     }
   });

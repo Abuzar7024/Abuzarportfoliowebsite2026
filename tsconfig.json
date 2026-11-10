@@ -19,5 +19,5 @@
     "paths": { "@/*": ["src/*"] }
   },
   "include": ["src", "tests", "vite.config.ts", "scripts"],
-  "exclude": ["node_modules", "build", "src/supabase", "src/components/ui"]
+  "exclude": ["node_modules", "build", "src/supabase", "src/components/ui", "legacy"]
 }

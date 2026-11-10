@@ -13,20 +13,31 @@ interface WindowProps {
 
 /** A desktop window: drag by the title bar, double-click it to maximise. */
 export function Window({ win, focused, area, dispatch, children }: WindowProps) {
-  const drag = useRef<{ dx: number; dy: number } | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const drag = useRef<{ dx: number; dy: number; x: number; y: number } | null>(null);
   if (win.minimized) return null;
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (win.maximized || (e.target as HTMLElement).closest("button")) return;
-    drag.current = { dx: e.clientX - win.x, dy: e.clientY - win.y };
+    drag.current = { dx: e.clientX - win.x, dy: e.clientY - win.y, x: win.x, y: win.y };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (!drag.current) return;
-    dispatch({ type: "move", key: win.key, x: e.clientX - drag.current.dx, y: e.clientY - drag.current.dy, area });
+    const nx = Math.min(Math.max(e.clientX - drag.current.dx, 80 - win.w), area.w - 80);
+    const ny = Math.min(Math.max(e.clientY - drag.current.dy, 0), area.h - 40);
+    drag.current.x = nx;
+    drag.current.y = ny;
+    if (sectionRef.current) {
+      sectionRef.current.style.left = `${nx}px`;
+      sectionRef.current.style.top = `${ny}px`;
+    }
   };
   const onPointerUp = () => {
+    if (!drag.current) return;
+    const { x, y } = drag.current;
     drag.current = null;
+    dispatch({ type: "move", key: win.key, x, y, area });
   };
 
   const style: React.CSSProperties = win.maximized
@@ -35,6 +46,7 @@ export function Window({ win, focused, area, dispatch, children }: WindowProps) 
 
   return (
     <section
+      ref={sectionRef}
       role="dialog"
       aria-label={win.title}
       className={`os-window absolute flex flex-col overflow-hidden ${win.maximized ? "" : "rounded-xl"} ${focused ? "os-window--focused" : ""}`}
@@ -46,6 +58,7 @@ export function Window({ win, focused, area, dispatch, children }: WindowProps) 
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
         onDoubleClick={() => dispatch({ type: "toggleMax", key: win.key })}
       >
         <OsIcon name={win.icon} size={15} />

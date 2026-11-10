@@ -57,7 +57,7 @@ function FrameLeg() {
 }
 
 /** Articulated desk lamp. Click toggles it; the warm spotlight follows. */
-function Lamp() {
+function Lamp({ shadows }: { shadows: boolean }) {
   const m = getMaterials();
   const on = useRoom((s) => s.lampOn);
   const light = useRef<THREE.SpotLight>(null);
@@ -70,7 +70,9 @@ function Lamp() {
   }, []);
 
   useFrame((_, delta) => {
-    level.current = THREE.MathUtils.damp(level.current, on ? 1 : 0, 10, Math.min(delta, 0.05));
+    const goal = on ? 1 : 0;
+    if (Math.abs(level.current - goal) < 0.001) return;
+    level.current = THREE.MathUtils.damp(level.current, goal, 10, Math.min(delta, 0.05));
     if (light.current) light.current.intensity = level.current * 16;
     if (bulb.current) bulb.current.color.setRGB(0.25 + level.current * 1.8, 0.22 + level.current * 1.45, 0.2 + level.current * 0.95);
   });
@@ -103,7 +105,7 @@ function Lamp() {
                 penumbra={0.65}
                 decay={1.6}
                 position={[0, -0.09, 0]}
-                castShadow
+                castShadow={shadows}
                 shadow-mapSize={[512, 512]}
                 shadow-bias={-0.002}
               />
@@ -194,7 +196,7 @@ function Cables() {
   );
 }
 
-export function Desk() {
+export function Desk({ shadows = false }: { shadows?: boolean }) {
   const m = getMaterials();
   return (
     <group>
@@ -205,7 +207,7 @@ export function Desk() {
       <mesh geometry={geo.box(DESK.w - 0.6, 0.36, 0.018)} material={m.plastic} position={[DESK.x + 0.25, DESK.top - 0.24, DESK.z - DESK.d / 2 + 0.05]} />
       <Drawers />
       <FrameLeg />
-      <Lamp />
+      <Lamp shadows={shadows} />
       <Mug />
       <Speaker x={DESK.x - 0.62} />
       <Speaker x={DESK.x + 0.62} />

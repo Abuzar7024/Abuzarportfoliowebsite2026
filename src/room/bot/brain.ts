@@ -22,6 +22,13 @@ const host = (href?: string) => href?.replace(/^https?:\/\//, "").replace(/\/$/,
 
 export const QA: BotQA[] = [
   {
+    id: "avatar",
+    question: "What is AVATAR?",
+    answer:
+      "AVATAR — DESIGN. BUILD. SELL. IN ONE DAY. is Abuzar's flagship one-day product & AI hackathon (PRE-REGISTRATIONS ARE NOW OPEN!) where participants turn an idea into a product by designing it, building it, and pitching or selling it in one day. Click the gold trophy right beside me or tap AVATAR to pre-register!",
+    keywords: ["ai", "avatar", "hackathon", "competition", "trophy", "prize", "championship", "contest", "register", "coding", "challenge"],
+  },
+  {
     id: "who",
     question: "Who is Abuzar?",
     answer: `${profile.name} is a ${profile.title} in ${profile.location} with ${yearsOfExperience()}+ years of shipping mobile apps.`,
@@ -99,15 +106,15 @@ export const QA: BotQA[] = [
   {
     id: "fun",
     question: "Tell me something fun",
-    answer: "The cat on the desk is asleep, and there's a game called Signal Run in the Games folder.",
+    answer: "The cat on the desk is asleep, the gold trophy next to me opens the AI Hackathon, and there's a game called Signal Run in the Games folder.",
     keywords: ["fun", "joke", "cat", "game", "secret"],
   },
 ];
 
 /** The chips shown by default. */
-export const STARTERS = ["who", "projects", "skills", "open", "contact"];
+export const STARTERS = ["avatar", "who", "projects", "skills", "open", "contact"];
 
-export const FALLBACK = "I only know about Abuzar's work. Try one of these:";
+export const FALLBACK = "I only know about Abuzar's work and the AI Hackathon. Try one of these:";
 
 const STOP = new Set(["the", "a", "an", "is", "are", "was", "of", "to", "in", "on", "for", "and", "or", "what", "does", "do", "did", "he", "his", "him", "me", "tell", "can", "you", "i", "with", "how", "any", "has", "have", "about"]);
 
@@ -142,7 +149,7 @@ export function match(text: string): BotQA | null {
 
 /** Follow-up chips: a few questions not just answered. */
 export function followUps(answeredId?: string) {
-  const order = ["projects", "skills", "now", "contact", "open", "education", "fun", "build"];
+  const order = ["avatar", "projects", "skills", "now", "contact", "open", "education", "fun", "build"];
   return order.filter((id) => id !== answeredId).slice(0, 3);
 }
 

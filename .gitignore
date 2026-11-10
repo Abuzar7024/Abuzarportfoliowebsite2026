@@ -6,9 +6,13 @@ dist/
 build/
 .vite/
 
+# Local runtime lead & transaction database
+.data/
+
 # Environment variables — never commit secrets
 .env
 .env.*
+.env*
 !.env.example
 
 # Logs
@@ -39,4 +43,3 @@ coverage/
 # Smoke-test screenshots/report
 .smoke/
 .vercel
-.env*

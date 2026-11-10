@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Power, Search, Volume2, Wifi } from "lucide-react";
+import { Box, Power, Search, Trophy, Volume2, Wifi } from "lucide-react";
 import { profile } from "../../data/profile";
 import { actions, getState, screen, subscribe, useRoom } from "../store";
 import { APP_SPECS, SPECS, type IconName, type WinSpec } from "./fs";
@@ -76,7 +76,15 @@ function DesktopIcon({ label, icon, onOpen }: { label: string; icon: IconName; o
  * HTML laid over the 3D screen (or full-screen when too small), with windows,
  * a file explorer, a start menu and a taskbar.
  */
-export function Desktop({ flat = false }: { flat?: boolean }) {
+export function Desktop({
+  flat = false,
+  canUse3D = false,
+  onEnter3D,
+}: {
+  flat?: boolean;
+  canUse3D?: boolean;
+  onEnter3D?: () => void;
+}) {
   const view = useRoom((s) => s.view);
   const arrived = useRoom((s) => s.arrived);
   const open = view === "monitor" && arrived;
@@ -234,11 +242,16 @@ export function Desktop({ flat = false }: { flat?: boolean }) {
                   <span className="grid h-8 w-8 place-items-center rounded-full bg-accent font-brand text-[9px] text-white">AK</span>
                   {profile.name}
                 </span>
-                {!flat && (
+                {!flat ? (
                   <button type="button" onClick={actions.backToRoom} className="os-iconbtn !h-9 !w-9" aria-label="Shut down: back to the room" title="Back to the room">
                     <Power size={16} aria-hidden="true" />
                   </button>
-                )}
+                ) : canUse3D && onEnter3D ? (
+                  <button type="button" onClick={onEnter3D} className="os-taskbtn !w-auto gap-1.5 !px-3 text-[12px] text-ink-2" aria-label="Enter 3D Room" title="Enter 3D Room">
+                    <Box size={14} className="text-accent-ink" aria-hidden="true" />
+                    <span>3D Room</span>
+                  </button>
+                ) : null}
               </div>
             </motion.div>
           )}
@@ -277,18 +290,33 @@ export function Desktop({ flat = false }: { flat?: boolean }) {
               );
             })}
           </div>
-          <div className="flex shrink-0 items-center gap-3 pl-2">
+          <div className="flex shrink-0 items-center gap-2 pl-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => actions.openCompetition("/competition")}
+              className="os-taskbtn !w-auto gap-1.5 !px-2.5 text-[12px] text-[#ffe28a]"
+              aria-label="AVATAR Hackathon"
+              title="AVATAR — DESIGN. BUILD. SELL. IN ONE DAY."
+            >
+              <Trophy size={14} className="text-[#f5c451]" aria-hidden="true" />
+              <span className="hidden xs:inline">AVATAR</span>
+            </button>
             <span className="hidden items-center gap-2 text-ink-2 sm:flex" aria-hidden="true">
               <Wifi size={14} />
               <Volume2 size={14} />
             </span>
             <Clock />
-            {!flat && (
+            {!flat ? (
               <button type="button" onClick={actions.backToRoom} className="os-taskbtn !w-auto gap-1.5 !px-2.5 text-[12px] text-ink-2" aria-label="Back to the room">
                 <Power size={14} aria-hidden="true" />
                 <span className="hidden sm:inline">Room</span>
               </button>
-            )}
+            ) : canUse3D && onEnter3D ? (
+              <button type="button" onClick={onEnter3D} className="os-taskbtn !w-auto gap-1.5 !px-2.5 text-[12px] text-ink-2" aria-label="Enter 3D Room" title="Switch to 3D Room">
+                <Box size={14} className="text-accent-ink" aria-hidden="true" />
+                <span className="hidden sm:inline">3D Room</span>
+              </button>
+            ) : null}
           </div>
         </nav>
       </div>

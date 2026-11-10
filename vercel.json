@@ -5,6 +5,24 @@
   "outputDirectory": "build",
   "installCommand": "npm ci",
   "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/api/hackathon/:path*",
+      "destination": "/api/hackathon/[...route]"
+    },
+    {
+      "source": "/api/avatar/:path*",
+      "destination": "/api/avatar/[...route]"
+    },
+    {
+      "source": "/competition",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/competition/:path*",
+      "destination": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/assets/(.*)",

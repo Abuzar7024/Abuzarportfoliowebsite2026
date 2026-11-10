@@ -14,7 +14,6 @@ interface Pose {
   panLimit: number;
 }
 
-const v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 const lerp = THREE.MathUtils.lerp;
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
@@ -24,9 +23,17 @@ const wideness = (aspect: number) => THREE.MathUtils.clamp((aspect - 0.5) / (1.6
 const screenCenter = new THREE.Vector3();
 const screenNormal = new THREE.Vector3();
 const quat = new THREE.Quaternion();
+const scratchPose: Pose = {
+  pos: new THREE.Vector3(),
+  target: new THREE.Vector3(),
+  fov: 50,
+  panAxis: new THREE.Vector3(),
+  panLimit: 0,
+};
 
 function poseFor(view: View, aspect: number): Pose {
   const k = wideness(aspect);
+  const out = scratchPose;
   switch (view) {
     case "monitor": {
       const mesh = screen.mesh;
@@ -42,20 +49,41 @@ function poseFor(view: View, aspect: number): Pose {
       const tan = Math.tan(THREE.MathUtils.degToRad(fov / 2));
       // Fit the screen to ~86% of the height, or ~94% of the width on narrow views.
       const d = Math.max(SCREEN.h / 2 / tan / 0.86, SCREEN.w / 2 / (tan * aspect) / 0.94);
-      return { pos: screenCenter.clone().addScaledVector(screenNormal, d), target: screenCenter.clone(), fov, panAxis: v(1, 0, 0), panLimit: 0 };
+      out.pos.copy(screenCenter).addScaledVector(screenNormal, d);
+      out.target.copy(screenCenter);
+      out.fov = fov;
+      out.panAxis.set(1, 0, 0);
+      out.panLimit = 0;
+      return out;
     }
     case "posters":
-      return { pos: v(lerp(-0.9, -1.45, k), 1.7, -1.6), target: v(-4, 1.68, -1.6), fov: lerp(68, 56, k), panAxis: v(0, 0, -1), panLimit: lerp(1.1, 0.3, k) };
+      out.pos.set(lerp(-0.9, -1.45, k), 1.7, -1.6);
+      out.target.set(-4, 1.68, -1.6);
+      out.fov = lerp(68, 56, k);
+      out.panAxis.set(0, 0, -1);
+      out.panLimit = lerp(1.1, 0.3, k);
+      return out;
     case "shelf":
-      return { pos: v(1.3, 1.62, -0.45), target: v(4, 1.6, -2.15), fov: lerp(70, 55, k), panAxis: v(-0.55, 0, -0.84), panLimit: lerp(1.0, 0.3, k) };
+      out.pos.set(1.3, 1.62, -0.45);
+      out.target.set(4, 1.6, -2.15);
+      out.fov = lerp(70, 55, k);
+      out.panAxis.set(-0.55, 0, -0.84);
+      out.panLimit = lerp(1.0, 0.3, k);
+      return out;
+    case "trophy":
+      out.pos.set(lerp(1.55, 1.75, k), 1.48, lerp(0.45, 0.15, k));
+      out.target.set(2.82, 1.18, -1.25);
+      out.fov = lerp(56, 44, k);
+      out.panAxis.set(0.7, 0, -0.7);
+      out.panLimit = 0.25;
+      return out;
     default:
-      return {
-        pos: v(lerp(0, -0.15, k), lerp(1.95, 1.75, k), lerp(4.9, 3.9, k)),
-        target: v(lerp(0, -0.35, k), lerp(1.2, 1.3, k), -2.3),
-        fov: lerp(66, 50, k),
-        panAxis: v(1, 0, 0),
-        panLimit: lerp(1.9, 0.8, k),
-      };
+      out.pos.set(lerp(0, -0.15, k), lerp(1.95, 1.75, k), lerp(4.9, 3.9, k));
+      out.target.set(lerp(0, -0.35, k), lerp(1.2, 1.3, k), -2.3);
+      out.fov = lerp(66, 50, k);
+      out.panAxis.set(1, 0, 0);
+      out.panLimit = lerp(1.9, 0.8, k);
+      return out;
   }
 }
 
@@ -71,14 +99,19 @@ export function CameraRig({ reduced }: { reduced: boolean }) {
   const flight = useRef({ view: getState().view, t: 1, fromPos: new THREE.Vector3(), fromTarget: new THREE.Vector3(), fromFov: 50 });
   const pan = useRef(0);
   const lastPan = useRef(0);
+  const lastFov = useRef(0);
+  const lastAspect = useRef(0);
   const fine = useMemo(() => typeof window !== "undefined" && window.matchMedia("(pointer: fine)").matches, []);
 
   // Start at the room pose without a flight.
   useEffect(() => {
-    const p = poseFor("room", size.width / size.height);
+    const aspect = size.width / size.height;
+    const p = poseFor("room", aspect);
     cam.position.copy(p.pos);
     target.copy(p.target);
     cam.fov = p.fov;
+    lastFov.current = p.fov;
+    lastAspect.current = aspect;
     cam.updateProjectionMatrix();
     cam.lookAt(target);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -132,7 +165,11 @@ export function CameraRig({ reduced }: { reduced: boolean }) {
       target.z = THREE.MathUtils.damp(target.z, pose.target.z, 5, dt);
       cam.fov = THREE.MathUtils.damp(cam.fov, pose.fov, 5, dt);
     }
-    cam.updateProjectionMatrix();
+    if (Math.abs(cam.fov - lastFov.current) > 1e-4 || aspect !== lastAspect.current) {
+      lastFov.current = cam.fov;
+      lastAspect.current = aspect;
+      cam.updateProjectionMatrix();
+    }
     cam.lookAt(target);
   });
 

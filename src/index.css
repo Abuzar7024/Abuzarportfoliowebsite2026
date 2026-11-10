@@ -23,6 +23,7 @@
   --color-success: #7fd6a4;
 
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-jakarta: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
   --font-brand: "Michroma", "Space Grotesk", ui-sans-serif, sans-serif;
@@ -266,9 +267,9 @@
   /* HUD panel: hairline frame with signal-red corner brackets. */
   .hud {
     @apply relative rounded-2xl border border-line;
-    background: linear-gradient(180deg, rgba(35, 38, 43, 0.75), rgba(22, 24, 27, 0.82));
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
+    background: linear-gradient(180deg, rgba(35, 38, 43, 0.88), rgba(22, 24, 27, 0.94));
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
   }
   .hud::before,
   .hud::after {
@@ -513,6 +514,7 @@
   left: 0;
   top: 0;
   z-index: 20;
+  will-change: transform, opacity;
   transition: opacity 0.25s ease;
 }
 .room-pin[data-visible="false"] {
@@ -529,8 +531,7 @@
   translate: -50% -50%;
   border-radius: 9999px;
   border: 1px solid rgba(255, 80, 88, 0.6);
-  background: rgba(19, 20, 23, 0.6);
-  backdrop-filter: blur(6px);
+  background: rgba(19, 20, 23, 0.86);
 }
 .room-pin-dot::before {
   content: "";
@@ -648,11 +649,10 @@
   container-type: size;
 }
 .os-window {
-  background: rgba(24, 26, 30, 0.94);
+  background: rgba(24, 26, 30, 0.97);
   border: 1px solid rgba(200, 210, 225, 0.14);
   box-shadow: 0 24px 60px -18px rgba(0, 0, 0, 0.85);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
+  contain: layout paint;
 }
 .os-window--focused {
   border-color: rgba(200, 210, 225, 0.24);
@@ -702,10 +702,8 @@
   outline: none;
 }
 .os-taskbar {
-  background: rgba(18, 19, 22, 0.86);
+  background: rgba(18, 19, 22, 0.94);
   border-top: 1px solid rgba(200, 210, 225, 0.1);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
 }
 .os-taskbtn {
   position: relative;
@@ -723,9 +721,7 @@
   background: rgba(255, 255, 255, 0.07);
 }
 .os-start {
-  background: rgba(26, 28, 32, 0.96);
+  background: rgba(26, 28, 32, 0.98);
   border: 1px solid rgba(200, 210, 225, 0.14);
   box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.9);
-  -webkit-backdrop-filter: blur(24px);
-  backdrop-filter: blur(24px);
 }
