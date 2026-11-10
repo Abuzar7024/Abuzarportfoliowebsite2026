@@ -12,22 +12,45 @@ export function hasDatabaseUrl(): boolean {
 }
 
 /**
+ * Normalizes direct Supabase IPv6-only DB URLs (`db.<ref>.supabase.co`) to the
+ * IPv4-compatible Supabase Session Pooler (`aws-0-ap-northeast-1.pooler.supabase.com:5432`)
+ * so Vercel IPv4 serverless functions can connect reliably.
+ */
+function normalizeDatabaseUrl(rawUrl: string): string {
+  try {
+    const u = new URL(rawUrl);
+    if (u.hostname === "db.oujrhwjcxfrcngdjnrdf.supabase.co") {
+      u.hostname = "aws-0-ap-northeast-1.pooler.supabase.com";
+      u.port = "5432";
+      if (!u.username.endsWith(".oujrhwjcxfrcngdjnrdf")) {
+        u.username = `${u.username}.oujrhwjcxfrcngdjnrdf`;
+      }
+      return u.toString();
+    }
+  } catch {
+    // Keep original URL if parsing fails
+  }
+  return rawUrl;
+}
+
+/**
  * Lazily creates the server-side Postgres client.
  * DATABASE_URL must use the least-privilege `aih_app` role (see scripts/migrate-hackathon.mjs).
  * On serverless hosts without IPv6 use the Supabase pooler connection string.
  */
 export function getSql(): Sql {
   ensureEnvLoaded();
-  const url = (process.env.DATABASE_URL || "").trim();
-  if (!url) {
+  const rawUrl = (process.env.DATABASE_URL || "").trim();
+  if (!rawUrl) {
     throw new Error("DATABASE_URL is not configured.");
   }
+  const url = normalizeDatabaseUrl(rawUrl);
   if (!client) {
     client = postgres(url, {
       ssl: "require",
       max: process.env.VERCEL ? 1 : 5,
       idle_timeout: 20,
-      connect_timeout: 15,
+      connect_timeout: 10,
       prepare: false,
       onnotice: () => {},
     });

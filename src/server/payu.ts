@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { AVATAR_COMPETITION } from "../data/avatar-competition";
 import type { PaymentStatus } from "./avatar-db";
+import { getRuntimeEnvFallback } from "./runtime-env";
 
 export interface PayUConfig {
   key: string;
@@ -46,21 +47,28 @@ export function setSandboxGatewayOutcome(
 export function ensureEnvLoaded(): void {
   try {
     const envPath = path.join(process.cwd(), ".env.local");
-    if (!fs.existsSync(envPath)) return;
-    const content = fs.readFileSync(envPath, "utf8");
-    for (const line of content.split(/\r?\n/)) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
-      const eq = trimmed.indexOf("=");
-      if (eq <= 0) continue;
-      const k = trimmed.slice(0, eq).trim();
-      const v = trimmed.slice(eq + 1).trim();
-      if (k && v) {
-        process.env[k] = v;
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, "utf8");
+      for (const line of content.split(/\r?\n/)) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#")) continue;
+        const eq = trimmed.indexOf("=");
+        if (eq <= 0) continue;
+        const k = trimmed.slice(0, eq).trim();
+        const v = trimmed.slice(eq + 1).trim();
+        if (k && v) {
+          process.env[k] = v;
+        }
       }
     }
   } catch {
-    // Ignore in serverless production where process.env is already populated
+    // Ignore filesystem errors in serverless production
+  }
+  const fallback = getRuntimeEnvFallback();
+  for (const [k, v] of Object.entries(fallback)) {
+    if (!process.env[k] && v) {
+      process.env[k] = v;
+    }
   }
 }
 

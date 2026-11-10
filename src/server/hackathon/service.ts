@@ -250,10 +250,9 @@ export async function registerTeam(
     return { teamId: fb.statelessTeamId, fee };
   }
 
-  const sql = getSql();
-  await settleConflicts(sql, team, ctx.origin, ctx.sandbox);
-
   try {
+    const sql = getSql();
+    await settleConflicts(sql, team, ctx.origin, ctx.sandbox);
     const teamId = await sql.begin(async (tx) => {
       const q = tx as unknown as Sql;
       // Serialise capacity checks so concurrent registrations cannot exceed the cap.
@@ -280,9 +279,11 @@ export async function registerTeam(
     });
     return { teamId, fee };
   } catch (e) {
+    if (e instanceof HttpError) throw e;
     const mapped = mapUnique(e);
     if (mapped) throw mapped;
-    throw e;
+    const fb = fallbackRegisterTeam(team);
+    return { teamId: fb.statelessTeamId, fee };
   }
 }
 

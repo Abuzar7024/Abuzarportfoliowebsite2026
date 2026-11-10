@@ -231,7 +231,8 @@ export async function handleAvatarApi(
 ): Promise<void> {
   const origin = getOrigin(req);
   const url = new URL(req.url || "/", origin);
-  const route = url.pathname.replace(/^\/api\/avatar\/?/, "").replace(/\/+$/, "");
+  const rawRoute = url.pathname.replace(/^\/api\/avatar\/?/, "").replace(/\/+$/, "");
+  const route = rawRoute && rawRoute !== "[...route]" && rawRoute !== "index" ? rawRoute : (url.searchParams.get("__route") || url.searchParams.get("route") || "").replace(/^\/+|\/+$/g, "");
   const method = (req.method || "GET").toUpperCase();
 
   // Opportunistically process any queued email notifications in the background

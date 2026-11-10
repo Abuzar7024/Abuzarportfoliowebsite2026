@@ -8,11 +8,11 @@
   "rewrites": [
     {
       "source": "/api/hackathon/:path*",
-      "destination": "/api/hackathon/[...route]"
+      "destination": "/api/hackathon/index?__route=:path*"
     },
     {
       "source": "/api/avatar/:path*",
-      "destination": "/api/avatar/[...route]"
+      "destination": "/api/avatar/index?__route=:path*"
     },
     {
       "source": "/competition",

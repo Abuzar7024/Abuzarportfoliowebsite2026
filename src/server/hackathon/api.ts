@@ -275,7 +275,11 @@ export function createHackathonHandler(deps: HandlerDeps = { verifyToken: verify
   return async function handleHackathonApi(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const origin = requestOrigin(req);
     const url = new URL(req.url || "/", origin);
-    const route = url.pathname.replace(/^\/api\/hackathon\/?/, "").replace(/\/+$/, "");
+    const rawRoute = url.pathname.replace(/^\/api\/hackathon\/?/, "").replace(/\/+$/, "");
+    const route =
+      rawRoute && rawRoute !== "[...route]" && rawRoute !== "index"
+        ? rawRoute
+        : (url.searchParams.get("__route") || url.searchParams.get("route") || "").replace(/^\/+|\/+$/g, "");
     const method = (req.method || "GET").toUpperCase();
     const local = isLocalOrigin(origin);
 
