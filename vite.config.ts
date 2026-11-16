@@ -2,8 +2,6 @@ import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
-import { handleAvatarApi } from './src/server/avatar-api';
-import { handleHackathonApi } from './src/server/hackathon/api';
 
 /**
  * Injects VITE_SITE_URL into index.html. When the URL is not configured yet,
@@ -28,51 +26,10 @@ function siteUrlPlugin(siteUrl: string): Plugin {
   };
 }
 
-/**
- * Mounts the `/api/avatar/*` backend routes directly inside Vite's dev and
- * preview servers so PayU checkout, callbacks, badge verification, and lead
- * storage run identically in local development and production.
- */
-function avatarApiPlugin(): Plugin {
-  return {
-    name: 'avatar-api-middleware',
-    configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        if (req.url?.startsWith('/api/hackathon')) {
-          handleHackathonApi(req, res).catch(next);
-          return;
-        }
-        if (req.url?.startsWith('/api/avatar')) {
-          handleAvatarApi(req, res).catch(next);
-          return;
-        }
-        next();
-      });
-    },
-    configurePreviewServer(server) {
-      server.middlewares.use((req, res, next) => {
-        if (req.url?.startsWith('/api/hackathon')) {
-          handleHackathonApi(req, res).catch(next);
-          return;
-        }
-        if (req.url?.startsWith('/api/avatar')) {
-          handleAvatarApi(req, res).catch(next);
-          return;
-        }
-        next();
-      });
-    },
-  };
-}
-
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  // Populate process.env for server middleware in dev/preview (PayU + Supabase + EmailJS + Sandbox)
-  for (const [k, v] of Object.entries(env)) {
-    process.env[k] = v;
-  }
   return {
-    plugins: [react(), tailwindcss(), siteUrlPlugin(env.VITE_SITE_URL ?? ''), avatarApiPlugin()],
+    plugins: [react(), tailwindcss(), siteUrlPlugin(env.VITE_SITE_URL ?? '')],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),

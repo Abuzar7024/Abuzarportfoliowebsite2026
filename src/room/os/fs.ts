@@ -8,7 +8,7 @@ import type { AppId } from "../store";
  * generated from the same data files as the rest of the site.
  */
 
-export type AppKind = "explorer" | "notepad" | "project" | "resume" | "mail" | "skills" | "bot" | "game";
+export type AppKind = "explorer" | "notepad" | "project" | "mail" | "skills" | "bot" | "game";
 
 export type IconName = "pc" | "folder" | "text" | "pdf" | "project" | "mail" | "bot" | "game" | "skills" | "bin";
 
@@ -37,7 +37,6 @@ export const SPECS = {
   about: note("about", "About me.txt"),
   contactTxt: note("contact", "Contact.txt"),
   education: note("education", "Education.txt"),
-  resume: { key: "resume", title: "Resume.pdf - Viewer", icon: "pdf", kind: "resume" } as WinSpec,
   mail: { key: "mail", title: "Mail - New message", icon: "mail", kind: "mail" } as WinSpec,
   bot: { key: "bot", title: "AK-Bot", icon: "bot", kind: "bot" } as WinSpec,
   skills: { key: "skills", title: "Skills", icon: "skills", kind: "skills" } as WinSpec,
@@ -54,7 +53,6 @@ export const APP_SPECS: Record<AppId, WinSpec> = {
   projects: SPECS.projects,
   experience: SPECS.experience,
   skills: SPECS.skills,
-  resume: SPECS.resume,
   contact: SPECS.mail,
   assistant: SPECS.bot,
 };
@@ -74,7 +72,6 @@ export const ROOT: FsNode = {
         { name: "About me.txt", icon: "text", type: "Text document", open: SPECS.about },
         { name: "Contact.txt", icon: "text", type: "Text document", open: SPECS.contactTxt },
         { name: "Education.txt", icon: "text", type: "Text document", open: SPECS.education },
-        { name: "Resume.pdf", icon: "pdf", type: "PDF document", open: SPECS.resume },
       ],
     },
     {
@@ -128,7 +125,7 @@ export function documentText(doc: string): string {
       "HOW I WORK",
       ...profile.philosophy.map((p) => `- ${p.title}: ${p.text}`),
       "",
-      `${yearsOfExperience()}+ years of experience. Open Projects, Experience or Resume.pdf for more.`,
+      `${yearsOfExperience()}+ years of experience. Open Projects, Experience or Skills for more.`,
     ].join("\n");
   }
   if (doc === "contact") {

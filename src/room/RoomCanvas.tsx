@@ -10,14 +10,12 @@ import { ComputerMonitor } from "./scene/ComputerMonitor";
 import { Keyboard } from "./scene/Keyboard";
 import { Chair } from "./scene/Chair";
 import { RobotCharacter } from "./scene/RobotCharacter";
-import { AvatarTrophy } from "./scene/AvatarTrophy";
 import { SleepingCat } from "./scene/SleepingCat";
 import { ProjectPosters } from "./scene/ProjectPosters";
 import { Shelf } from "./scene/Shelf";
 import { LightingRig } from "./scene/LightingRig";
 import { CameraRig } from "./scene/CameraRig";
 import { AdaptiveQuality, Projector } from "./scene/Projector";
-import { Bloom } from "./scene/Effects";
 import { Hologram, LedStrips, WindowRain } from "./scene/Atmosphere";
 import { attachGesture } from "./scene/gesture";
 import { disposeMaterials } from "./scene/materials";
@@ -27,20 +25,13 @@ import { setState, subscribe, useRoom } from "./store";
 
 export type LoadStage = "engine" | "building" | "lighting" | "ready";
 
-/** Reports "ready" after a few frames have actually been drawn. */
+/** Reports "ready" after the first frame has been drawn. */
 function FirstFrames({ onReady }: { onReady: () => void }) {
-  const n = useRef(0);
   const done = useRef(false);
-  const { invalidate } = useThree();
   useFrame(() => {
     if (done.current) return;
-    n.current++;
-    if (n.current >= 1) {
-      done.current = true;
-      onReady();
-    } else {
-      invalidate();
-    }
+    done.current = true;
+    onReady();
   });
   return null;
 }
@@ -71,10 +62,9 @@ export interface RoomCanvasProps {
 export default function RoomCanvas({ profile, active, fallback, onStage }: RoomCanvasProps) {
   const wrap = useRef<HTMLDivElement>(null);
   const [lowFps, setLowFps] = useState(false);
-  const shadows = profile.tier === "high" && !lowFps;
-  const lite = profile.tier === "low" || lowFps;
+  const lite = profile.tier !== "high" || lowFps;
   const overlayIdle = useRoom(
-    (s) => (s.view === "monitor" && s.arrived) || s.posterProject !== null || (s.competitionOpen && s.arrived)
+    (s) => (s.view === "monitor" && s.arrived) || s.posterProject !== null
   );
 
   useEffect(() => {
@@ -104,8 +94,8 @@ export default function RoomCanvas({ profile, active, fallback, onStage }: RoomC
         <Canvas
           dpr={profile.dpr}
           frameloop={frameloop}
-          shadows={shadows ? { type: THREE.PCFSoftShadowMap } : false}
-          camera={{ position: [-0.15, 1.75, 3.9], fov: 50, near: 0.05, far: 160 }}
+          shadows={false}
+          camera={{ position: [-0.15, 1.75, 3.9], fov: 50, near: 0.05, far: 140 }}
           gl={{
             antialias: profile.antialias && !lowFps,
             powerPreference: profile.tier === "low" ? "default" : "high-performance",
@@ -120,24 +110,22 @@ export default function RoomCanvas({ profile, active, fallback, onStage }: RoomC
           style={{ touchAction: "pan-y" }}
         >
           <color attach="background" args={["#101216"]} />
-          <fog attach="fog" args={["#101216", 30, 110]} />
+          <fog attach="fog" args={["#101216", 30, 100]} />
           <CameraRig reduced={profile.reducedMotion} />
-          <LightingRig shadows={shadows} />
-          <CitySkyline count={profile.tier === "high" && !lowFps ? 160 : profile.tier === "medium" && !lowFps ? 100 : 56} />
-          <Room lite={lite} />
-          <Desk shadows={shadows} />
+          <LightingRig shadows={false} />
+          <CitySkyline count={profile.tier === "high" && !lowFps ? 90 : profile.tier === "medium" && !lowFps ? 60 : 40} />
+          <Room lite />
+          <Desk shadows={false} />
           <ComputerMonitor />
           <Keyboard />
           <Chair />
           <SleepingCat />
           <RobotCharacter />
-          <AvatarTrophy reduced={profile.reducedMotion} lite={lite} />
           <ProjectPosters />
           <Shelf />
-          <Hologram reduced={profile.reducedMotion} lite={lite} />
+          <Hologram reduced={profile.reducedMotion} lite />
           {!lite && <WindowRain reduced={profile.reducedMotion} />}
-          <LedStrips lite={lite} />
-          {profile.tier === "high" && !lowFps && <Bloom />}
+          <LedStrips lite />
           <Projector />
           <AdaptiveQuality max={profile.dpr[1]} onLowFps={handleLowFps} />
           <FirstFrames onReady={() => onStage("ready")} />

@@ -1,20 +1,19 @@
 import React, { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Box, Power, Search, Trophy, Volume2, Wifi } from "lucide-react";
+import { Box, Power, Search, Volume2, Wifi } from "lucide-react";
 import { profile } from "../../data/profile";
 import { actions, getState, screen, subscribe, useRoom } from "../store";
 import { APP_SPECS, SPECS, type IconName, type WinSpec } from "./fs";
 import { initialWm, wmReducer, type Area } from "./windows";
 import { Window } from "./Window";
 import { OsIcon } from "./OsIcon";
-import { BotApp, Explorer, GameApp, MailApp, Notepad, ProjectViewer, ResumeViewer, SkillsApp } from "./apps";
+import { BotApp, Explorer, GameApp, MailApp, Notepad, ProjectViewer, SkillsApp } from "./apps";
 
 const DESKTOP_ICONS: { label: string; icon: IconName; spec: WinSpec }[] = [
   { label: "This PC", icon: "pc", spec: SPECS.pc },
   { label: "About me.txt", icon: "text", spec: SPECS.about },
   { label: "Projects", icon: "folder", spec: SPECS.projects },
   { label: "Experience", icon: "folder", spec: SPECS.experience },
-  { label: "Resume.pdf", icon: "pdf", spec: SPECS.resume },
   { label: "Skills", icon: "skills", spec: SPECS.skills },
   { label: "Mail", icon: "mail", spec: SPECS.mail },
   { label: "AK-Bot", icon: "bot", spec: SPECS.bot },
@@ -29,7 +28,6 @@ const START_ITEMS: { label: string; icon: IconName; spec: WinSpec }[] = [
   { label: "Projects", icon: "folder", spec: SPECS.projects },
   { label: "Experience", icon: "folder", spec: SPECS.experience },
   { label: "Skills", icon: "skills", spec: SPECS.skills },
-  { label: "Resume", icon: "pdf", spec: SPECS.resume },
   { label: "Mail", icon: "mail", spec: SPECS.mail },
   { label: "AK-Bot", icon: "bot", spec: SPECS.bot },
   { label: "Contact info", icon: "text", spec: SPECS.contactTxt },
@@ -157,8 +155,6 @@ export function Desktop({
         return <Notepad doc={spec.props?.doc ?? ""} />;
       case "project":
         return <ProjectViewer id={spec.props?.id ?? ""} open={openSpec} />;
-      case "resume":
-        return <ResumeViewer />;
       case "mail":
         return <MailApp />;
       case "skills":
@@ -291,16 +287,6 @@ export function Desktop({
             })}
           </div>
           <div className="flex shrink-0 items-center gap-2 pl-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => actions.openCompetition("/competition")}
-              className="os-taskbtn !w-auto gap-1.5 !px-2.5 text-[12px] text-[#ffe28a]"
-              aria-label="AVATAR Hackathon"
-              title="AVATAR — DESIGN. BUILD. SELL. IN ONE DAY."
-            >
-              <Trophy size={14} className="text-[#f5c451]" aria-hidden="true" />
-              <span className="hidden xs:inline">AVATAR</span>
-            </button>
             <span className="hidden items-center gap-2 text-ink-2 sm:flex" aria-hidden="true">
               <Wifi size={14} />
               <Volume2 size={14} />

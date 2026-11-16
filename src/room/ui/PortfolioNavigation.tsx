@@ -1,5 +1,5 @@
 import React from "react";
-import { Bot, Briefcase, Home, LayoutGrid, Mail, Trophy, User } from "lucide-react";
+import { Bot, Briefcase, Home, LayoutGrid, Mail, User } from "lucide-react";
 import { actions, useRoom, type AppId } from "../store";
 
 const ITEMS: { app: AppId; label: string; Icon: typeof User }[] = [
@@ -9,11 +9,10 @@ const ITEMS: { app: AppId; label: string; Icon: typeof User }[] = [
   { app: "contact", label: "Contact", Icon: Mail },
 ];
 
-/** The always-available way around: the room plus the main computer apps and AI Hackathon. */
+/** The always-available way around: the room plus the main computer apps. */
 export function PortfolioNavigation() {
   const view = useRoom((s) => s.view);
   const app = useRoom((s) => s.app);
-  const competitionOpen = useRoom((s) => s.competitionOpen);
   return (
     <nav
       aria-label="Portfolio sections"
@@ -27,18 +26,18 @@ export function PortfolioNavigation() {
             onClick={actions.backToRoom}
             aria-label="Back to room"
             title="Room"
-            aria-current={view === "room" && !competitionOpen ? "page" : undefined}
-            className={`flex items-center gap-0 rounded-xl px-1.5 py-1.5 text-[12px] transition-colors xs:px-2 sm:gap-2 sm:px-3 sm:py-2 sm:text-[13px] ${
-              view === "room" && !competitionOpen ? "bg-white/[0.08] text-ink" : "text-muted hover:text-ink"
+            aria-current={view === "room" ? "page" : undefined}
+            className={`flex items-center gap-0 rounded-xl px-2 py-1.5 text-[12px] transition-colors sm:gap-2 sm:px-3 sm:py-2 sm:text-[13px] ${
+              view === "room" ? "bg-white/[0.08] text-ink" : "text-muted hover:text-ink"
             }`}
           >
-            <Home size={14} className={view === "room" && !competitionOpen ? "text-accent-ink" : ""} aria-hidden="true" />
+            <Home size={14} className={view === "room" ? "text-accent-ink" : ""} aria-hidden="true" />
             <span className="hidden sm:inline">Room</span>
           </button>
         </li>
         <li aria-hidden="true" className="my-1.5 w-px shrink-0 bg-line-2" />
         {ITEMS.map(({ app: id, label, Icon }) => {
-          const active = view === "monitor" && app === id && !competitionOpen;
+          const active = view === "monitor" && app === id;
           return (
             <li key={id} className="shrink-0">
               <button
@@ -47,7 +46,7 @@ export function PortfolioNavigation() {
                 aria-label={label}
                 title={label}
                 aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-0 rounded-xl px-1.5 py-1.5 text-[12px] transition-colors xs:px-2 sm:gap-2 sm:px-3 sm:py-2 sm:text-[13px] ${
+                className={`flex items-center gap-0 rounded-xl px-2 py-1.5 text-[12px] transition-colors sm:gap-2 sm:px-3 sm:py-2 sm:text-[13px] ${
                   active ? "bg-white/[0.08] text-ink" : "text-muted hover:text-ink"
                 }`}
               >
@@ -61,27 +60,10 @@ export function PortfolioNavigation() {
         <li className="shrink-0">
           <button
             type="button"
-            onClick={() => actions.openCompetition("/competition")}
-            aria-label="AVATAR Hackathon"
-            title="AVATAR — DESIGN. BUILD. SELL. IN ONE DAY. (PRE-REGISTRATIONS ARE NOW OPEN!)"
-            aria-current={competitionOpen ? "page" : undefined}
-            className={`flex items-center gap-1 rounded-xl border px-2 py-1.5 text-[11.5px] font-semibold whitespace-nowrap transition-all xs:gap-1.5 xs:px-2.5 sm:px-3.5 sm:py-2 sm:text-[13px] ${
-              competitionOpen
-                ? "border-[#f5c451]/70 bg-[#f5c451]/20 text-[#ffe28a]"
-                : "border-[#f5c451]/40 bg-[#f5c451]/10 text-[#ffe28a] hover:border-[#f5c451]/70 hover:bg-[#f5c451]/20"
-            }`}
-          >
-            <Trophy size={13} className="shrink-0 text-[#f5c451]" aria-hidden="true" />
-            <span>AVATAR</span>
-          </button>
-        </li>
-        <li className="shrink-0">
-          <button
-            type="button"
             onClick={actions.openRobotChat}
             aria-label="Ask robot"
             title="Ask robot"
-            className="flex items-center gap-0 rounded-xl px-1.5 py-1.5 text-[12px] text-muted transition-colors hover:text-ink xs:px-2 sm:gap-2 sm:px-3 sm:py-2 sm:text-[13px]"
+            className="flex items-center gap-0 rounded-xl px-2 py-1.5 text-[12px] text-muted transition-colors hover:text-ink sm:gap-2 sm:px-3 sm:py-2 sm:text-[13px]"
           >
             <Bot size={14} aria-hidden="true" />
             <span className="hidden md:inline">Ask robot</span>

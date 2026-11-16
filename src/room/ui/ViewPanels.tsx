@@ -1,6 +1,6 @@
 import React from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, Briefcase, Cpu, FileText, GraduationCap, Plus } from "lucide-react";
+import { ArrowLeft, Briefcase, Cpu, GraduationCap, Plus } from "lucide-react";
 import { featuredProjects } from "../../data/projects";
 import { education } from "../../data/experience";
 import { actions, useRoom } from "../store";
@@ -12,7 +12,7 @@ function Panel({ title, hint, children }: { title: string; hint: string; childre
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 12 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.2 }}
       aria-label={title}
     >
       <div className="flex items-center justify-between gap-3">
@@ -74,11 +74,10 @@ export function ViewPanels() {
               </li>
             ))}
           </ul>
-          <div className="mt-3 grid grid-cols-3 gap-2">
+          <div className="mt-3 grid grid-cols-2 gap-2">
             {[
               { app: "skills" as const, label: "Skills", Icon: Cpu },
               { app: "experience" as const, label: "Work", Icon: Briefcase },
-              { app: "resume" as const, label: "Resume", Icon: FileText },
             ].map(({ app, label, Icon }) => (
               <button key={app} type="button" onClick={() => actions.openApp(app)} className="btn-ghost !flex-col !gap-1 !rounded-xl !px-2 !py-2.5 text-[12px]">
                 <Icon size={15} aria-hidden="true" />

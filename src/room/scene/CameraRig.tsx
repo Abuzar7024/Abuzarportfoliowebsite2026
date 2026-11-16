@@ -70,13 +70,6 @@ function poseFor(view: View, aspect: number): Pose {
       out.panAxis.set(-0.55, 0, -0.84);
       out.panLimit = lerp(1.0, 0.3, k);
       return out;
-    case "trophy":
-      out.pos.set(lerp(1.55, 1.75, k), 1.48, lerp(0.45, 0.15, k));
-      out.target.set(2.82, 1.18, -1.25);
-      out.fov = lerp(56, 44, k);
-      out.panAxis.set(0.7, 0, -0.7);
-      out.panLimit = 0.25;
-      return out;
     default:
       out.pos.set(lerp(0, -0.15, k), lerp(1.95, 1.75, k), lerp(4.9, 3.9, k));
       out.target.set(lerp(0, -0.35, k), lerp(1.2, 1.3, k), -2.3);
@@ -144,26 +137,26 @@ export function CameraRig({ reduced }: { reduced: boolean }) {
     pose.target.addScaledVector(pose.panAxis, pan.current);
 
     if (fine && !reduced && s.view === "room") {
-      pose.pos.x += pointer.x * 0.18;
-      pose.pos.y += pointer.y * 0.08;
+      pose.pos.x += pointer.x * 0.16;
+      pose.pos.y += pointer.y * 0.07;
     }
 
     if (f.t < 1) {
-      // Flights advance on (lightly clamped) real time so they take ~1.2 s even on slow devices.
-      f.t = reduced ? 1 : Math.min(1, f.t + Math.min(delta, 0.25) / 1.15);
+      // Snappy ~0.75s camera transitions so navigation feels instant and smooth.
+      f.t = reduced ? 1 : Math.min(1, f.t + Math.min(delta, 0.25) / 0.75);
       const e = easeInOut(f.t);
       cam.position.lerpVectors(f.fromPos, pose.pos, e);
       target.lerpVectors(f.fromTarget, pose.target, e);
       cam.fov = lerp(f.fromFov, pose.fov, e);
       if (f.t >= 1) setState({ arrived: true });
     } else {
-      cam.position.x = THREE.MathUtils.damp(cam.position.x, pose.pos.x, 5, dt);
-      cam.position.y = THREE.MathUtils.damp(cam.position.y, pose.pos.y, 5, dt);
-      cam.position.z = THREE.MathUtils.damp(cam.position.z, pose.pos.z, 5, dt);
-      target.x = THREE.MathUtils.damp(target.x, pose.target.x, 5, dt);
-      target.y = THREE.MathUtils.damp(target.y, pose.target.y, 5, dt);
-      target.z = THREE.MathUtils.damp(target.z, pose.target.z, 5, dt);
-      cam.fov = THREE.MathUtils.damp(cam.fov, pose.fov, 5, dt);
+      cam.position.x = THREE.MathUtils.damp(cam.position.x, pose.pos.x, 8, dt);
+      cam.position.y = THREE.MathUtils.damp(cam.position.y, pose.pos.y, 8, dt);
+      cam.position.z = THREE.MathUtils.damp(cam.position.z, pose.pos.z, 8, dt);
+      target.x = THREE.MathUtils.damp(target.x, pose.target.x, 8, dt);
+      target.y = THREE.MathUtils.damp(target.y, pose.target.y, 8, dt);
+      target.z = THREE.MathUtils.damp(target.z, pose.target.z, 8, dt);
+      cam.fov = THREE.MathUtils.damp(cam.fov, pose.fov, 8, dt);
     }
     if (Math.abs(cam.fov - lastFov.current) > 1e-4 || aspect !== lastAspect.current) {
       lastFov.current = cam.fov;

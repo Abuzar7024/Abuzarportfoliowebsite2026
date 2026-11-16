@@ -104,8 +104,8 @@ export function useRenderProfile(): RenderProfile {
 
     const use3D = webgl && !veryLowBandwidth;
     const dpr: [number, number] =
-      tier === "high" ? [1, 1.5] : tier === "medium" ? [0.85, 1.15] : [0.75, 1];
-    const particleScale = tier === "high" ? 1 : tier === "medium" ? 0.55 : 0.3;
+      tier === "high" ? [1, 1.25] : tier === "medium" ? [0.85, 1] : [0.75, 0.9];
+    const particleScale = tier === "high" ? 0.8 : tier === "medium" ? 0.5 : 0.25;
 
     return {
       webgl,

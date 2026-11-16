@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from "react";
-import { ArrowLeft, ArrowUp, ChevronRight, Download, ExternalLink, HardDrive } from "lucide-react";
+import { ArrowLeft, ArrowUp, ChevronRight, HardDrive } from "lucide-react";
 import { profile } from "../../data/profile";
 import { featuredProjects, otherProjects } from "../../data/projects";
 import { ProjectDetails } from "../../components/ProjectDialog";
@@ -7,9 +7,6 @@ import { BotChat } from "../bot/BotChat";
 import { documentText, findPath, ROOT, type FsNode, type WinSpec } from "./fs";
 import { OsIcon } from "./OsIcon";
 
-const ResumeDocument = lazy(() =>
-  import("../../components/ResumeDocument").then((m) => ({ default: m.ResumeDocument }))
-);
 const ContactForm = lazy(() =>
   import("../../components/ContactForm").then((m) => ({ default: m.ContactForm }))
 );
@@ -159,28 +156,6 @@ export function ProjectViewer({ id, open }: { id: string; open: Open }) {
         <ArrowLeft size={13} aria-hidden="true" /> All projects
       </button>
       <ProjectDetails project={p} />
-    </div>
-  );
-}
-
-export function ResumeViewer() {
-  return (
-    <div className="flex min-h-full flex-col bg-[#2a2d32]">
-      <div className="sticky top-0 z-10 flex items-center justify-end gap-2 border-b border-white/[0.06] bg-[#1b1d21] px-3 py-2">
-        <a href={profile.links.resumePdf} download className="btn-primary !px-3 !py-1.5 text-[12.5px]">
-          <Download size={13} aria-hidden="true" /> Download
-        </a>
-        <a href={profile.links.resumePdf} target="_blank" rel="noopener noreferrer" className="btn-ghost !px-3 !py-1.5 text-[12.5px]">
-          <ExternalLink size={13} aria-hidden="true" /> Open PDF
-        </a>
-      </div>
-      <div className="p-4 sm:p-6">
-        <div className="mx-auto max-w-[820px] overflow-hidden rounded bg-white shadow-2xl">
-          <Suspense fallback={<AppFallback />}>
-            <ResumeDocument />
-          </Suspense>
-        </div>
-      </div>
     </div>
   );
 }

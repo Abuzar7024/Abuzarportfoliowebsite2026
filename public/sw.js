@@ -8,7 +8,7 @@
  * - Everything else same-origin, plus Google Fonts: stale-while-revalidate.
  * - Third-party APIs (EmailJS, region lookup) are never cached.
  */
-const VERSION = "v2";
+const VERSION = "v3";
 const SHELL = `shell-${VERSION}`;
 const RUNTIME = `runtime-${VERSION}`;
 const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];

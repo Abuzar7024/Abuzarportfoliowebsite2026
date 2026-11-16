@@ -7,31 +7,10 @@ import { RoomExperience } from "./room/RoomExperience";
 const OfflineScreen = lazy(() =>
   import("./components/OfflineScreen").then((m) => ({ default: m.OfflineScreen }))
 );
-const ResumeDocument = lazy(() =>
-  import("./components/ResumeDocument").then((m) => ({ default: m.ResumeDocument }))
-);
 
 const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
-const isPrintMode = params.get("print") === "resume";
 /** `?offline` previews the offline page without disconnecting. */
 const previewOffline = params.has("offline");
-
-/** Standalone print view used by the PDF generator (`?print=resume`). */
-function PrintResume() {
-  useEffect(() => {
-    document.body.classList.add("print-resume");
-    document.documentElement.style.background = "#fff";
-    document.title = "Abuzar Khan — Resume";
-    return () => document.body.classList.remove("print-resume");
-  }, []);
-  return (
-    <div id="resume-print-root" className="bg-white">
-      <Suspense fallback={null}>
-        <ResumeDocument siteUrl={(import.meta.env.VITE_SITE_URL as string | undefined) || undefined} />
-      </Suspense>
-    </div>
-  );
-}
 
 function useOnline() {
   const [online, setOnline] = useState(() => (typeof navigator === "undefined" ? true : navigator.onLine));
@@ -80,7 +59,6 @@ function Portfolio() {
 }
 
 export default function App() {
-  if (isPrintMode) return <PrintResume />;
   return (
     <UserSessionProvider>
       <Portfolio />
